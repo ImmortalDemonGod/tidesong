@@ -25,6 +25,7 @@ export interface UIState {
   enemyFlash: number; // seconds remaining on enemy hit flash
   zoomPulse: number; // seconds remaining on the combat-entry/phase zoom
   enemyBeat: number; // seconds until the enemy's answering beat lands
+  storyCard?: { text: string; age: number }; // fragment verses, shown in explore
   floaters: Floater[];
 }
 
@@ -631,6 +632,25 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
   ctx.fillStyle = C.muted;
   ctx.font = "13px system-ui";
   ctx.fillText(hint, 20, 700);
+
+  if (ui.storyCard) {
+    const alpha = Math.min(1, Math.max(0, 5.5 - ui.storyCard.age));
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = "rgba(6,18,28,0.92)";
+    ctx.beginPath();
+    ctx.roundRect(cw / 2 - 320, 540, 640, 56, 10);
+    ctx.fill();
+    ctx.strokeStyle = C.sand;
+    ctx.stroke();
+    ctx.fillStyle = C.sand;
+    ctx.font = "600 12px ui-monospace, monospace";
+    ctx.fillText("MEMORY FRAGMENT", cw / 2 - 300, 562);
+    ctx.fillStyle = C.ink;
+    ctx.font = "15px system-ui";
+    ctx.fillText(ui.storyCard.text, cw / 2 - 300, 584);
+    ctx.restore();
+  }
 
   if (w.npcLine) {
     ctx.fillStyle = "rgba(6,18,28,0.9)";

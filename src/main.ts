@@ -77,6 +77,13 @@ function drainLog(): void {
     if (line.includes("Heal Song: +")) {
       ui.floaters.push({ text: "+40", color: "#7FE8A9", age: 0, side: "player" });
     }
+    // the story must be VISIBLE: fragment verses surface as a card in
+    // exploration (found via sketch re-check: verses only reached the
+    // combat-only log ticker, so the narrative pillar never displayed)
+    const verse = line.match(/^memory fragment: "(.+)"$/);
+    if (verse) {
+      ui.storyCard = { text: verse[1], age: 0 };
+    }
   }
   if (world.deaths > lastDeaths) {
     lastDeaths = world.deaths;
@@ -244,6 +251,12 @@ if (demo) {
     world.area = "dungeon2";
     world.pos = { x: 4, y: 4 };
     world.checkpoint = { area: "dungeon2", pos: { x: 1, y: 4 } };
+  } else if (demo === "fragment") {
+    world.pos = { x: 6, y: 5 };
+    step(world, "right");
+    // the demo logCursor guard skips drainLog, so surface the card directly
+    const verse = world.fragments.find((f) => f.collected)?.verse;
+    if (verse) ui.storyCard = { text: verse, age: 0 };
   } else if (demo === "trench") {
     world.pos = { x: 13, y: 6 };
     step(world, "down");
@@ -290,6 +303,10 @@ function frame(now: number): void {
   if (ui.enemyFlash > 0) ui.enemyFlash = Math.max(0, ui.enemyFlash - dt * 2.5);
   for (const f of ui.floaters) f.age += dt;
   ui.floaters = ui.floaters.filter((f) => f.age < 1.3);
+  if (ui.storyCard) {
+    ui.storyCard.age += dt;
+    if (ui.storyCard.age > 6) ui.storyCard = undefined;
+  }
 
   if (ui.screen === "play" && world.mode === "explore" && heldDirs.size > 0 && now - lastMoveAt > 130) {
     lastMoveAt = now;

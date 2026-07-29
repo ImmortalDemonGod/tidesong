@@ -537,3 +537,15 @@ optimal 14.4 HP lost):
   replace, and the dt clamp starving the virtual clock); both fixed;
   replaces must assert from now on. G6's gallery gains the filmstrip as
   the played-sequence exhibit.
+- 01:33 STORY WAS INVISIBLE (found via the realignment's sketch re-check,
+  same played-vs-tested class the user exposed): fragment verses, the
+  agreed story-delivery mechanism, only reached the internal log, and the
+  log ticker renders only in combat: collecting a fragment showed a
+  counter tick and a chime, never the verse. Fixed: a MEMORY FRAGMENT
+  story card surfaces the verse in exploration for ~6 seconds
+  (screenshot-verified, demo=fragment added). Also this cycle: enemy beat
+  freezes during pause/blur (it resolved fights while paused); camera
+  snaps on transitions and respawns (it slid the fish across the level);
+  demo-state ReferenceError from a dropped import (one commit, played
+  game unaffected); all string replaces now asserted. Played-experience
+  hunter agent in flight for more of the class.
