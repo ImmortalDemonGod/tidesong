@@ -748,7 +748,7 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
       ctx.fillStyle = C.muted;
       ctx.font = "11px system-ui";
       ctx.textAlign = "center";
-      ctx.fillText("sealed: the door wants its song", 0, 34);
+      ctx.fillText("a verse sleeps here: the door wants its song", 0, 34);
       ctx.textAlign = "left";
     } else {
       // a soft glow pulls the eye from a distance (collect ceremony)
@@ -889,9 +889,9 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
     w.area === "hub"
       ? Math.abs(w.pos.x - HUB.npc.x) + Math.abs(w.pos.y - HUB.npc.y) <= 1 ||
         Math.abs(w.pos.x - HUB.door.x) + Math.abs(w.pos.y - HUB.door.y) <= 1
-        ? "E: talk / listen"
-        : "arrows or WASD: swim"
-      : "arrows or WASD: swim";
+        ? "E: talk / listen · P: help"
+        : "arrows or WASD: swim · P: help"
+      : "arrows or WASD: swim · P: help";
   ctx.fillStyle = C.muted;
   ctx.font = "13px system-ui";
   ctx.fillText(hint, 20, 700);
@@ -1176,34 +1176,6 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
     ctx.restore();
   }
 
-  // the set-piece announces itself: a title card over the first beats
-  // of every boss fight (fun diagnosis: bosses arrived like menu rows)
-  if (ui.bossIntro && !ui.victoryHold) {
-    const bi = ui.bossIntro;
-    const fade = Math.min(1, Math.min((bi.dur - bi.t) / 0.35 + 0.001, bi.t / 0.6));
-    ctx.save();
-    ctx.globalAlpha = Math.max(0, fade) * 0.92;
-    ctx.fillStyle = "rgba(4,10,18,0.85)";
-    ctx.fillRect(0, 208, cw, 132);
-    ctx.strokeStyle = C.danger;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(cw / 2 - 260, 214);
-    ctx.lineTo(cw / 2 + 260, 214);
-    ctx.moveTo(cw / 2 - 260, 334);
-    ctx.lineTo(cw / 2 + 260, 334);
-    ctx.stroke();
-    ctx.textAlign = "center";
-    ctx.fillStyle = C.danger;
-    ctx.font = "700 44px system-ui";
-    ctx.fillText(bi.title, cw / 2, 276);
-    ctx.fillStyle = C.muted;
-    ctx.font = "600 16px ui-monospace, monospace";
-    ctx.fillText(bi.sub, cw / 2, 314);
-    ctx.textAlign = "left";
-    ctx.restore();
-  }
-
   // your inked eyes: the water itself darkens at the edges while the
   // player is blinded, and a chip under the fish says why (enemy type 2)
   const pBlindUi = getCondition(c.player, "blind");
@@ -1245,6 +1217,9 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
   ctx.font = "600 16px system-ui";
   ctx.fillText(c.enemy.name, headX, 78);
   bar(ctx, headX, 88, 260, 12, c.enemy.hp / c.enemy.maxHp, C.danger);
+  ctx.fillStyle = C.muted;
+  ctx.font = "600 11px ui-monospace, monospace";
+  ctx.fillText(`${c.enemy.hp}/${c.enemy.maxHp}`, headX + 268, 97);
   let chipX = headX;
   for (const cond of c.enemy.conditions) {
     chipX += chip(ctx, chipX, 108, `${cond.kind.toUpperCase()} ${cond.level === 2 ? "II" : "I"} · ${cond.turns}`, C.glow) + 8;
@@ -1319,7 +1294,12 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
       ctx.fillStyle = p.broken ? "#3a4a56" : selected ? C.glow : C.ink;
       ctx.font = "600 13px ui-monospace, monospace";
       ctx.fillText(`${selected ? "> " : "  "}${p.name.toUpperCase()}${p.broken ? " (broken)" : ""}`, panelX, py2 + 12);
-      if (!p.broken) bar(ctx, panelX + 4, py2 + 20, 150, 8, p.durability / p.maxDurability, C.coral);
+      if (!p.broken) {
+        bar(ctx, panelX + 4, py2 + 20, 150, 8, p.durability / p.maxDurability, C.coral);
+        ctx.fillStyle = C.muted;
+        ctx.font = "10px ui-monospace, monospace";
+        ctx.fillText(String(p.durability), panelX + 158, py2 + 27);
+      }
       py2 += 54;
     }
     if (c.analyzed && !ui.victoryHold) {
@@ -1472,8 +1452,9 @@ export function render(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
     ctx.fillStyle = C.biolum;
     ctx.font = "700 18px ui-monospace, monospace";
     ctx.textAlign = "center";
-    // "SPENT" read as stamina, not a kill (fun diagnosis)
-    ctx.fillText("THE SONG QUIETS", cw / 2, ch / 2 - 31);
+    // "SPENT" read as stamina and "THE SONG QUIETS" read as mourning
+    // (masher playtest): the win now sounds like one
+    ctx.fillText("THE WATER CLEARS", cw / 2, ch / 2 - 31);
     ctx.textAlign = "left";
     if (ui.screen === "pause") {
       // pause draws OVER the held frame instead of leaking the world
@@ -1493,22 +1474,86 @@ export function render(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
     water(ctx, cw, ch, C.mid);
     lightRays(ctx, cw, ch, ui.time);
     particles(ctx, cw, ch, ui.time, 0.7);
+    // a living reef behind the title, not an empty aquarium (pitch judge)
+    ctx.save();
+    ctx.globalAlpha = 0.45;
+    ctx.fillStyle = "#0D2A40";
+    for (let i = 0; i < 6; i++) {
+      const x = 90 + i * 220;
+      ctx.fillRect(x, 380 + (i % 3) * 60, 46, 340);
+      ctx.fillRect(x + 60, 460 + (i % 2) * 40, 34, 260);
+    }
+    ctx.fillStyle = "#0F3048";
+    for (let i = 0; i < 6; i++) {
+      const drift = ((ui.time * (22 + (i % 3) * 12) + i * 300) % (cw + 300)) - 150;
+      const fy = 120 + (i % 4) * 60 + Math.sin(ui.time + i * 2) * 12;
+      const flip = i % 2 === 0 ? 1 : -1;
+      const fx2 = flip === 1 ? drift : cw - drift;
+      ctx.globalAlpha = 0.55;
+      ctx.beginPath();
+      ctx.ellipse(fx2, fy, 13, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(fx2 - 12 * flip, fy);
+      ctx.lineTo(fx2 - 19 * flip, fy - 5);
+      ctx.lineTo(fx2 - 19 * flip, fy + 5);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
     fish(ctx, cw / 2 - 350, 190 + Math.sin(ui.time) * 12, 2.2, ui.time, 1);
     centered(ctx, "TIDESONG", 260, "900 84px system-ui", C.glow, cw);
-    centered(ctx, "working title · the songs faded · follow the fragments", 300, "600 15px system-ui", C.muted, cw);
-    centered(ctx, "click or press any key to begin", 420 + Math.sin(ui.time * 2) * 4, "16px system-ui", C.ink, cw);
-    centered(ctx, "design Marc · art Glass_Goat (all visuals here are placeholders) · code ImmortalDemon", 660, "13px system-ui", C.muted, cw);
+    centered(ctx, "the songs that kept the sea in balance have faded", 302, "600 16px system-ui", C.ink, cw);
+    centered(ctx, "a small fish carries the first verse back", 328, "600 16px system-ui", C.ink, cw);
+    centered(ctx, "click or press any key to begin", 430 + Math.sin(ui.time * 2) * 4, "16px system-ui", C.biolum, cw);
+    centered(ctx, "swim with WASD · sing with 1-6 in combat · P for help at any time", 462, "13px ui-monospace, monospace", C.muted, cw);
+    centered(ctx, "overnight prototype · working title · design Marc · art direction to come from Glass_Goat · code ImmortalDemon", 660, "13px system-ui", C.muted, cw);
     return;
   }
 
   if (w.mode === "combat" && w.combat) renderCombat(ctx, w, ui, cw, ch);
   else renderExplore(ctx, w, ui, cw, ch);
 
+  // the announcement band: boss intros, area arrivals, the wall parting
+  // (playtest: zone transitions were completely silent; every place and
+  // set-piece now names itself for a breath)
+  if (ui.bossIntro && !ui.victoryHold) {
+    const bi = ui.bossIntro;
+    const boss = bi.title.startsWith("THE CORRUPTED");
+    const accent = boss ? C.danger : C.glow;
+    const fade = Math.min(1, Math.min((bi.dur - bi.t) / 0.35 + 0.001, bi.t / 0.6));
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, fade) * 0.92;
+    ctx.fillStyle = "rgba(4,10,18,0.85)";
+    ctx.fillRect(0, 208, cw, 132);
+    ctx.strokeStyle = accent;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cw / 2 - 260, 214);
+    ctx.lineTo(cw / 2 + 260, 214);
+    ctx.moveTo(cw / 2 - 260, 334);
+    ctx.lineTo(cw / 2 + 260, 334);
+    ctx.stroke();
+    ctx.textAlign = "center";
+    ctx.fillStyle = accent;
+    ctx.font = "700 44px system-ui";
+    ctx.fillText(bi.title, cw / 2, 276);
+    ctx.fillStyle = C.muted;
+    ctx.font = "600 16px ui-monospace, monospace";
+    ctx.fillText(bi.sub, cw / 2, 314);
+    ctx.textAlign = "left";
+    ctx.restore();
+  }
+
   if (ui.deathFlash > 0) {
     ctx.fillStyle = `rgba(10,4,8,${Math.min(0.75, ui.deathFlash)})`;
     ctx.fillRect(0, 0, cw, ch);
     centered(ctx, "the sea reclaims you", ch / 2 - 12, "600 34px system-ui", C.danger, cw);
     centered(ctx, "waking at the last checkpoint...", ch / 2 + 24, "15px system-ui", C.muted, cw);
+    if (w.lastDeathHint) {
+      // the pity ladder escalates HP; this line escalates knowledge
+      centered(ctx, w.lastDeathHint, ch / 2 + 58, "600 15px system-ui", C.biolum, cw);
+    }
   }
 
   // victory outranks pause (hunt, MED-4); the pause-state normalization

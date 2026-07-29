@@ -45,6 +45,8 @@ function resetRun(): void {
   lastDeaths = 0;
   lastArea = world.area;
   victorySung = false;
+  firstFightShown = false;
+  barrierBannerShown = false;
   ui.animX = world.pos.x;
   ui.animY = world.pos.y;
   ui.selectedPart = undefined;
@@ -155,6 +157,12 @@ function drainLog(): void {
     }
     if (line.startsWith("combat:")) {
       ui.zoomPulse = 1.0;
+      if (!ui.bossIntro && !firstFightShown && !line.includes("corrupted")) {
+        firstFightShown = true;
+        const name = line.replace("combat: ", "").toUpperCase();
+        ui.bossIntro = { title: `A ${name}`, sub: "the corruption notices you", t: 1.8, dur: 1.8 };
+      }
+      if (line.startsWith("combat:")) firstFightShown = true;
       if (line.includes("corrupted shark") && !ui.bossIntro) {
         ui.bossIntro = { title: "THE CORRUPTED SHARK", sub: "guardian of the first ruin", t: 2.6, dur: 2.6 };
       } else if (line.includes("corrupted eel") && !ui.bossIntro) {
@@ -182,6 +190,9 @@ function drainLog(): void {
     // the song-seal puzzle speaks on screen, not into a hidden log
     // (hunt, HIGH-1); the merfolk line ages out instead of living forever
     // (hunt, MED-5); the relic award is announced (hunt, HIGH-2)
+    if (line.includes("shoves you back")) {
+      ui.storyCard = { text: "the current shoves you back: the first ruin's guardian holds the Tide Relic", age: 0, kind: "song" };
+    }
     if (line.includes("song-seal") || line.includes("rings true") || line.includes("jars against") || line.includes("seal holds")) {
       ui.storyCard = { text: line, age: 0, kind: "song" };
     }
@@ -197,12 +208,13 @@ function drainLog(): void {
       ui.storyCard = { text: "the entrance current mends your song: Heal Song restored", age: 0, kind: "heal" };
     }
     if (line.includes("Tide Relic is yours")) {
-      ui.storyCard = { text: line, age: 0, kind: "relic" };
+      ui.storyCard = { text: `${line} · carry it west, the wall waits`, age: 0, kind: "relic" };
     }
   }
   if (world.deaths > lastDeaths) {
     lastDeaths = world.deaths;
     ui.deathFlash = 1.6;
+    ui.storyCard = undefined; // stale cards do not outlive a death
     heldDirs.clear(); // the key you died holding must not walk the respawn
     // respawn teleports: the camera must snap, not glide across the map
     ui.animX = world.pos.x;
@@ -214,6 +226,18 @@ function drainLog(): void {
     // tests right; a lerp here slides the fish across the whole level)
     ui.animX = world.pos.x;
     ui.animY = world.pos.y;
+    // the transition must be FELT (playtest: crossed two ruins without
+    // noticing): momentum dies, stale cards clear, the place announces
+    heldDirs.clear();
+    areaGraceUntil = performance.now() + 500;
+    ui.storyCard = undefined;
+    const banners: Record<string, { title: string; sub: string }> = {
+      hub: { title: "THE HUB REEF", sub: "the songs faded here first" },
+      dungeon1: { title: "THE FIRST RUIN", sub: "the choir hall" },
+      dungeon2: { title: "THE SECOND RUIN", sub: "the drowned gullet" },
+    };
+    const b = banners[world.area];
+    ui.bossIntro = { title: b.title, sub: b.sub, t: 1.6, dur: 1.6 };
   }
 }
 
@@ -221,7 +245,13 @@ function cyclePart(dirn: 1 | -1): void {
   const parts = world.combat?.boss?.parts.filter((p) => !p.broken) ?? [];
   if (parts.length === 0) return;
   const keys = parts.map((p) => p.key);
-  const idx = ui.selectedPart ? keys.indexOf(ui.selectedPart) : -1;
+  if (!ui.selectedPart) {
+    // first press aims where the finger pointed: top for up, bottom for
+    // down (playtest: the old wrap sent 'aim at the JAW' to the FIN)
+    ui.selectedPart = dirn === -1 ? keys[0] : keys[keys.length - 1];
+    return;
+  }
+  const idx = keys.indexOf(ui.selectedPart);
   ui.selectedPart = keys[(idx + dirn + keys.length) % keys.length];
 }
 
@@ -236,6 +266,7 @@ const MOVE_KEYS: Record<string, Dir> = {
 const EXPLORE_VERTICAL: Record<string, Dir> = { ArrowUp: "up", ArrowDown: "down" };
 
 let lastMoveAt = 0;
+let areaGraceUntil = 0; // held keys do not walk you through a fresh transition
 // raw keys, directions derived: two keys for one direction must not cancel
 // each other on release (seat 1 LOW-7)
 const heldKeys = new Set<string>();
@@ -555,6 +586,8 @@ window.addEventListener("error", (e) => {
 
 let last = performance.now();
 let victorySung = false; // one-shot: the reassembled song plays once
+let firstFightShown = false; // the first regular fight announces itself once
+let barrierBannerShown = false; // the wall parting announces itself once
 let virtualClock = false; // filmstrip mode: no self-rescheduling
 function frame(now: number): void {
   let dt = Math.min(0.1, (now - last) / 1000);
@@ -584,6 +617,17 @@ function frame(now: number): void {
   // a victory can land while paused (blur mid-beat): normalize here, in
   // the state-owning loop, never in the renderer
   if (ui.screen === "pause" && world.mode === "victory") ui.screen = "play";
+  // crossing the parted current wall is a story beat, not a tile change
+  if (
+    !barrierBannerShown &&
+    world.area === "hub" &&
+    world.hasTideRelic &&
+    world.pos.x >= 20 &&
+    ui.screen === "play"
+  ) {
+    barrierBannerShown = true;
+    ui.bossIntro = { title: "THE CURRENT PARTS", sub: "the relic sings the wall open", t: 1.8, dur: 1.8 };
+  }
   // the payoff the fragments promised, HEARD: on the victory screen the
   // collected verses play back in order as one reassembled song
   if (world.mode === "victory" && !ui.victoryHold && !victorySung) {
@@ -641,7 +685,8 @@ function frame(now: number): void {
     !ui.victoryHold &&
     ui.deathFlash <= 0.8 &&
     heldDirs.size > 0 &&
-    now - lastMoveAt > 130
+    now - lastMoveAt > 130 &&
+    now > areaGraceUntil
   ) {
     lastMoveAt = now;
     const dirsNow = heldDirs.dirs();

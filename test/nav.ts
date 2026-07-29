@@ -18,7 +18,10 @@ export function fullRoute(): Objective[] {
     { area: "hub", target: { x: 14, y: 7 }, done: (w) => w.fragments[1].collected },
     { area: "dungeon1", target: { x: 8, y: 4 }, done: (w) => w.encounters[0].defeated },
     { area: "dungeon1", target: { x: 11, y: 6 }, done: (w) => w.fragments[2].collected },
-    { area: "dungeon1", target: { x: 14, y: 4 }, done: (w) => w.encounters[1].defeated },
+    // squid 2 moved to guard the verse at (12,6) (playtest round: the
+    // duplicate corridor fight gated the shark); waypoint is world DATA,
+    // the pinned axis-greedy policy is unchanged
+    { area: "dungeon1", target: { x: 12, y: 6 }, done: (w) => w.encounters[1].defeated },
     { area: "dungeon1", target: { x: 21, y: 4 }, done: (w) => w.encounters[2].defeated },
     { area: "hub", target: { x: HUB.mouth.x, y: HUB.mouth.y }, done: (w) => w.area === "dungeon2" || w.mode === "victory" },
     { area: "dungeon2", target: { x: 8, y: 4 }, done: (w) => w.encounters[3].defeated },

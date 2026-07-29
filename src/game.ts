@@ -112,6 +112,11 @@ export interface CombatState {
   bubbleCharge: boolean;
   analyzed: boolean;
   slowSlots: number;
+  // teaching-hint counters (presentation reads them; sim behavior
+  // unaffected): how many conditions the player applied, how many hits
+  // were explicitly aimed at a boss part
+  conditionsApplied: number;
+  aimedHits: number;
   // Raw damage the player has absorbed this fight, heals excluded: the
   // G3 difficulty floors measure this, because net hpLost is zeroable by
   // Heal Song (correctness review round 1, MED-4).
@@ -160,6 +165,8 @@ export function createCombat(seed = 1): CombatState {
     bubbleCharge: false,
     analyzed: false,
     slowSlots: 0,
+    conditionsApplied: 0,
+    aimedHits: 0,
     damageTaken: 0,
     relicEcho: false,
     turn: 1,
@@ -384,6 +391,7 @@ export function useAbility(state: CombatState, abilityKey: string, targetPart?: 
       // value, so the key part is never free (fidelity review round 1).
       let part = targetPart ? getPart(state, targetPart) : undefined;
       if (part?.broken) part = undefined;
+      if (part) state.aimedHits += 1;
       if (!part) {
         const unbroken = state.boss.parts.filter((p) => !p.broken);
         part = unbroken[Math.floor(nextRand(state) * unbroken.length)];
@@ -421,6 +429,7 @@ export function useAbility(state: CombatState, abilityKey: string, targetPart?: 
     );
   }
   if (ability.inflicts) {
+    state.conditionsApplied += 1;
     applyCondition(state, ability.inflicts, ability.inflictTurns ?? 1);
   }
   if (enemy.hp <= 0) {

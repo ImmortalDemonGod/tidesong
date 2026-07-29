@@ -850,3 +850,33 @@ every evidence class before any PENDING becomes GREEN.
   a mechanical buff is a balance change awaiting the tactician playtest
   verdict). Filmstrip re-captured: payoff lands clean on the body.
   90 tests green.
+- (git time of this commit) PLAYTEST ROUND CLOSED + response round A.
+  Four human-profile playthroughs of the full slice via the real UI
+  (first-timer, button-masher, tactician, pitch judge; 659s / 76s / 258s
+  full-clear pacing measured). Verdicts: first-timer "would I have quit?
+  yes, minute 3, at the unmarked bouncing ruin entrance; every minute
+  after the first fight I wanted to keep playing"; masher cleared 5/5
+  seeds without ever aiming (pity ladder as HP wall solvent); tactician
+  full-cleared in 4.3 min and called the intent telegraph real
+  counterplay but the rotation solved; pitch judge: the best screen
+  (boss intro + limbs) hides behind a duplicate squid, the title sells
+  an empty aquarium. RESPONSE ROUND A, all landed: area transitions
+  announce (banner band now serves arrivals, boss intros, and THE
+  CURRENT PARTS; held keys cleared + 500ms input grace on every
+  transition kills the entry bounce AT THE INPUT LAYER after a first sim
+  attempt deadlocked axis-greedy bots and was reverted); stale story
+  cards clear on area change and death; the second d1 squid moved off
+  the corridor to guard the ruin's verse (nav waypoint data updated,
+  policy untouched; the shark now lands inside a beeline first minute);
+  the entrance current mends wounds to 65 ONCE per dungeon alongside the
+  charge restore (kills both the arrive-at-boss-broken spiral and
+  death-as-best-heal; G2 re-measured: scripted deaths 9 to 3, casual
+  100/100); death veil TEACHES (one line picked from the fatal fight:
+  unread Analyze, unused conditions, unaimed strikes); first regular
+  fight announces itself; hard gates card on screen (current wall);
+  relic card points west; boss aim first-press picks top/bottom; enemy
+  HP and part durability numbers shown; win banner reads THE WATER
+  CLEARS (the old one mourned); alcove label reads as treasure; title
+  screen rebuilt as the pitch surface (living reef, fantasy lines,
+  controls, no duplicate header, confident credit); fragment harmony
+  voices made audible. 90 tests green; G2/G3 batteries re-run.

@@ -106,6 +106,9 @@ export interface WorldState {
   // stale-high, leaving trench suicide a repeatable net-positive heal)
   trenchEntryHp: number;
   steps: number;
+  // one contextual teaching line for the death veil, chosen from the
+  // fatal fight's state (playtest: deaths refunded HP but taught nothing)
+  lastDeathHint?: string;
   checkpoint: { area: AreaKey; pos: Vec };
   combat?: CombatState;
   activeEncounter?: number;
@@ -142,7 +145,9 @@ export function createWorld(seed = 1): WorldState {
     ],
     encounters: [
       { id: 1, area: "dungeon1", x: 8, y: 4, kind: "squid", defeated: false },
-      { id: 2, area: "dungeon1", x: 14, y: 4, kind: "squid", defeated: false },
+      // moved off the corridor to guard the ruin's verse (playtest: a
+      // duplicate corridor fight gated the shark, the build's best screen)
+      { id: 2, area: "dungeon1", x: 12, y: 6, kind: "squid", defeated: false },
       { id: 3, area: "dungeon1", x: 21, y: 4, kind: "boss", defeated: false },
       { id: 4, area: "dungeon2", x: 8, y: 4, kind: "elder", defeated: false },
       // enemy type 2 (Jul 29, playtest fun mandate): the second ruin's
@@ -268,6 +273,17 @@ function endCombat(w: WorldState): void {
     // death un-spends Heal Song, the exact refund the death rule forbids
     // (found by fidelity review round 1, HIGH).
     w.healSongUses = c.healSongUses;
+    // one teaching line for the veil, chosen from what the fatal fight
+    // never used (masher playtest: the pity ladder escalates HP; this
+    // escalates knowledge with it)
+    w.lastDeathHint =
+      c.boss && !c.analyzed
+        ? "Analyze (5) would have named its weak part"
+        : c.conditionsApplied === 0
+          ? "the corruption fears song: Silt Burst (2) blinds, Fin Slash (3) slows"
+          : c.boss && c.aimedHits === 0
+            ? "aim with up/down: drifting strikes feed it"
+            : "the sea forgives: press on";
     applyDeath(w);
   }
 }
@@ -411,6 +427,14 @@ function enterDungeon(w: WorldState, area: "dungeon1" | "dungeon2", entrance: Ve
     w.healSongUses = 2;
     w.healRestored[area] = true;
     w.log.push("checkpoint: dungeon entrance (Heal Song restored)");
+    // the same current mends wounds ONCE per dungeon: a legitimate
+    // recovery point so a deliberate death is never the best plan and
+    // the second gauntlet is not entered broken (both the tactician and
+    // the masher playtests hit this from opposite directions)
+    if (w.hp < 65) {
+      w.hp = 65;
+      w.log.push("the entrance current mends your wounds");
+    }
   } else {
     w.log.push("checkpoint: dungeon entrance");
   }

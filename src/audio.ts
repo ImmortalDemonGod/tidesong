@@ -67,9 +67,9 @@ export class Sound {
       this.tone(f, 2.4, "sine", 0.35);
       this.tone(f / 2, 2.4, "sine", 0.22);
       // harmony voices: one per act of restoration, capped and quiet
-      if (this.fragments >= 1) this.tone(f * 1.5, 2.2, "sine", 0.12, undefined, 0.05);
-      if (this.fragments >= 3) this.tone(f * 2, 2.0, "sine", 0.09, undefined, 0.1);
-      if (this.fragments >= 5) this.tone(f * 3, 1.8, "sine", 0.06, undefined, 0.15);
+      if (this.fragments >= 1) this.tone(f * 1.5, 2.2, "sine", 0.22, undefined, 0.05);
+      if (this.fragments >= 3) this.tone(f * 2, 2.0, "sine", 0.16, undefined, 0.1);
+      if (this.fragments >= 5) this.tone(f * 3, 1.8, "sine", 0.11, undefined, 0.15);
       // the drive pulse under fights: a low heartbeat, heavier at bosses
       if (pd.drive) {
         const pf = this.mood === "boss" ? 55 : 73.4;
