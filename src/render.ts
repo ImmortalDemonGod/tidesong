@@ -1643,7 +1643,7 @@ export function render(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
     fish(ctx, cw / 2 - 350, 190 + Math.sin(ui.time) * 12, 2.2, ui.time, 1);
     centered(ctx, "TIDESONG", 260, "900 84px system-ui", C.glow, cw);
     centered(ctx, "the songs that kept the sea in balance have faded", 302, "600 16px system-ui", C.ink, cw);
-    centered(ctx, "a small fish carries the first verse back", 328, "600 16px system-ui", C.ink, cw);
+    centered(ctx, "a small fish goes down to learn the words", 328, "600 16px system-ui", C.ink, cw);
     centered(ctx, "click or press any key to begin", 430 + Math.sin(ui.time * 2) * 4, "16px system-ui", C.biolum, cw);
     centered(ctx, "swim with WASD · sing with 1-6 in combat · P for help at any time", 462, "13px ui-monospace, monospace", C.muted, cw);
     centered(ctx, "overnight prototype · working title · design Marc · art direction to come from Glass_Goat · code ImmortalDemon", 660, "13px system-ui", C.muted, cw);
@@ -1702,28 +1702,110 @@ export function render(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
   // victory outranks pause (hunt, MED-4); the pause-state normalization
   // lives in the frame loop, because rendering never mutates state
   if (ui.screen === "pause" && w.mode !== "victory") {
-    ctx.fillStyle = "rgba(6,18,28,0.82)";
+    ctx.fillStyle = "rgba(6,18,28,0.93)";
     ctx.fillRect(0, 0, cw, ch);
-    centered(ctx, "PAUSED", 250, "700 46px system-ui", C.ink, cw);
-    centered(ctx, "arrows/WASD swim · E talk · 1-6 abilities · up/down pick boss part", 320, "15px system-ui", C.muted, cw);
-    centered(ctx, "SPACE pass turn · P resume · M mute", 350, "15px system-ui", C.muted, cw);
+    centered(ctx, "PAUSED", 92, "700 40px system-ui", C.ink, cw);
+    centered(ctx, "arrows/WASD swim · E talk · 1-6 abilities · up/down pick boss part", 128, "14px system-ui", C.muted, cw);
+    centered(ctx, "SPACE pass turn · P resume · M mute", 152, "14px system-ui", C.muted, cw);
+    // THE SONG SO FAR: what the verses taught, not just that you have
+    // them (Marc's doc: collectibles deepen understanding). The stat
+    // half lives in the HUD; this is the half you read.
+    const got = w.fragments.filter((f) => f.collected).sort((a, b) => a.id - b.id);
+    centered(ctx, "THE SONG SO FAR", 206, "700 18px ui-monospace, monospace", C.biolum, cw);
+    if (got.length === 0) {
+      centered(ctx, "you have not gathered a verse yet: the sea is quiet", 240, "italic 15px system-ui", C.muted, cw);
+      centered(ctx, "verses are scattered through the reef and the ruins", 264, "14px system-ui", C.muted, cw);
+    } else {
+      let y = 244;
+      for (const f of got) {
+        centered(ctx, f.title, y, "700 13px ui-monospace, monospace", C.sand, cw);
+        centered(ctx, `"${f.verse.replace(/^\(placeholder\) /, "")}"`, y + 20, "italic 15px system-ui", C.ink, cw);
+        // the lesson wraps to two rows so a whole teaching fits
+        const lesson = f.lesson.replace(/^\(placeholder\) /, "");
+        const words = lesson.split(" ");
+        const rows: string[] = [""];
+        for (const word of words) {
+          const probe = rows[rows.length - 1] === "" ? word : `${rows[rows.length - 1]} ${word}`;
+          if (probe.length > 92 && rows.length < 2) rows.push(word);
+          else rows[rows.length - 1] = probe;
+        }
+        rows.forEach((row, i) => centered(ctx, row, y + 40 + i * 17, "13px system-ui", C.muted, cw));
+        y += 40 + rows.length * 17 + 14;
+      }
+      centered(ctx, `${got.length}/${w.fragments.length} verses · +${got.length} max stamina · the pad carries them`, y + 6, "600 13px ui-monospace, monospace", C.biolum, cw);
+    }
+    centered(ctx, "all verses are placeholder drafts for Marc", ch - 26, "12px system-ui", C.muted, cw);
     return;
   }
 
   if (ui.screen === "victory" || w.mode === "victory") {
     ctx.fillStyle = "rgba(4,12,20,0.99)";
     ctx.fillRect(0, 0, cw, ch);
-    centered(ctx, "the sea remembers its song", 230, "700 52px system-ui", C.glow, cw);
-    centered(ctx, "both ruins stand quiet; the corruption recedes", 280, "17px system-ui", C.ink, cw);
-    const collected = w.fragments.filter((f) => f.collected);
-    centered(ctx, `memory fragments ${collected.length}/${w.fragments.length} · deaths ${w.deaths} · strokes ${w.steps}`, 320, "600 15px ui-monospace, monospace", C.muted, cw);
-    // the payoff the fragments promised: the verses you gathered,
-    // reassembled as the returned song (placeholder lines for Marc)
-    if (collected.length > 0) {
-      centered(ctx, "the song you returned:", 362, "600 13px ui-monospace, monospace", C.sand, cw);
-      collected.forEach((f, i) => {
-        centered(ctx, `"${f.verse.replace(/^\(placeholder\) /, "")}"`, 386 + i * 21, "italic 14px system-ui", C.sand, cw);
+    const collected = w.fragments.filter((f) => f.collected).sort((a, b) => a.id - b.id);
+
+    // THE CHOICE (Marc's proposal, the question the slice was missing):
+    // "determine whether its legacy should be restored or left to
+    // disappear". The eel is dead and the sea's name is loose.
+    if (!w.ending) {
+      centered(ctx, "the name of the sea", 150, "700 46px system-ui", C.glow, cw);
+      centered(ctx, "it spills out of the eel and hangs in the water, waiting to be carried", 196, "17px system-ui", C.ink, cw);
+      centered(ctx, "the keepers let the songs die on purpose, so the deep could not learn it", 224, "15px system-ui", C.muted, cw);
+      const cards: Array<[string, string, string, string]> = [
+        ["1", "SING IT BACK", "the sea can be called again", "and anything listening learns the name"],
+        ["2", "LET IT GO", "the sea keeps its silence", "smaller, and beyond the deep's reach"],
+      ];
+      cards.forEach(([key, title, line1, line2], i) => {
+        const x = i === 0 ? cw / 2 - 300 : cw / 2 + 20;
+        ctx.fillStyle = "rgba(10,26,38,0.9)";
+        ctx.strokeStyle = i === 0 ? C.biolum : C.muted;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(x, 288, 280, 132, 12);
+        ctx.fill();
+        ctx.stroke();
+        ctx.textAlign = "center";
+        ctx.fillStyle = i === 0 ? C.biolum : C.ink;
+        ctx.font = "700 20px system-ui";
+        ctx.fillText(`${key}   ${title}`, x + 140, 328);
+        ctx.fillStyle = C.ink;
+        ctx.font = "14px system-ui";
+        ctx.fillText(line1, x + 140, 360);
+        ctx.fillStyle = C.muted;
+        ctx.font = "13px system-ui";
+        ctx.fillText(line2, x + 140, 384);
+        ctx.textAlign = "left";
       });
+      centered(ctx, `you carry ${collected.length} of ${w.fragments.length} verses: that is how much song you have to sing`, 462, "600 14px ui-monospace, monospace", C.sand, cw);
+      centered(ctx, "press 1 or 2, or click a card", 500, "15px system-ui", C.glow, cw);
+      centered(ctx, "this choice is Marc's central question, made playable: placeholder wording", ch - 26, "12px system-ui", C.muted, cw);
+      return;
+    }
+
+    const sung = w.ending === "sung";
+    const whole = collected.length >= 5;
+    const headline = sung
+      ? whole
+        ? "the sea remembers its name"
+        : "the sea half remembers"
+      : "the sea keeps its silence";
+    const under = sung
+      ? whole
+        ? "every current answers at once, and the deep hears it too"
+        : `you sang back ${collected.length} of ${w.fragments.length} verses: it answers, thinly`
+      : "the name thins and is gone: nothing can call the sea, and nothing can hunt it";
+    centered(ctx, headline, 176, "700 50px system-ui", sung ? C.glow : C.muted, cw);
+    centered(ctx, under, 220, "17px system-ui", C.ink, cw);
+    centered(ctx, `verses ${collected.length}/${w.fragments.length} · deaths ${w.deaths} · strokes ${w.steps}`, 254, "600 15px ui-monospace, monospace", C.muted, cw);
+    if (collected.length > 0) {
+      // recited in NARRATIVE order, never pickup order, so the song reads
+      // as a song (analysis: pickup order made the arc noise)
+      centered(ctx, sung ? "what you sang back:" : "what you let go:", 292, "600 13px ui-monospace, monospace", C.sand, cw);
+      collected.forEach((f, i) => {
+        centered(ctx, `"${f.verse.replace(/^\(placeholder\) /, "")}"`, 316 + i * 21, "italic 14px system-ui", sung ? C.sand : "#5E7480", cw);
+      });
+    }
+    if (collected.length < w.fragments.length) {
+      centered(ctx, `${w.fragments.length - collected.length} verse(s) stayed lost down there`, 316 + collected.length * 21 + 8, "13px system-ui", C.muted, cw);
     }
     centered(ctx, "TIDESONG (vertical slice)", 512, "600 20px system-ui", C.ink, cw);
     centered(ctx, "design and story (all verses placeholder) · Marc", 540, "15px system-ui", C.muted, cw);

@@ -1,6 +1,6 @@
 import { abilityCast, classifyLogLine } from "./events";
 import { Sound, type Mood } from "./audio";
-import { combatAction, combatPass, createWorld, enemySlot, interact, playerAct, step, type Dir, type WorldState } from "./world";
+import { chooseEnding, combatAction, combatPass, createWorld, enemySlot, interact, playerAct, step, type Dir, type WorldState } from "./world";
 import { ABILITY_ORDER, CAST_TIME, render, type UIState } from "./render";
 import type { PartKey } from "./game";
 
@@ -185,17 +185,17 @@ function drainLog(): void {
         firstFightShown = true;
         const name = line.replace("combat: ", "").toUpperCase();
         const article = /^[AEIOU]/.test(name) ? "AN" : "A";
-        ui.bossIntro = { title: `${article} ${name}`, sub: "the corruption notices you", t: 1.8, dur: 1.8 };
+        ui.bossIntro = { title: `${article} ${name}`, sub: "something that forgot its own name", t: 1.8, dur: 1.8 };
       }
       if (line.startsWith("combat:")) firstFightShown = true;
       if (line.includes("corrupted shark") && !ui.bossIntro) {
         ui.bossIntro = { title: "THE CORRUPTED SHARK", sub: "guardian of the first ruin", t: 2.6, dur: 2.6 };
       } else if (line.includes("corrupted eel") && !ui.bossIntro) {
-        ui.bossIntro = { title: "THE CORRUPTED EEL", sub: "the one that drank the sea's name", t: 2.6, dur: 2.6 };
+        ui.bossIntro = { title: "THE CORRUPTED EEL", sub: "it swallowed the name of the sea", t: 2.6, dur: 2.6 };
       } else if (line.includes("ink squid") && !ui.bossIntro) {
         // the validation playtest's one pre-11am ask: enemy type 2's
         // debut deserves more than a 12px intent token
-        ui.bossIntro = { title: "AN INK SQUID", sub: "the water itself turns against you", t: 2.2, dur: 2.2 };
+        ui.bossIntro = { title: "AN INK SQUID", sub: "it takes your eyes the way the dark took its name", t: 2.2, dur: 2.2 };
       }
     }
     if (line.includes("missed") && !line.includes("missed (blind)")) {
@@ -352,6 +352,12 @@ function onKey(e: KeyboardEvent): void {
   if (ui.screen === "pause") return;
   if (world.mode === "victory") {
     // R waits out the final SPENT hold: the climax must render (seat 1 MED-2)
+    if (world.mode === "victory" && !world.ending && !ui.victoryHold) {
+      // the last decision: answer it before the run can be replayed
+      if (k === "1") chooseEnding(world, "sung");
+      if (k === "2") chooseEnding(world, "released");
+      return;
+    }
     if (k === "r" && !ui.victoryHold) {
       resetRun();
       ui.screen = "title";
@@ -471,7 +477,19 @@ canvas.addEventListener("pointerdown", (e) => {
     return;
   }
   if (world.mode === "victory" && !ui.victoryHold) {
+    if (!world.ending) {
+      // click a card: left card sings, right card releases
+      const rect0 = canvas.getBoundingClientRect();
+      const cx0 = ((e.clientX - rect0.left) / rect0.width) * canvas.width;
+      const cy0 = ((e.clientY - rect0.top) / rect0.height) * canvas.height;
+      if (cy0 >= 288 && cy0 <= 420) {
+        if (cx0 >= canvas.width / 2 - 300 && cx0 <= canvas.width / 2 - 20) chooseEnding(world, "sung");
+        else if (cx0 >= canvas.width / 2 + 20 && cx0 <= canvas.width / 2 + 300) chooseEnding(world, "released");
+      }
+      return;
+    }
     resetRun();
+    ui.screen = "title";
     return;
   }
   const rect = canvas.getBoundingClientRect();
@@ -509,6 +527,28 @@ if (demo) {
       combatAction(world, "finSlash");
       ui.selectedPart = "jaw";
     }
+  } else if (demo === "choice") {
+    world.mode = "victory";
+    world.fragments[0].collected = true;
+    world.fragments[2].collected = true;
+    world.fragments[4].collected = true;
+    ui.screen = "play";
+  } else if (demo === "sung") {
+    world.mode = "victory";
+    for (const f of world.fragments) f.collected = true;
+    world.ending = "sung";
+    ui.screen = "play";
+  } else if (demo === "released") {
+    world.mode = "victory";
+    world.fragments[0].collected = true;
+    world.fragments[1].collected = true;
+    world.ending = "released";
+    ui.screen = "play";
+  } else if (demo === "song") {
+    world.fragments[0].collected = true;
+    world.fragments[1].collected = true;
+    world.fragments[3].collected = true;
+    ui.screen = "pause";
   } else if (demo === "bossp2") {
     world.area = "dungeon1";
     for (const e of world.encounters) if (e.kind === "squid") e.defeated = true;
@@ -655,7 +695,7 @@ function frame(now: number): void {
   if (ui.screen === "pause" && world.mode === "victory") ui.screen = "play";
   // the payoff the fragments promised, HEARD: on the victory screen the
   // collected verses play back in order as one reassembled song
-  if (world.mode === "victory" && !ui.victoryHold && !victorySung && sound.unlocked) {
+  if (world.mode === "victory" && world.ending === "sung" && !ui.victoryHold && !victorySung && sound.unlocked) {
     victorySung = true;
     const count = world.fragments.filter((f) => f.collected).length;
     for (let i = 1; i <= count; i++) sound.versePhrase(i, 0.8 + (i - 1) * 1.1);

@@ -6,7 +6,7 @@
 import { expect, test } from "bun:test";
 import { classifyLogLine } from "../src/events";
 import { createBossCombat, createCombat, useAbility } from "../src/game";
-import { HUB, combatAction, combatPass, createWorld, interact, step } from "../src/world";
+import { HUB, chooseEnding, combatAction, combatPass, createWorld, interact, step } from "../src/world";
 import { walk } from "./helpers";
 
 test("G7 hit: a landed attack log line classifies as hit", () => {
@@ -210,4 +210,22 @@ test("enemy intent telegraph is honest: what it announces is what the next slot 
     }
   }
   expect(checked).toBeGreaterThan(300);
+});
+
+test("G7: the story pass keeps every climax audible from DELIVERED lines", () => {
+  // boss 2's fall, both endings, and the guardian's death all classify
+  const w = createWorld(5);
+  w.mode = "victory";
+  for (const f of w.fragments) f.collected = true;
+  chooseEnding(w, "sung");
+  expect(w.log.some((l) => classifyLogLine(l) === "victory")).toBe(true);
+
+  const w2 = createWorld(5);
+  w2.mode = "victory";
+  chooseEnding(w2, "released");
+  expect(w2.log.some((l) => classifyLogLine(l) === "death")).toBe(true);
+
+  expect(classifyLogLine("the eel is spent: the name of the sea spills out of it")).toBe("victory");
+  expect(classifyLogLine("the shark sinks at his post, still facing the door he was set to keep")).toBe("death");
+  expect(classifyLogLine("the Tide Relic is yours: a keeper's tuning stone, the tide-song set in coral")).toBe("victory");
 });

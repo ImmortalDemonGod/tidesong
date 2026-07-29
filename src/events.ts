@@ -38,6 +38,9 @@ export function classifyLogLine(line: string): GameEvent | null {
   if (
     line.includes("currents part") ||
     line.includes("falls silent") ||
+    line.includes("spills out of it") || // the eel's fall (story pass)
+    line.includes("sing the sea") ||
+    line.includes("every current answers") ||
     line.includes(": victory") ||
     line === "victory" ||
     line.includes("Tide Relic is yours")
@@ -45,6 +48,9 @@ export function classifyLogLine(line: string): GameEvent | null {
     return "victory";
   // song-seal stones ring or jar audibly (played-experience hunt, HIGH-1)
   if (line.includes("rings true") || line.includes("stands open")) return "note";
+  // the guardian's last moment, and the name let go: both are elegiac,
+  // not triumphant (story pass)
+  if (line.includes("still facing the door") || line.includes("let the name go")) return "death";
   if (line.includes("jars against") || line.includes("dodged")) return "jar";
   // the ink squid's twist lands against YOU: both sides of it sting
   if (line.includes("ink takes your eyes") || line.includes("goes wide (inked)")) return "jar";

@@ -40,6 +40,11 @@ export interface Fragment {
   y: number;
   collected: boolean;
   verse: string;
+  // What this verse TEACHES: the understanding half of a collectible
+  // (Marc's doc: "collectibles should deepen the player's understanding
+  // of the world"). Read on the song screen and by the merfolk.
+  title: string;
+  lesson: string;
 }
 
 export interface Encounter {
@@ -119,6 +124,11 @@ export interface WorldState {
   melody: number[];
   attempt: number[];
   doorOpen: boolean;
+  // Marc's central question, made playable: with the eel dead the sea's
+  // name is loose. Sing it back and the sea can be called again, by
+  // anyone. Let it go and the sea stays safe, and smaller. Undefined
+  // until the player answers; the run is won either way.
+  ending?: "sung" | "released";
   seed: number;
   log: string[];
 }
@@ -138,11 +148,56 @@ export function createWorld(seed = 1): WorldState {
       // rewrite, or discard). The five lines tell the fall and the
       // return: the choir, the dark, the guardian, the keepers, the
       // swallowed name. Filled in Jul 29 under the playtest mandate.
-      { id: 1, area: "hub", x: 7, y: 5, collected: false, verse: "(placeholder) we sang the tides their names, and the tides came when we called" },
-      { id: 2, area: "hub", x: 14, y: 7, collected: false, verse: "(placeholder) when the songs thinned, the low dark learned to swallow the brave" },
-      { id: 3, area: "dungeon1", x: 11, y: 6, collected: false, verse: "(placeholder) the guardian kept his post long after the music left his mind" },
-      { id: 4, area: "hub", x: HUB.alcove.x, y: HUB.alcove.y, collected: false, verse: "(placeholder) the keepers hid their brightest verse for the one who would come singing" },
-      { id: 5, area: "dungeon2", x: 11, y: 2, collected: false, verse: "(placeholder) last of all the eel drank down the name of the sea itself" },
+      {
+        id: 1,
+        area: "hub",
+        x: 7,
+        y: 5,
+        collected: false,
+        title: "THE NAMING",
+        verse: "(placeholder) we sang the tides their names, and the tides came when we called",
+        lesson: "(placeholder) To name a thing was to hold it. The merfolk sang the sea into order, current by current.",
+      },
+      {
+        id: 2,
+        area: "hub",
+        x: 14,
+        y: 7,
+        collected: false,
+        title: "THE THINNING",
+        verse: "(placeholder) when the songs thinned, the low dark learned to swallow the brave",
+        lesson: "(placeholder) A thing left unsung loses its name, and what has no name the dark can take. Corruption is not a force. It is an absence with teeth.",
+      },
+      {
+        id: 3,
+        area: "dungeon1",
+        x: 11,
+        y: 6,
+        collected: false,
+        title: "THE GUARDIAN",
+        verse: "(placeholder) the guardian kept his post long after the music left his mind",
+        lesson: "(placeholder) The shark was set to guard the choir hall and never told to stop. He forgot the song, then the hall, then himself. He is still standing his post.",
+      },
+      {
+        id: 4,
+        area: "hub",
+        x: HUB.alcove.x,
+        y: HUB.alcove.y,
+        collected: false,
+        title: "THE KEEPERS' CHOICE",
+        verse: "(placeholder) the keepers hid their brightest verse for the one who would come singing",
+        lesson: "(placeholder) The songs did not fade on their own. The keepers let them go, on purpose, so the deep could not learn the sea's name from hearing it sung. They sealed one verse behind a song, betting someone would still know how to answer.",
+      },
+      {
+        id: 5,
+        area: "dungeon2",
+        x: 11,
+        y: 2,
+        collected: false,
+        title: "THE THEFT",
+        verse: "(placeholder) last of all the eel drank down the name of the sea itself",
+        lesson: "(placeholder) The silence came too late. The eel swallowed the sea's name whole and carried it down the gullet. Kill it and the name is loose again: yours to sing back, or to let go for good.",
+      },
     ],
     encounters: [
       { id: 1, area: "dungeon1", x: 8, y: 4, kind: "squid", defeated: false },
@@ -277,11 +332,15 @@ function endCombat(w: WorldState): void {
     enc.defeated = true;
     if (enc.kind === "boss") {
       w.hasTideRelic = true;
-      w.log.push("the Tide Relic is yours: the currents will part");
+      // the guardian's verse, paid off in his death instead of only told
+      w.log.push("the shark sinks at his post, still facing the door he was set to keep");
+      // the relic is a keeper's tool, not a generic key (analysis: the
+      // loop's biggest reward revealed no history at all)
+      w.log.push("the Tide Relic is yours: a keeper's tuning stone, the tide-song set in coral");
     }
     if (enc.kind === "boss2") {
       w.mode = "victory";
-      w.log.push("the second ruin falls silent: the sea remembers its song");
+      w.log.push("the eel is spent: the name of the sea spills out of it");
       w.combat = undefined;
       w.activeEncounter = undefined;
       return;
@@ -506,6 +565,28 @@ export function nextObjective(w: WorldState): string {
 // can never be silently missed (played question: "am I supposed to go
 // back for the hidden verse?" -- you never have to, but nothing told you
 // it was there). Returns null when this area holds nothing optional.
+// The last decision in the slice. Pure, so a bot or a test can answer it
+// and the UI just routes a keypress here.
+export function chooseEnding(w: WorldState, choice: "sung" | "released"): boolean {
+  if (w.mode !== "victory" || w.ending) return false;
+  w.ending = choice;
+  const verses = w.fragments.filter((f) => f.collected).length;
+  if (choice === "sung") {
+    w.log.push(
+      verses >= 5
+        ? "you sing the sea its whole name back, and every current answers at once"
+        : verses >= 3
+          ? "you sing the sea back the name you could carry: it answers, thinly"
+          : "you sing what little you have: the sea stirs, and does not quite wake",
+    );
+    w.log.push("the deep heard it too");
+  } else {
+    w.log.push("you let the name go: it thins, drifts, and is gone from the water");
+    w.log.push("the sea will not be called again, and the deep will not find it either");
+  }
+  return true;
+}
+
 export function optionalHere(w: WorldState): string | null {
   if (w.mode !== "explore") return null;
   const here = w.fragments.filter((f) => !f.collected && f.area === w.area);
@@ -525,14 +606,27 @@ export function interact(w: WorldState): boolean {
     // The guide notices your progress (all lines placeholder for Marc's
     // story; the UI strips the mark into a tag). Story delivery was
     // under-staged: one line forever (fun diagnosis, agent 3 MED).
+    // The last keeper answers what you are CARRYING, not just where you
+    // are (Marc: "NPC dialogue should encourage curiosity"; analysis:
+    // the only survivor of a dead civilization had four signpost lines).
+    // Priority: the heaviest thing you know that she has not answered.
+    const has = (id: number) => w.fragments.find((f) => f.id === id)!.collected;
     const frags = w.fragments.filter((f) => f.collected).length;
-    w.npcLine = w.hasTideRelic
-      ? "(placeholder) The relic hums against your scales. The second ruin's mouth waits past the parted current."
-      : w.doorOpen
-        ? "(placeholder) You gave the door its song back. The first ruin lies east; its guardian forgot its own name."
-        : frags >= 2
-          ? "(placeholder) The verses gather around you. The stones by the door know their order; sing it to them."
-          : "(placeholder) Follow the fragments, little one. The songs remember the way.";
+    w.npcLine = has(5)
+      ? "(placeholder) You carry the theft itself. When the eel is dead the name will spill out, and you will have to decide what a name is for."
+      : has(4)
+        ? "(placeholder) So you found what we did. We let the songs go on purpose, to keep the sea's name out of the deep's mouth. I have wondered every day since whether we were right."
+        : has(3)
+          ? "(placeholder) You heard the guardian. He was told to hold that door and never told to stop. Be quick with him. He has been standing there a long time."
+          : has(2)
+            ? "(placeholder) You found the thinning. It is not a monster loose out there, little one. It is a quiet. What loses its name gets taken."
+            : w.hasTideRelic
+              ? "(placeholder) A keeper's tuning stone. It knows the tide-song, so the currents will listen to you now. East, past the wall."
+              : w.doorOpen
+                ? "(placeholder) You gave the door its song back. I did not think anyone still knew how to answer it."
+                : frags >= 1
+                  ? "(placeholder) The verses gather around you. The stones by the door know their order; sing it back to them."
+                  : "(placeholder) You came in singing. That is the first singing I have heard down here in a long while. Follow the verses, little one.";
     w.log.push(`npc: ${w.npcLine}`);
     return true;
   }

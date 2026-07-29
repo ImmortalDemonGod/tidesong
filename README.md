@@ -45,8 +45,9 @@ conditions; bosses are limb puzzles with phases (the eel's weak part
 wanders every run; Analyze finds it; the ink squid blinds YOU back).
 Journey: hub reef → merfolk and memory fragments → song-seal stone
 puzzle → first ruin → the corrupted shark → Tide Relic parts the
-current wall → second ruin → the corrupted eel → the sea remembers its
-song, and the verses you gathered play back as one melody.
+current wall → second ruin → the corrupted eel → the sea's name spills
+loose, and you decide whether to sing it back or let it go. The verses
+you gathered are the song you have to sing with.
 
 ## Structure
 

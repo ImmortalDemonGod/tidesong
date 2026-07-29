@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { D1, D2, HUB, combatAction, combatPass, createWorld, interact, nextObjective, optionalHere, step, type WorldState } from "../src/world";
+import { D1, D2, HUB, combatAction, combatPass, chooseEnding, createWorld, interact, nextObjective, optionalHere, step, type WorldState } from "../src/world";
 
 function walkTo(w: WorldState, x: number, y: number, cap = 200): void {
   // Stops on any area or mode change: entering a dungeon or a fight is a
@@ -75,7 +75,7 @@ test("npc talks and the sealed door hums", () => {
   const w = createWorld();
   walkTo(w, 4, 4);
   expect(interact(w)).toBe(true);
-  expect(w.npcLine).toContain("fragments");
+  expect(w.npcLine!.toLowerCase()).toContain("verses"); // she points you at the song
   walkTo(w, 10, 3);
   expect(interact(w)).toBe(true);
   expect(w.log.some((l) => l.includes("song-seal"))).toBe(true);
@@ -238,7 +238,7 @@ test("boss 1 grants the relic; the mouth opens dungeon 2; boss 2 is victory", ()
   expect(w.combat?.enemy.name).toBe("corrupted eel");
   winFight(w);
   expect(w.mode).toBe("victory");
-  expect(w.log.some((l) => l.includes("falls silent"))).toBe(true);
+  expect(w.log.some((l) => l.includes("spills out of it"))).toBe(true);
 });
 
 test("boss 2 key part wanders by seed but is deterministic", () => {
@@ -445,4 +445,64 @@ test("optional treasure is never silently missable: each area names what it stil
   const w2 = createWorld();
   for (const f of w2.fragments) f.collected = true;
   expect(optionalHere(w2)).toBe(null);
+});
+
+test("the ending is a choice, answerable once, and it reflects how much song came back", () => {
+  const w = createWorld();
+  expect(w.ending).toBeUndefined();
+  expect(chooseEnding(w, "sung")).toBe(false); // not won yet
+  w.mode = "victory";
+  for (const f of w.fragments) f.collected = true;
+  expect(chooseEnding(w, "sung")).toBe(true);
+  expect(w.ending).toBe("sung");
+  expect(w.log.some((l) => l.includes("whole name back"))).toBe(true);
+  expect(w.log.some((l) => l.includes("the deep heard it too"))).toBe(true);
+  expect(chooseEnding(w, "released")).toBe(false); // answered once, for good
+  expect(w.ending).toBe("sung");
+
+  // a thin song and the other answer read differently
+  const w2 = createWorld();
+  w2.mode = "victory";
+  w2.fragments[0].collected = true;
+  expect(chooseEnding(w2, "sung")).toBe(true);
+  expect(w2.log.some((l) => l.includes("does not quite wake"))).toBe(true);
+
+  const w3 = createWorld();
+  w3.mode = "victory";
+  for (const f of w3.fragments) f.collected = true;
+  expect(chooseEnding(w3, "released")).toBe(true);
+  expect(w3.log.some((l) => l.includes("let the name go"))).toBe(true);
+  expect(w3.log.some((l) => l.includes("will not be called again"))).toBe(true);
+});
+
+test("every verse carries a lesson as well as a stat: understanding and power both", () => {
+  const w = createWorld();
+  for (const f of w.fragments) {
+    expect(f.title.length).toBeGreaterThan(3);
+    expect(f.lesson).toContain("(placeholder)");
+    expect(f.lesson.length).toBeGreaterThan(60); // a real teaching, not a tag
+    expect(f.verse).toContain("(placeholder)");
+  }
+  // the keepers' verse carries the inciting incident: why the songs faded
+  const keepers = w.fragments.find((f) => f.title.includes("KEEPERS"))!;
+  expect(keepers.lesson).toContain("on purpose");
+});
+
+test("the keeper answers what you carry: her line changes with the verses you hold", () => {
+  const w = createWorld();
+  walkTo(w, HUB.npc.x, HUB.npc.y);
+  interact(w);
+  const cold = w.npcLine!;
+  expect(cold).toContain("came in singing"); // she establishes who you are
+
+  const lines = new Set<string>([cold]);
+  for (const id of [2, 3, 4, 5]) {
+    w.fragments.find((f) => f.id === id)!.collected = true;
+    interact(w);
+    lines.add(w.npcLine!);
+  }
+  expect(lines.size).toBe(5); // a distinct answer per verse held
+  expect(w.npcLine).toContain("what a name is for"); // the heaviest one wins
+  // and every line stays marked for Marc
+  for (const line of lines) expect(line).toContain("(placeholder)");
 });
