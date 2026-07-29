@@ -195,6 +195,38 @@ continue."
   layout, HUD element, and label. Cite which doc informed any invented
   detail in the feature log.
 
+## Enemy variety lab (slice item 9, SIM-ONLY; for Marc's balance question)
+
+Method: jam-scope enemy twists prototyped as per-fight hook wrappers around
+the UNMODIFIED sim (tools/lab.ts, never bundled), 500 seeded fights per bot
+per variant with the pinned judges. Reproduce: `~/.bun/bin/bun tools/lab.ts`.
+Full table in the run log; deltas vs baseline squid (casual 86.4% win /
+optimal 14.4 HP lost):
+
+- INK SQUID (50% chance a landed hit blinds YOU 2 turns; blinded player
+  attacks miss 40%): casual 62.2% win (still inside the 60-90 band),
+  optimal 17.8 HP lost (barely dented). VERDICT: fair at these exact
+  numbers with no other changes; the strongest enemy-type-2 candidate.
+  It punishes button-mashing more than informed play, which is the merge's
+  whole thesis pointed back at the player.
+- WARDED SQUID (immune to Slow, no refund on the attempt): informed play
+  unaffected (blind-only 15.5, same as baseline) but UNINFORMED play is
+  wrecked: optimal-that-keeps-trying-slow loses 62.1 HP (4.3x baseline),
+  fin spam 77.1. VERDICT: immunity is fair ONLY if telegraphed before the
+  player commits stamina: Analyze must reveal it and the sprite needs a
+  visible ward. Cap at one immune enemy type, introduced after conditions
+  are learned.
+- BULWARK SQUID (+3 damage every 2nd slot, cap +9): a hard timer. Casual
+  falls to 52.2% (below band), and no-condition play goes to 0% wins: you
+  cannot race the stacks without slow-locking. At the earlier gentler
+  numbers (+2 every 3rd slot) it changed nothing at all. VERDICT: start at
+  +2 every 2nd slot, telegraph the stack visibly, and slot it as enemy
+  type 3: it makes conditions near-mandatory, so it must arrive after the
+  player owns them.
+- Lab bug caught and fixed 01:55: hook closures were per-batch, silently
+  capping the bulwark after fight 1 (its numbers came back identical to
+  baseline, which is what exposed it). Per-fight hooks now.
+
 ## Feature log (chronological)
 - 23:59 Jul 28 RUN START. caffeinate alive (pid confirmed), realignment
   cron armed (job a2466bf3, :13/:43, rounded from 45m since cron cannot
