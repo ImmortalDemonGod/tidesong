@@ -637,20 +637,29 @@ optimal 14.4 HP lost):
   5000/5000, and the night watch's 20,000/20,000 with ZERO failure seeds
   (worst 3,374 of the 5,000 cap); no-heal 50/50 (119 deaths); fastest
   clear 148 actions. Reproduce: `bun tools/worldsim.ts`.
-- G3 BANDS: PENDING FINAL PANEL. Evidence staged: all four encounters in
-  band on tuning seeds AND 2000 fresh seeds each AND five more disjoint
-  500-seed spaces (30k/50k/70k/90k/110k: squid 86-89 percent, shark
-  49-52, elder 86-88, eel 51-54; optimal floors stable at 26-28/41-42/
-  31-32/30 damage): no overfit exists in this tuning. Bands encoded as
-  tests with anti-overfit guards.
-  Reproduce: `bun tools/tune.ts`.
+- G3 BANDS: PENDING FINAL PANEL. Evidence staged (post heavy-cycle +
+  II-decay retune of Jul 29 04:22, all five encounters, echo on where
+  played): squid casual 76.4 percent / 14.3 turns, optimal 29.3 damage
+  taken; shark 35.4 / 23.6, optimal 44.7; elder 75.4 / 13.0, optimal
+  31.9; ink in band (suite battery); eel 38.2 / 20.1, optimal 30.0.
+  Spam margins 1.5-2.0x, no-cond up to 2.59x: conditions pay MORE under
+  heavies. Earlier five disjoint 500-seed spaces proved the pre-heavy
+  tuning overfit-free; deepsoak v3 (2000 fresh seeds per encounter) is
+  re-running on the final numbers. Bands encoded as tests with
+  anti-overfit guards. Reproduce: `bun tools/tune.ts`.
 - G4 NO DOMINANT STRATEGY: PENDING FINAL PANEL. Evidence staged: every
   spam bot underperforms on damage-taken margins; conditions pay jointly
   and individually; two real dominant strategies found and killed during
   the run (slow expiry-reset cycling, pre-nerf finSlash spam).
 - G5 FUN AUDIT: PENDING FINAL PANEL (machine ceiling EVIDENCED; the
-  user's morning playtest is the true verdict). Scorecard above with
-  curve updated post-retunes; usage and fairness studies attached.
+  user's morning playtest is the true verdict). Scorecard above, plus
+  FOUR full human-profile playthroughs of the real UI (first-timer,
+  masher, tactician, pitch judge): unanimous that combat post-fun-pass
+  is the build's strength ("every minute after the first fight, I
+  wanted to keep playing"); their friction list drove response rounds A
+  and B (opening, guidance, heavy cycle, II decay); playtest round 2 is
+  re-measuring the verdicts against the new build. Usage and fairness
+  studies attached.
 - G6 VISUAL: PENDING FINAL PANEL. Two reviewer rounds PASS (second after
   recapture); gallery FULLY re-captured after the fun pass (14 states +
   3 measured filmstrips, /tmp/tidesong-gallery/final-*, git time of the
