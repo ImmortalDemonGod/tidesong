@@ -119,7 +119,7 @@ function drainLog(): void {
       ui.storyCard = { text: `"${npc[1]}"`, age: 0, kind: "npc" };
     }
     if (line.includes("(Heal Song restored)")) {
-      ui.storyCard = { text: "the entrance current mends your song: Heal Song restored", age: 0, kind: "song" };
+      ui.storyCard = { text: "the entrance current mends your song: Heal Song restored", age: 0, kind: "heal" };
     }
     if (line.includes("Tide Relic is yours")) {
       ui.storyCard = { text: line, age: 0, kind: "relic" };
@@ -288,8 +288,10 @@ function combatClick(cx: number, cy: number): void {
 }
 
 canvas.addEventListener("pointerdown", (e) => {
+  // unconditional and idempotent, like keydown: a mouse-only session
+  // (incl. ?demo= review sessions that skip the title) still gets sound
+  sound.unlock();
   if (ui.screen === "title") {
-    sound.unlock();
     ui.screen = "play";
     return;
   }

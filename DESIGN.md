@@ -71,10 +71,13 @@ the build is placeholder for Marc's story and must be marked as such.
 - Death: at 0 HP the player respawns at the checkpoint (the entrance of the
   current dungeon; hub start before any dungeon has been entered).
   COMBAT deaths climb the pity escalator: 60 percent, then 75, then capped
-  at 90. HAZARD deaths (the trench) do NOT climb it and respawn at no more
-  HP than you held when the checkpoint was set (amended by final panel
-  seat 1: fight-free trench suicide was a free escalating heal, breaking
-  the "never the efficient heal" invariant). (Pity escalator originally
+  at 90. HAZARD deaths (the trench) do NOT climb it and respawn with no
+  more HP than the lowest you held inside the trench that excursion
+  (amended twice: final panel seat 1 found fight-free trench suicide was
+  a free escalating heal; confirmation seat A then refuted the first fix,
+  a checkpoint-HP cap, because it was recorded only at dungeon entry and
+  went stale-high. The cap now tracks HP inside the hazard itself, so no
+  path leaves it stale). (Pity escalator originally
   amended after softlock data: the flat 60 percent rule
   death-looped 20 percent of casual bot runs, the same compounding
   punishment spiral this design cut from the exhaustion system). Heal Song

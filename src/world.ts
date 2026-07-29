@@ -98,9 +98,12 @@ export interface WorldState {
   deaths: number;
   // pity ladder counts COMBAT deaths only; hazard suicide may not climb it
   pityDeaths: number;
-  // HP held when the checkpoint was set: hazard respawns cap here so a
-  // fight-free death can never be the efficient heal (final panel seat 1)
-  checkpointHp: number;
+  // HP held when the player last crossed INTO the trench: hazard respawns
+  // cap here, so a fight-free death can never return more HP than was
+  // carried into the hazard (confirmation seat A refuted the previous
+  // checkpoint-HP cap: it was written only on dungeon entry and went
+  // stale-high, leaving trench suicide a repeatable net-positive heal)
+  trenchEntryHp: number;
   steps: number;
   checkpoint: { area: AreaKey; pos: Vec };
   combat?: CombatState;
@@ -143,7 +146,7 @@ export function createWorld(seed = 1): WorldState {
     ],
     deaths: 0,
     pityDeaths: 0,
-    checkpointHp: 100,
+    trenchEntryHp: 100,
     steps: 0,
     checkpoint: { area: "hub", pos: { ...HUB.start } },
     melody: shuffledMelody(seed | 0),
@@ -193,10 +196,11 @@ function applyDeath(w: WorldState, cause: "combat" | "hazard" = "combat"): void 
     const frac = Math.min(0.6 + 0.15 * (w.pityDeaths - 1), 0.9);
     w.hp = Math.round(w.maxHp * frac);
   } else {
-    // hazard deaths are fight-free: respawn HP is capped at what you HAD
-    // when the checkpoint was set, so trench suicide can never heal you
-    // (final panel seat 1, HIGH: the trench was a free escalating heal)
-    w.hp = Math.min(Math.round(w.maxHp * 0.6), Math.max(1, w.checkpointHp));
+    // hazard deaths are fight-free: respawn HP is capped at what you
+    // carried into the trench THIS excursion, so suicide can never be
+    // net-positive (confirmation seat A: the checkpoint-HP cap went
+    // stale-high and the exploit survived; entry HP has no stale state)
+    w.hp = Math.min(Math.round(w.maxHp * 0.6), Math.max(1, w.trenchEntryHp));
   }
   w.area = w.checkpoint.area;
   w.pos = { ...w.checkpoint.pos };
@@ -326,6 +330,7 @@ export function step(w: WorldState, dir: Dir): boolean {
   }
 
   const moved = next.x !== w.pos.x || next.y !== w.pos.y;
+  const wasInTrench = inTrench(w.area, w.pos);
   w.pos = next;
   // A wall bump that goes nowhere triggers no tile effects (correctness
   // review round 1, LOW-10: trench chipped HP on no-op bumps).
@@ -351,6 +356,11 @@ export function step(w: WorldState, dir: Dir): boolean {
   }
 
   if (inTrench(w.area, w.pos)) {
+    // the hazard death cap tracks the LOWEST pre-chip HP held inside the
+    // trench this excursion: recorded at the crossing and ratcheted down
+    // on every step inside, so no entry path (or state poke) can leave it
+    // stale-high the way the old checkpoint cap was
+    w.trenchEntryHp = wasInTrench ? Math.min(w.trenchEntryHp, w.hp) : w.hp;
     w.hp = Math.max(0, w.hp - HUB.trenchChip);
     w.log.push(`the low dark bites: -${HUB.trenchChip} HP`);
     if (w.hp <= 0) {
@@ -396,7 +406,6 @@ function enterDungeon(w: WorldState, area: "dungeon1" | "dungeon2", entrance: Ve
   } else {
     w.log.push("checkpoint: dungeon entrance");
   }
-  w.checkpointHp = w.hp;
 }
 
 export function interact(w: WorldState): boolean {

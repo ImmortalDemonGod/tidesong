@@ -25,7 +25,7 @@ export interface UIState {
   enemyFlash: number; // seconds remaining on enemy hit flash
   zoomPulse: number; // seconds remaining on the combat-entry/phase zoom
   enemyBeat: number; // seconds until the enemy's answering beat lands
-  storyCard?: { text: string; age: number; kind: "story" | "song" | "npc" | "relic" }; // explore cards
+  storyCard?: { text: string; age: number; kind: "story" | "song" | "npc" | "relic" | "heal" }; // explore cards
   victoryHold?: { combat: CombatState; t: number }; // hold the win beat on screen
   floaters: Floater[];
 }
@@ -650,8 +650,8 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
   ctx.fillText(hint, 20, 700);
 
   if (ui.storyCard) {
-    const titles = { story: "MEMORY FRAGMENT", song: "THE SONG-SEAL", npc: "MERFOLK", relic: "THE TIDE RELIC" } as const;
-    const colors = { story: C.sand, song: C.biolum, npc: C.glow, relic: C.glow } as const;
+    const titles = { story: "MEMORY FRAGMENT", song: "THE SONG-SEAL", npc: "MERFOLK", relic: "THE TIDE RELIC", heal: "HEAL SONG" } as const;
+    const colors = { story: C.sand, song: C.biolum, npc: C.glow, relic: C.glow, heal: C.coral } as const;
     const accent = colors[ui.storyCard.kind];
     const alpha = Math.min(1, Math.max(0, 5.5 - ui.storyCard.age));
     ctx.save();
@@ -789,19 +789,21 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
     chipX += chip(ctx, chipX, 108, `${cond.kind.toUpperCase()} ${cond.level === 2 ? "II" : "I"} · ${cond.turns}`, C.glow) + 8;
   }
 
-  // phase banner
+  // phase banner (not over the SPENT hold: the fight is decided)
   if (c.boss) {
-    ctx.strokeStyle = C.danger;
-    ctx.fillStyle = C.panel;
-    ctx.beginPath();
-    ctx.roundRect(cw / 2 - 130, 20, 260, 34, 17);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = C.danger;
-    ctx.font = "600 14px ui-monospace, monospace";
-    ctx.textAlign = "center";
-    ctx.fillText(`PHASE ${c.boss.phase} · ${c.boss.phaseName}`, cw / 2, 42);
-    ctx.textAlign = "left";
+    if (!ui.victoryHold) {
+      ctx.strokeStyle = C.danger;
+      ctx.fillStyle = C.panel;
+      ctx.beginPath();
+      ctx.roundRect(cw / 2 - 130, 20, 260, 34, 17);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = C.danger;
+      ctx.font = "600 14px ui-monospace, monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(`PHASE ${c.boss.phase} · ${c.boss.phaseName}`, cw / 2, 42);
+      ctx.textAlign = "left";
+    }
 
     // part panel
     const panelX = 24;
@@ -812,9 +814,10 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
     ctx.fill();
     ctx.fillStyle = C.muted;
     ctx.font = "600 11px ui-monospace, monospace";
-    ctx.fillText("TARGET (up/down keys)", panelX, py2 - 8);
+    // no aiming prompt or selection highlight over a decided fight
+    ctx.fillText(ui.victoryHold ? "SPENT" : "TARGET (up/down keys)", panelX, py2 - 8);
     for (const p of c.boss.parts) {
-      const selected = ui.selectedPart === p.key;
+      const selected = !ui.victoryHold && ui.selectedPart === p.key;
       if (selected && !p.broken) {
         ctx.strokeStyle = C.glow;
         ctx.lineWidth = 2;
@@ -904,6 +907,10 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
   bar(ctx, 66, ch - 54, 170, 12, c.player.sta / c.player.maxSta, C.glow);
   ctx.fillText(`${c.player.sta}/${c.player.maxSta}`, 244, ch - 44);
 
+  // the hand disappears once the fight is decided (confirmation seat A,
+  // LOW-B: live-looking ability cards under the SPENT banner read as
+  // actionable)
+  if (ui.victoryHold) return;
   ABILITY_ORDER.forEach((key, i) => {
     const a = ABILITIES[key];
     const x = 330 + i * 152;

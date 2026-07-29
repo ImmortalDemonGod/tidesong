@@ -264,12 +264,15 @@ test("THE PIPE: combat lines land in the world log the UI drains (skeptic F1)", 
   expect(w.log.some((l) => l.includes("Tail Strike"))).toBe(true);
 });
 
-test("trench suicide is never a heal: hazard respawn capped at checkpoint HP (seat 1 HIGH)", () => {
+test("trench suicide is never net-positive: hazard respawn capped at trench-entry HP (seat A HIGH, refuting the stale checkpoint cap)", () => {
+  // seat A's exact exploit path: enter the dungeon HEALTHY (the old
+  // checkpoint cap recorded 100 here and went stale), come out low,
+  // and trench-suicide; the respawn must never beat the HP carried
+  // into the trench
   const w = createWorld();
-  walkTo(w, HUB.dungeonEntrance.x, HUB.dungeonEntrance.y);
-  w.hp = 12;
-  w.checkpointHp = 12;
+  walkTo(w, HUB.dungeonEntrance.x, HUB.dungeonEntrance.y); // cpHp era: 100
   walkTo(w, D1.exitX, 4); // back to hub
+  w.hp = 12; // fought low
   let guard = 0;
   while (w.deaths === 0 && guard++ < 200) {
     walkTo(w, 13, 6);
@@ -279,6 +282,45 @@ test("trench suicide is never a heal: hazard respawn capped at checkpoint HP (se
   expect(w.deaths).toBe(1);
   expect(w.hp).toBeLessThanOrEqual(12);
   expect(w.pityDeaths).toBe(0);
+});
+
+test("trench suicide sweep: respawn never exceeds the HP carried in, at any HP, even after a combat death", () => {
+  for (const hpBefore of [3, 9, 25, 41, 59, 80, 100]) {
+    const w = createWorld();
+    walkTo(w, HUB.dungeonEntrance.x, HUB.dungeonEntrance.y);
+    walkTo(w, D1.exitX, 4);
+    w.hp = hpBefore;
+    let guard = 0;
+    while (w.deaths === 0 && guard++ < 300) {
+      walkTo(w, 13, 6);
+      step(w, "down");
+      step(w, "up");
+    }
+    expect(w.deaths).toBe(1);
+    expect(w.hp).toBeLessThanOrEqual(hpBefore);
+    expect(w.hp).toBeLessThanOrEqual(60); // the 60 percent cap also holds
+    expect(w.pityDeaths).toBe(0);
+  }
+  // seat A's combined seam: a combat death first (pity floor 60) must not
+  // re-arm the trench as a heal afterwards
+  const w = createWorld();
+  walkTo(w, HUB.dungeonEntrance.x, HUB.dungeonEntrance.y);
+  walkTo(w, 8, 4); // first squid
+  w.combat!.player.hp = 1;
+  let g = 0;
+  while (w.mode === "combat" && g++ < 100) combatPass(w);
+  expect(w.pityDeaths).toBe(1); // respawned at 60 by pity
+  walkTo(w, D1.exitX, 4);
+  w.hp = 9;
+  let g2 = 0;
+  while (w.deaths === 1 && g2++ < 200) {
+    walkTo(w, 13, 6);
+    step(w, "down");
+    step(w, "up");
+  }
+  expect(w.deaths).toBe(2);
+  expect(w.hp).toBeLessThanOrEqual(9);
+  expect(w.pityDeaths).toBe(1); // hazard death still never climbs pity
 });
 
 test("pity ladder climbs on combat deaths only", () => {

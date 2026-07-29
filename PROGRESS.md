@@ -729,3 +729,20 @@ every evidence class before any PENDING becomes GREEN.
   death rule, Heal Song, dungeon 2, baselines, controls, relic gate,
   RECONCILIATION, and 2.5D claims all code-accurate, and the merge
   proposal conflict-free.
+- (git time of this commit) Confirmation seat A (re-break): 7 of 9
+  seat-1 fixes VERIFIED as played; fix 1 REFUTED with the exact seam I
+  flagged: checkpointHp was written only on dungeon entry, so entering
+  healthy left the cap stale at 100 and trench suicide stayed a
+  repeatable +51 HP heal (19/19 seeds, real-UI replay). Fixed with a
+  ratchet: the cap now tracks the lowest pre-chip HP held inside the
+  trench itself, recorded at the crossing and tightened every step, so
+  no entry path or state poke can leave it stale. Seat A's own probes
+  re-run: 0/19 net-positive, as-played replay CLEAN, pity ladder intact
+  with hazard deaths interleaved. Also fixed from the round: dead-fight
+  UI suppressed under the SPENT hold (phase banner, TARGET prompt,
+  selection highlight, ability cards); mouse-only sessions unlock audio
+  (pointerdown parity with keydown); heal-refill card gets its own HEAL
+  SONG title instead of THE SONG-SEAL. Storm results banked: 10,000
+  hostile events through the real handlers, zero throws, zero error
+  paints. G2 re-measured: scripted 50/50, 16 deaths, max 189; casual
+  100/100, max 2679 (identical: bot routes never hazard-die). 83 tests.
