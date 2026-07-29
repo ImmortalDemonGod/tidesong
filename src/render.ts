@@ -964,13 +964,8 @@ export function render(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
     centered(ctx, "waking at the last checkpoint...", ch / 2 + 24, "15px system-ui", C.muted, cw);
   }
 
-  // victory outranks pause: the win screen may never be erased by a blur
-  // auto-pause (played-experience hunt, MED-4)
-  if ((ui.screen === "victory" || w.mode === "victory") && ui.screen !== "pause") {
-    // fallthrough to the victory block below
-  } else if (ui.screen === "pause" && w.mode === "victory") {
-    ui.screen = "play";
-  }
+  // victory outranks pause (hunt, MED-4); the pause-state normalization
+  // lives in the frame loop, because rendering never mutates state
   if (ui.screen === "pause" && w.mode !== "victory") {
     ctx.fillStyle = "rgba(6,18,28,0.82)";
     ctx.fillRect(0, 0, cw, ch);

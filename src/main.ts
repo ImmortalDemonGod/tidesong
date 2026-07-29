@@ -341,6 +341,9 @@ function frame(now: number): void {
   const dt = Math.min(0.1, (now - last) / 1000);
   last = now;
   ui.time += reducedMotion ? dt * 0.25 : dt;
+  // a victory can land while paused (blur mid-beat): normalize here, in
+  // the state-owning loop, never in the renderer
+  if (ui.screen === "pause" && world.mode === "victory") ui.screen = "play";
   // presentation freezes with the game: nothing decays while paused (MED-9)
   const live = ui.screen === "play";
   if (live && ui.deathFlash > 0) ui.deathFlash = Math.max(0, ui.deathFlash - dt * 0.7);
