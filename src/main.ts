@@ -227,7 +227,7 @@ function drainLog(): void {
     // (hunt, HIGH-1); the merfolk line ages out instead of living forever
     // (hunt, MED-5); the relic award is announced (hunt, HIGH-2)
     if (line.includes("shoves you back")) {
-      ui.storyCard = { text: "the current shoves you back: the first ruin's guardian holds the Tide Relic", age: 0, kind: "song" };
+      ui.storyCard = { text: "the current shoves you back: the first ruin's guardian holds the Tide Relic", age: 0, kind: "relic" };
     }
     // "seal", not "song-seal": the gullet's lines say "the gullet's seal"
     // and were matching nothing, so that whole puzzle was silent and its

@@ -1466,3 +1466,12 @@ every evidence class before any PENDING becomes GREEN.
   to 753 actions), 108 tests green.
   Taught line now beats mashing on squid, ink and shark by 10 to 15 HP;
   elder and eel still favour raw damage and are logged for the team.
+- (git time of this commit) Remaining cold-playtest items cleared:
+  the BOSS BAR now measures the path to victory (key part durability
+  "40 to break") instead of total body durability, which had the eel
+  reading 54/66 two hits from death because half its parts are never on
+  the path; the current-wall rebuff card is titled THE TIDE RELIC
+  instead of THE SONG-SEAL; and the combat teach line now teaches what
+  the cards cannot (SPACE passes, up/down aims, Analyze is free the
+  first look) rather than repeating the ability effects that are now
+  printed on the buttons themselves. 108 tests green.

@@ -1485,10 +1485,24 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
   ctx.fillStyle = C.ink;
   ctx.font = "600 16px system-ui";
   ctx.fillText(c.enemy.name, headX, 78);
-  bar(ctx, headX, 88, 260, 12, c.enemy.hp / c.enemy.maxHp, C.danger);
-  ctx.fillStyle = C.muted;
-  ctx.font = "600 11px ui-monospace, monospace";
-  ctx.fillText(`${c.enemy.hp}/${c.enemy.maxHp}`, headX + 268, 97);
+  if (c.boss) {
+    // a boss dies when its KEY parts break, so the bar must measure that
+    // and not total durability (cold playtest: the eel read 54/66 two
+    // hits from death because half its body is never on the path)
+    const keyNow = c.boss.parts.find((p2) => p2.key === c.boss!.keyPartByPhase[c.boss!.phase]);
+    const keyNext = c.boss.parts.find((p2) => p2.key === c.boss!.keyPartByPhase[2]);
+    const left = (keyNow && !keyNow.broken ? keyNow.durability : 0) + (c.boss.phase === 1 && keyNext && !keyNext.broken ? keyNext.durability : 0);
+    const total = (keyNow?.maxDurability ?? 1) + (c.boss.phase === 1 ? (keyNext?.maxDurability ?? 0) : 0);
+    bar(ctx, headX, 88, 260, 12, Math.max(0, left) / Math.max(1, total), C.danger);
+    ctx.fillStyle = C.muted;
+    ctx.font = "600 11px ui-monospace, monospace";
+    ctx.fillText(`${left} to break`, headX + 268, 97);
+  } else {
+    bar(ctx, headX, 88, 260, 12, c.enemy.hp / c.enemy.maxHp, C.danger);
+    ctx.fillStyle = C.muted;
+    ctx.font = "600 11px ui-monospace, monospace";
+    ctx.fillText(`${c.enemy.hp}/${c.enemy.maxHp}`, headX + 268, 97);
+  }
   let chipX = headX;
   for (const cond of c.enemy.conditions) {
     chipX += chip(ctx, chipX, 108, `${cond.kind.toUpperCase()} ${cond.level === 2 ? "II" : "I"} · ${cond.turns}`, C.glow) + 8;
@@ -1659,7 +1673,11 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
   ctx.fillStyle = C.muted;
   ctx.font = "12px system-ui";
   ctx.textAlign = "center";
-  ctx.fillText("Silt Burst blinds · Fin Slash slows · Heal Song mends · Analyze reveals · Bubble guards the next hit", cw / 2, ch - 110);
+  ctx.fillText(
+    "1-6 act · up/down aim a boss part · SPACE passes the turn · Analyze is free the first look",
+    cw / 2,
+    ch - 110,
+  );
   ctx.textAlign = "left";
 
   // recent log lines
