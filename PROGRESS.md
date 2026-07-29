@@ -617,3 +617,8 @@ optimal 14.4 HP lost):
   geometry-reviewed and keyboard-equivalent by construction; headless
   click-drive verification noted as an open instrument gap for the final
   panel. 80 tests green.
+- 02:20 Click-drive instrument (?filmstrip=click) closes the G8-2 gap:
+  a real PointerEvent at the Silt Burst card's screen coordinates drives
+  the full beat-locked exchange, measured labels proving sta 20->19,
+  blind 0->1, beat 0.53->0.00, floaters and ticker live. The as-played
+  instrument family is complete: keys, clicks, kills, all measured.

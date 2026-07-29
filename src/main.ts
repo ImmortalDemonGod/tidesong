@@ -451,7 +451,65 @@ function frame(now: number): void {
 // composing the strip synchronously so a load-time screenshot captures
 // proof that the exchange is visible and sequential, not instant.
 const filmstrip = new URLSearchParams(location.search).get("filmstrip");
-if (filmstrip === "kill") {
+if (filmstrip === "click") {
+  // mouse-play verification: a REAL PointerEvent at the Silt Burst card's
+  // on-screen position, through the real handler (G8-2 instrument gap)
+  virtualClock = true;
+  last = 0;
+  world = createWorld(7);
+  ui.screen = "play";
+  world.area = "dungeon1";
+  world.pos = { x: 7, y: 4 };
+  world.checkpoint = { area: "dungeon1", pos: { x: 1, y: 4 } };
+  step(world, "right");
+  logCursor = world.log.length;
+  const snaps3: { label: string; img: HTMLCanvasElement }[] = [];
+  const snap3 = (label: string) => {
+    const c = document.createElement("canvas");
+    c.width = canvas.width;
+    c.height = canvas.height;
+    c.getContext("2d")!.drawImage(canvas, 0, 0);
+    const m = `[sta=${world.combat?.player.sta ?? "-"} beat=${ui.enemyBeat.toFixed(2)} blind=${world.combat?.enemy.conditions.length ?? 0}]`;
+    snaps3.push({ label: `${label} ${m}`, img: c });
+  };
+  let vt3 = 0;
+  const adv3 = (target: number) => {
+    while (vt3 < target) {
+      vt3 = Math.min(target, vt3 + 80);
+      frame(vt3);
+    }
+  };
+  const clickCanvasAt = (cx: number, cy: number) => {
+    const rect = canvas.getBoundingClientRect();
+    canvas.dispatchEvent(
+      new PointerEvent("pointerdown", {
+        clientX: rect.left + (cx / canvas.width) * rect.width,
+        clientY: rect.top + (cy / canvas.height) * rect.height,
+        bubbles: true,
+      }),
+    );
+  };
+  frame(0);
+  snap3("t=0 before any input");
+  clickCanvasAt(330 + 1 * 152 + 70, canvas.height - 60); // Silt Burst card center
+  adv3(16);
+  snap3("t=16ms CLICKED Silt Burst: acted via mouse");
+  adv3(920);
+  snap3("t=920ms the sea answered the mouse action");
+  ctx.fillStyle = "#06121C";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  snaps3.forEach((sn, i) => {
+    const y = i * (canvas.height / 3);
+    ctx.drawImage(sn.img, canvas.width * 0.17, y + 2, canvas.width * 0.66, canvas.height / 3 - 4);
+    ctx.strokeStyle = "#35C8D6";
+    ctx.strokeRect(canvas.width * 0.17, y + 2, canvas.width * 0.66, canvas.height / 3 - 4);
+    ctx.fillStyle = "#0B1D2A";
+    ctx.fillRect(canvas.width * 0.17 + 4, y + 6, 640, 22);
+    ctx.fillStyle = "#D8E9EE";
+    ctx.font = "600 12px ui-monospace, monospace";
+    ctx.fillText(sn.label, canvas.width * 0.17 + 10, y + 22);
+  });
+} else if (filmstrip === "kill") {
   // the win edge as played: the kill must hold on screen (HIGH-2 proof)
   virtualClock = true;
   last = 0;
