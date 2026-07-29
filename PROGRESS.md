@@ -629,17 +629,21 @@ optimal 14.4 HP lost):
 
 - G1 BUG-FREE: PENDING FINAL PANEL. Evidence staged: 80 tests / 266,479
   assertions; soaked 10x clean (00:59) and 25x clean (endurance log);
-  night-watch 50x soak in flight; world fuzz 20k actions + 12k
+  night-watch 50x soak COMPLETE, all clean; world fuzz 20k actions + 12k
   dungeon-2-seeded actions with per-action invariants incl. the relic
   gate; on-canvas error overlay with 15+ gallery states rendering clean.
   Reproduce: `~/.bun/bin/bun test`.
 - G2 WINNABLE: PENDING FINAL PANEL. Evidence staged: scripted pinned-bot
-  50/50 clears (16 pity deaths, max 189 actions); casual 100/100 and
-  5000/5000 (fails: none); 20k mega-sim in flight; no-heal 50/50 (119
-  deaths); fastest clear 148 actions. Reproduce: `bun tools/worldsim.ts`.
+  50/50 clears (16 pity deaths, max 189 actions); casual 100/100,
+  5000/5000, and the night watch's 20,000/20,000 with ZERO failure seeds
+  (worst 3,374 of the 5,000 cap); no-heal 50/50 (119 deaths); fastest
+  clear 148 actions. Reproduce: `bun tools/worldsim.ts`.
 - G3 BANDS: PENDING FINAL PANEL. Evidence staged: all four encounters in
-  band on tuning seeds AND 2000 fresh seeds each; five more disjoint
-  spaces in flight; bands encoded as tests with anti-overfit guards.
+  band on tuning seeds AND 2000 fresh seeds each AND five more disjoint
+  500-seed spaces (30k/50k/70k/90k/110k: squid 86-89 percent, shark
+  49-52, elder 86-88, eel 51-54; optimal floors stable at 26-28/41-42/
+  31-32/30 damage): no overfit exists in this tuning. Bands encoded as
+  tests with anti-overfit guards.
   Reproduce: `bun tools/tune.ts`.
 - G4 NO DOMINANT STRATEGY: PENDING FINAL PANEL. Evidence staged: every
   spam bot underperforms on damage-taken margins; conditions pay jointly
@@ -665,3 +669,8 @@ both are corrected above with the structural rules that prevent them
 (git-clock-only, no times in source, measured instrument labels,
 asserted replaces). The final panel is directed to re-verify a sample of
 every evidence class before any PENDING becomes GREEN.
+- 02:25 Night watch complete: 50x soak clean, 20,000/20,000 mega-sim
+  with zero failure seeds, bands stable across five disjoint fresh seed
+  spaces. Full 14-state gallery + 3 filmstrips regenerated on the final
+  render surface. The evidence base is closed; what remains is the final
+  panel and verdict stamping.
