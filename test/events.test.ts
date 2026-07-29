@@ -6,7 +6,7 @@
 import { expect, test } from "bun:test";
 import { classifyLogLine } from "../src/events";
 import { createBossCombat, createCombat, useAbility } from "../src/game";
-import { HUB, combatPass, createWorld, step } from "../src/world";
+import { HUB, combatAction, combatPass, createWorld, step } from "../src/world";
 import { walk } from "./helpers";
 
 test("G7 hit: a landed attack log line classifies as hit", () => {
@@ -60,5 +60,23 @@ test("G7 victory: parting the currents classifies as victory", () => {
   const w = createWorld();
   w.hasTideRelic = true;
   walk(w, HUB.mouth.x, HUB.mouth.y);
+  expect(w.log.some((l) => classifyLogLine(l) === "victory")).toBe(true);
+});
+
+test("G7 victory: the eel's fall classifies as victory (extended slice ending)", () => {
+  const w = createWorld(3);
+  w.hasTideRelic = true;
+  w.area = "dungeon2";
+  for (const e of w.encounters) if (e.kind !== "boss2") e.defeated = true;
+  w.pos = { x: 20, y: 4 };
+  w.checkpoint = { area: "dungeon2", pos: { x: 1, y: 4 } };
+  step(w, "right");
+  let guard = 0;
+  while (w.mode === "combat" && w.combat && guard++ < 300) {
+    w.combat.player.sta = w.combat.player.maxSta;
+    w.combat.player.hp = w.combat.player.maxHp;
+    combatAction(w, "tailStrike");
+  }
+  expect(w.mode).toBe("victory");
   expect(w.log.some((l) => classifyLogLine(l) === "victory")).toBe(true);
 });

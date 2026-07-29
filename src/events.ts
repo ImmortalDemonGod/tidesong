@@ -17,7 +17,7 @@ export function classifyLogLine(line: string): GameEvent | null {
   if (line.startsWith("death")) return "death";
   if (line.includes("memory fragment")) return "pickup";
   if (line.includes("shoves you back")) return "rebuff";
-  if (line.includes("currents part")) return "victory";
+  if (line.includes("currents part") || line.includes("falls silent")) return "victory";
   if (line.includes("dmg") || line.includes("hits for") || line.includes("hits the")) return "hit";
   return null;
 }
