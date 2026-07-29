@@ -14,6 +14,10 @@ export type GameEvent =
   | "jar";
 
 export function classifyLogLine(line: string): GameEvent | null {
+  // Analyze is an information chime, not an attack thunk (its log line
+  // contains "dmg", which would otherwise classify as hit: skeptic F7)
+  if (line.startsWith("Analyze:")) return "note";
+  if (line.includes("the low dark bites")) return "jar";
   if (line.includes("PHASE BREAK") || line.includes("BREAKS")) return "phaseBreak";
   if (line.includes("disable landed") || line.includes("raised to II")) return "disable";
   if (line.startsWith("death")) return "death";

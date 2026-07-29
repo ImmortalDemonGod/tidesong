@@ -81,13 +81,15 @@ test("G7 victory: the eel's fall classifies as victory (extended slice ending)",
   expect(w.log.some((l) => classifyLogLine(l) === "victory")).toBe(true);
 });
 
-test("G7 victory: a plain combat win classifies as victory (win-edge fix)", () => {
-  const s = createCombat(3);
-  s.enemy.dodge = 0;
-  s.enemy.hp = 5;
-  useAbility(s, "tailStrike");
-  expect(s.outcome).toBe("victory");
-  expect(s.log.some((l) => classifyLogLine(l) === "victory")).toBe(true);
+test("G7 victory: a plain combat win reaches the DELIVERED log (skeptic F1: the old version asserted the disconnected side)", () => {
+  const w = createWorld(3);
+  walk(w, HUB.dungeonEntrance.x, HUB.dungeonEntrance.y);
+  walk(w, 8, 4);
+  w.combat!.enemy.dodge = 0;
+  w.combat!.enemy.hp = 5;
+  combatAction(w, "tailStrike");
+  expect(w.mode).toBe("explore");
+  expect(w.log.some((l) => classifyLogLine(l) === "victory")).toBe(true);
 });
 
 test("G7 note and jar: song-seal stones ring and jar audibly", () => {

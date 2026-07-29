@@ -25,7 +25,7 @@ export interface UIState {
   enemyFlash: number; // seconds remaining on enemy hit flash
   zoomPulse: number; // seconds remaining on the combat-entry/phase zoom
   enemyBeat: number; // seconds until the enemy's answering beat lands
-  storyCard?: { text: string; age: number; kind: "story" | "song" | "npc" }; // explore cards
+  storyCard?: { text: string; age: number; kind: "story" | "song" | "npc" | "relic" }; // explore cards
   victoryHold?: { combat: CombatState; t: number }; // hold the win beat on screen
   floaters: Floater[];
 }
@@ -635,8 +635,8 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
   ctx.fillText(hint, 20, 700);
 
   if (ui.storyCard) {
-    const titles = { story: "MEMORY FRAGMENT", song: "THE SONG-SEAL", npc: "MERFOLK" } as const;
-    const colors = { story: C.sand, song: C.biolum, npc: C.glow } as const;
+    const titles = { story: "MEMORY FRAGMENT", song: "THE SONG-SEAL", npc: "MERFOLK", relic: "THE TIDE RELIC" } as const;
+    const colors = { story: C.sand, song: C.biolum, npc: C.glow, relic: C.glow } as const;
     const accent = colors[ui.storyCard.kind];
     const alpha = Math.min(1, Math.max(0, 5.5 - ui.storyCard.age));
     ctx.save();
@@ -825,6 +825,10 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
   }
 
   // turn pill: input is always the player's to give in this turn flow
+  // (suppressed under the victory hold: the fight is over)
+  if (ui.victoryHold) {
+    // no pill on a corpse
+  } else {
   ctx.fillStyle = C.panel;
   ctx.strokeStyle = ui.enemyBeat > 0 ? C.danger : C.glow;
   ctx.beginPath();
@@ -836,6 +840,7 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
   ctx.textAlign = "center";
   ctx.fillText(ui.enemyBeat > 0 ? "THE SEA ANSWERS" : "YOUR MOVE", cw / 2, c.boss ? 80 : 40);
   ctx.textAlign = "left";
+  }
 
   // aim confirm line (boss): what will a number key hit right now?
   if (c.boss) {
@@ -920,7 +925,7 @@ export function render(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
 
   // the win beat: hold the final combat frame with a banner so the kill
   // is watchable (played-experience hunt, HIGH-2)
-  if (ui.victoryHold && ui.screen === "play") {
+  if (ui.victoryHold && (ui.screen === "play" || ui.screen === "pause")) {
     const held = { ...w, mode: "combat" as const, combat: ui.victoryHold.combat };
     renderCombat(ctx, held as WorldState, ui, cw, ch);
     ctx.fillStyle = C.panel;
@@ -934,6 +939,12 @@ export function render(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
     ctx.textAlign = "center";
     ctx.fillText("SPENT", cw / 2, ch / 2 - 31);
     ctx.textAlign = "left";
+    if (ui.screen === "pause") {
+      // pause draws OVER the held frame instead of leaking the world
+      ctx.fillStyle = "rgba(6,18,28,0.72)";
+      ctx.fillRect(0, 0, cw, ch);
+      centered(ctx, "PAUSED", ch / 2, "700 40px system-ui", C.ink, cw);
+    }
     if (ui.muted) {
       ctx.fillStyle = C.muted;
       ctx.font = "600 12px ui-monospace, monospace";

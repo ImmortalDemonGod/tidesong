@@ -203,6 +203,11 @@ function startCombat(w: WorldState, enc: Encounter): void {
   c.player.hp = w.hp;
   c.healSongUses = w.healSongUses;
   c.relicEcho = w.hasTideRelic;
+  // THE PIPE: combat pushes its lines into the world log the UI drains.
+  // Without this line every combat sound, floater, and ticker entry is
+  // dead in the played game (skeptic round F1, CRITICAL: verified zero
+  // oscillator starts across an entire fought fight).
+  c.log = w.log;
   w.combat = c;
   w.activeEncounter = enc.id;
   w.mode = "combat";

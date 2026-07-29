@@ -250,3 +250,16 @@ test("boss 2 key part wanders by seed but is deterministic", () => {
   expect(keys.size).toBeGreaterThan(1);
   for (const k of keys) expect(["eye", "fin", "tail"]).toContain(k);
 });
+
+test("THE PIPE: combat lines land in the world log the UI drains (skeptic F1)", () => {
+  const w = createWorld();
+  walkTo(w, HUB.dungeonEntrance.x, HUB.dungeonEntrance.y);
+  walkTo(w, 8, 4);
+  expect(w.mode).toBe("combat");
+  expect(w.combat!.log).toBe(w.log);
+  const before = w.log.length;
+  w.combat!.enemy.dodge = 0;
+  combatAction(w, "tailStrike");
+  expect(w.log.length).toBeGreaterThan(before);
+  expect(w.log.some((l) => l.includes("Tail Strike"))).toBe(true);
+});

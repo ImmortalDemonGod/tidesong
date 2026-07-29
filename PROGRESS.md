@@ -566,3 +566,32 @@ optimal 14.4 HP lost):
   effects reset between fights and runs, mute silences already-scheduled
   pad tones via a master gain. Two new real-log G7 tests (plain-win
   victory, note/jar). 79 tests green.
+- 02:05 Skeptic round on the fix wave: 10 findings, one CRITICAL that
+  three prior review rounds missed: THE COMBAT LOG NEVER REACHED THE UI
+  (CombatState.log and world.log were separate arrays; drainLog reads
+  only world.log), so every combat sound, floater, ticker line, and win
+  fanfare was dead in the played game, and the G7 win test asserted the
+  DISCONNECTED side of the pipe. The skeptic proved it with a headless
+  harness running the real main.ts and counting oscillator starts: ZERO
+  across an entire fought fight. Fixed with one line (startCombat shares
+  the log) plus the kill-blow shake gate; delivery now re-proven with the
+  skeptic's own probe: 13 oscillator starts and real sim lines in the
+  ticker. Also fixed from the round: the world no longer runs under the
+  SPENT hold (movement gated, held keys cleared on combat entry; the fish
+  could previously walk into a NEW invisible fight behind the banner,
+  proven as played), held keys cleared on death (the veil was
+  keydown-only and the key you died holding walked the respawn), story
+  cards age only while renderable (verses were expiring unseen behind
+  fights), demo=fragment kind regression (card titled the literal string
+  "undefined"; stale gallery evidence recaptured), pause now draws OVER
+  the held frame, Analyze chimes instead of thunking (its log line
+  contains "dmg"), the trench bite is audible, the turn pill no longer
+  claims YOUR MOVE over a corpse, relic card gets its own title, and
+  filmstrip=combat labels now MEASURE like the kill strip (they asserted
+  a counterattack a miss had prevented). Dedupe decision logged: same
+  event class dedupes within one drain by intent (one boom per break
+  moment, one fanfare per win moment). Delivery-side regression tests
+  added: the pipe linkage itself, and the win fanfare asserted through
+  the WORLD log. 80 tests green. Commit verdicts from the skeptic
+  recorded honestly: c007ee6 REFUTED on four headline items before this
+  batch repaired them; the mechanics commits HOLD.

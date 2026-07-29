@@ -58,7 +58,10 @@ function drainLog(): void {
   let lastEv: string | null = null;
   while (logCursor < world.log.length) {
     const line = world.log[logCursor++];
-    if (line.startsWith("combat:")) ui.lastLines.length = 0; // fresh fight, fresh ticker
+    if (line.startsWith("combat:")) {
+      ui.lastLines.length = 0; // fresh fight, fresh ticker
+      heldDirs.clear(); // a key held into the fight must not walk you out of it
+    }
     ui.lastLines.push(line);
     if (ui.lastLines.length > 6) ui.lastLines.shift();
     const ev = classifyLogLine(line);
@@ -84,7 +87,7 @@ function drainLog(): void {
     if (line.includes("+2 STA") || line.includes("disable landed")) {
       ui.floaters.push({ text: "+2 STA", color: "#7FE8A9", age: 0, side: "player" });
     }
-    if (line.includes("BREAKS") && world.mode === "combat") {
+    if (line.includes("BREAKS") && (world.mode === "combat" || ui.victoryHold)) {
       ui.shake = 0.8;
       ui.zoomPulse = 0.9;
     }
@@ -115,12 +118,13 @@ function drainLog(): void {
       ui.storyCard = { text: `"${npc[1]}"`, age: 0, kind: "npc" };
     }
     if (line.includes("Tide Relic is yours")) {
-      ui.storyCard = { text: line, age: 0, kind: "story" };
+      ui.storyCard = { text: line, age: 0, kind: "relic" };
     }
   }
   if (world.deaths > lastDeaths) {
     lastDeaths = world.deaths;
     ui.deathFlash = 1.6;
+    heldDirs.clear(); // the key you died holding must not walk the respawn
     // respawn teleports: the camera must snap, not glide across the map
     ui.animX = world.pos.x;
     ui.animY = world.pos.y;
@@ -205,8 +209,8 @@ function onKey(e: KeyboardEvent): void {
     if (k === " " && world.mode === "combat") ui.enemyBeat = 0.3;
     return;
   }
-  // explore; the death veil suppresses action so the respawn reads (LOW-10)
-  if (ui.deathFlash > 0.8) return;
+  // explore; the death veil and the victory hold suppress action
+  if (ui.deathFlash > 0.8 || ui.victoryHold) return;
   const dir = MOVE_KEYS[k] ?? EXPLORE_VERTICAL[k];
   if (dir) heldDirs.add(dir);
   if (k === "e") interact(world);
@@ -308,7 +312,7 @@ if (demo) {
     step(world, "right");
     // the demo logCursor guard skips drainLog, so surface the card directly
     const verse = world.fragments.find((f) => f.collected)?.verse;
-    if (verse) ui.storyCard = { text: verse, age: 0 };
+    if (verse) ui.storyCard = { text: verse, age: 0, kind: "story" };
   } else if (demo === "trench") {
     world.pos = { x: 13, y: 6 };
     step(world, "down");
@@ -365,13 +369,20 @@ function frame(now: number): void {
   if (live) {
     for (const f of ui.floaters) f.age += dt;
     ui.floaters = ui.floaters.filter((f) => f.age < 1.3);
-    if (ui.storyCard) {
+    if (ui.storyCard && world.mode === "explore" && !ui.victoryHold) {
       ui.storyCard.age += dt;
       if (ui.storyCard.age > 6) ui.storyCard = undefined;
     }
   }
 
-  if (ui.screen === "play" && world.mode === "explore" && heldDirs.size > 0 && now - lastMoveAt > 130) {
+  if (
+    ui.screen === "play" &&
+    world.mode === "explore" &&
+    !ui.victoryHold &&
+    ui.deathFlash <= 0.8 &&
+    heldDirs.size > 0 &&
+    now - lastMoveAt > 130
+  ) {
     lastMoveAt = now;
     const dir = [...heldDirs][heldDirs.size - 1];
     step(world, dir);
@@ -483,15 +494,16 @@ if (filmstrip === "kill") {
       frame(vt);
     }
   };
+  const m = () => `[hp=${world.combat?.player.hp ?? "-"} beat=${ui.enemyBeat.toFixed(2)} blind=${world.combat?.enemy.conditions.map((c) => c.kind + c.turns).join(",") || "none"}]`;
   frame(0);
-  snap("t=0 your move: nothing has happened");
+  snap(`t=0 your move ${m()}`);
   press("2"); // Silt Burst through the real handler
   advanceTo(16);
-  snap("t=16ms you act: squid hit + blinded, sea has NOT answered");
+  snap(`t=16ms you acted ${m()}`);
   advanceTo(320);
-  snap("t=320ms the sea answers pending: still no counterattack");
+  snap(`t=320ms sea answer pending ${m()}`);
   advanceTo(920);
-  snap("t=920ms the sea answered: counterattack landed, your move again");
+  snap(`t=920ms after the answer ${m()}`);
 
   // compose 2x2 strip
   ctx.fillStyle = "#06121C";
