@@ -103,7 +103,7 @@ test("encounters trigger combat carrying persistent HP, victory syncs back", () 
   expect(w.mode).toBe("combat");
   expect(w.combat?.player.hp).toBe(77);
   // Finish the fight WITHOUT the top-up helper so the HP sync is real
-  // (correctness review 00:47, MED-8: the old assertion was a tautology).
+  // (correctness review round 1, MED-8: the old assertion was a tautology).
   w.combat!.enemy.hp = 5;
   w.combat!.enemy.dodge = 0;
   w.combat!.player.sta = 20;

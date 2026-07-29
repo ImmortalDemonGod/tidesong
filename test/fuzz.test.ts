@@ -105,11 +105,21 @@ test("G1 fuzz: 12,000 hostile actions seeded inside dungeon 2", () => {
       }
       expect(w.hp).toBeGreaterThanOrEqual(0);
       expect(w.hp).toBeLessThanOrEqual(w.maxHp);
+      expect(w.healSongUses).toBeGreaterThanOrEqual(0);
+      expect(w.healSongUses).toBeLessThanOrEqual(2);
       const bounds = AREAS[w.area];
       expect(w.pos.x).toBeGreaterThanOrEqual(0);
       expect(w.pos.x).toBeLessThan(bounds.w);
       expect(w.pos.y).toBeGreaterThanOrEqual(0);
       expect(w.pos.y).toBeLessThan(bounds.h);
+      if (w.combat) {
+        expect(w.combat.player.sta).toBeGreaterThanOrEqual(0);
+        expect(w.combat.player.sta).toBeLessThanOrEqual(w.combat.player.maxSta);
+        for (const c of w.combat.enemy.conditions) {
+          expect(c.turns).toBeGreaterThan(0);
+          expect(c.level === 1 || c.level === 2).toBe(true);
+        }
+      }
       if (w.combat?.boss) {
         for (const p of w.combat.boss.parts) {
           expect(p.durability).toBeGreaterThanOrEqual(0);

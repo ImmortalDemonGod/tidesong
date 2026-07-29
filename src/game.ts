@@ -5,8 +5,8 @@
 // Blind miss: 60% at level I, 80% at level II (DESIGN says 50-75 for I; 60 picked).
 // Blind II also zeroes enemy dodge ("agility drops", Glass_Goat's example).
 // Slow: skip every other action; level II acting slots at 75% damage
-// (retuned 00:55: at 50% the perma-slow-II finSlash line dominated).
-// Squid: 30 HP, 13 damage, 15% dodge (tuned 00:06 under G3: 40/10 gave casual
+// (retuned after correctness round 1: at 50% the perma-slow-II line dominated).
+// Squid: 28 HP, 13 damage, 15% dodge (tuned under G3; journey in PROGRESS: 40/10 gave casual
 // 90.6% wins over 18 turns, both out of band). Bubble: next hit reduced 60%.
 // Analyze hint is per-enemy data (squid: slow), set from measured bot value.
 // Dodge affects DAMAGE only; conditions always land. Rationale: Glass_Goat's
@@ -80,8 +80,10 @@ export interface BossPart {
 // key part ends the phase (phase 2 key = victory). Non-key parts pay a
 // lesser, never-trap payoff: each broken utility part permanently reduces
 // boss damage. All parts are targetable in any phase; pre-breaking the
-// phase-2 key part means the phase break cascades immediately (same total
-// durability either way, so no degenerate shortcut).
+// phase-2 key part means the phase break cascades immediately. For the
+// shark the total durability to victory is order-independent; for the eel
+// a tail-key seed needs 34 vs 38 for lure/coil seeds: mild per-seed
+// variance, accepted and logged (correctness round 2, LOW-12).
 export interface BossData {
   kind: "shark" | "eel";
   parts: BossPart[];
@@ -102,12 +104,12 @@ export interface CombatState {
   slowSlots: number;
   // Raw damage the player has absorbed this fight, heals excluded: the
   // G3 difficulty floors measure this, because net hpLost is zeroable by
-  // Heal Song (correctness review 00:47, MED-4).
+  // Heal Song (correctness review round 1, MED-4).
   damageTaken: number;
   // The relic combat echo (DESIGN: "holding the Tide Relic upgrades one
   // existing ability"): Tail Strike hits for 11 instead of 8. This is the
-  // player power growth that makes dungeon 2 survivable (added 01:15 when
-  // the extended slice ran 35 scripted deaths without it).
+  // player power growth that makes dungeon 2 survivable (without it the
+  // extended slice first ran 35 scripted deaths; see PROGRESS).
   relicEcho: boolean;
   turn: number;
   rng: number;
@@ -157,8 +159,8 @@ export function createCombat(seed = 1): CombatState {
   };
 }
 
-// Boss 1: the corrupted shark. Tuned 00:12 under G3 (journey in PROGRESS.md):
-// parts jaw 26 / eye 22 / fin 12 / tail 12; phase damage 14 then 17; each
+// Boss 1: the corrupted shark. Tuned under G3 (full journey in PROGRESS.md):
+// parts jaw 22 / eye 18 / fin 12 / tail 12; phase damage 12 then 15; each
 // broken utility part (fin, tail) takes 3 off boss damage permanently. Boss cannot
 // dodge (a huge target); enemy.hp mirrors total remaining durability so the
 // HUD and the hp<=0 victory path stay uniform with regular fights.
@@ -212,7 +214,7 @@ export function createElderCombat(seed = 1): CombatState {
 // genuinely informative every time. Phase 2 key is always the Maw finale.
 // Placeholder part naming reuses the PartKey slots; the render layer maps
 // eel names (Maw/Lure/Coil/Tail).
-export function createBoss2Combat(seed = 1): CombatState {
+export function createBoss2Combat(seed = 1, keySeed = seed): CombatState {
   const parts: BossPart[] = [
     { key: "jaw", name: "Maw", durability: 22, maxDurability: 22, broken: false },
     { key: "eye", name: "Lure", durability: 16, maxDurability: 16, broken: false },
@@ -221,8 +223,11 @@ export function createBoss2Combat(seed = 1): CombatState {
   ];
   const total = parts.reduce((sum, p) => sum + p.durability, 0);
   const state = createCombat(seed);
+  // Key derives from keySeed (the WORLD seed in play), so the key wanders
+  // per run, not per attempt: deaths re-roll fight RNG but never the key
+  // (correctness round 2, LOW-10). imul keeps the mix integral (LOW-11).
   const wanderPool: PartKey[] = ["eye", "fin", "tail"];
-  const phase1Key = wanderPool[Math.abs((seed ^ 0xee1) * 2654435761) % wanderPool.length];
+  const phase1Key = wanderPool[(Math.imul(keySeed ^ 0xee1, 2654435761) >>> 0) % wanderPool.length];
   state.enemy = {
     name: "corrupted eel",
     hp: total,
@@ -283,7 +288,7 @@ function breakPart(state: CombatState, part: BossPart): void {
       state.log.push(`the ${state.enemy.name} is spent: victory`);
     }
   } else {
-    state.log.push(`the shark weakens: damage down ${boss.utilityBreakDamageReduction}`);
+    state.log.push(`the ${state.enemy.name} weakens: damage down ${boss.utilityBreakDamageReduction}`);
   }
 }
 
@@ -320,7 +325,7 @@ export function useAbility(state: CombatState, abilityKey: string, targetPart?: 
   const { player, enemy } = state;
   if (player.sta < ability.staCost) return false;
   // Full-HP healing would burn a scarce charge for nothing: refuse like
-  // the 0-uses case (correctness review 00:47, LOW-9).
+  // the 0-uses case (correctness review round 1, LOW-9).
   if (ability.heals !== undefined && (state.healSongUses <= 0 || player.hp >= player.maxHp)) return false;
 
   player.sta -= ability.staCost;
@@ -336,7 +341,7 @@ export function useAbility(state: CombatState, abilityKey: string, targetPart?: 
     } else if (state.boss) {
       // Damage routes to a part. UNTARGETED damage drifts to a random
       // unbroken part: aiming (and Analyze's hint) must carry real decision
-      // value, so the key part is never free (fidelity review 00:24).
+      // value, so the key part is never free (fidelity review round 1).
       let part = targetPart ? getPart(state, targetPart) : undefined;
       if (part?.broken) part = undefined;
       if (!part) {
@@ -368,7 +373,7 @@ export function useAbility(state: CombatState, abilityKey: string, targetPart?: 
     state.analyzed = true;
     state.log.push(
       state.boss
-        ? `Analyze: target the ${currentKeyPart(state)} to end the ${state.boss.phaseName} phase (${bossDamage(state)} dmg per hit)`
+        ? `Analyze: target the ${getPart(state, currentKeyPart(state)!)!.name} to end the ${state.boss.phaseName} phase (${bossDamage(state)} dmg per hit)`
         : `Analyze: ${state.enemy.analyzeHint} is most effective (${state.enemy.attackDamage} dmg, dodges ${Math.round(state.enemy.dodge * 100)}%)`,
     );
   }
@@ -422,7 +427,7 @@ export function advanceTurn(state: CombatState): void {
       .filter((x) => x.turns > 0);
   }
   // Slow parity carries across expiry and re-application (correctness
-  // review 00:47, MED-5): resetting it let expire-and-reapply cycling
+  // review round 1, MED-5): resetting it let expire-and-reapply cycling
   // produce 2 skips per 3 slots, an 85 percent damage-reduction line no
   // pinned judge could play. Carrying parity keeps the DESIGN promise:
   // slowed slots alternate skip/act, every other, always.

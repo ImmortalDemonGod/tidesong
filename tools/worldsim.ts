@@ -4,7 +4,7 @@ import { casualBot, optimalBot } from "../test/bots";
 
 let optWins = 0, optDeaths = 0, optActMax = 0;
 for (let seed = 0; seed < 50; seed++) {
-  const r = runWorld(createWorld(seed), () => optimalBot(undefined, 55));
+  const r = runWorld(createWorld(seed), () => optimalBot());
   if (r.victory) optWins++;
   optDeaths += r.deaths;
   optActMax = Math.max(optActMax, r.actions);

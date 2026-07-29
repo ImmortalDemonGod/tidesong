@@ -2,8 +2,8 @@
 // slice start to finish (zero deaths), and the casual bot finishes from every
 // checkpoint within the 5,000-action cap (deaths allowed; natural deaths
 // exercise the dungeon-entrance checkpoint repeatedly).
-// Measured 01:10: optimal 50/50, 0 deaths, max 100 actions; casual 100/100,
-// max 1862 actions.
+// Current measurements live in PROGRESS.md and reproduce via
+// `~/.bun/bin/bun tools/worldsim.ts`.
 
 import { expect, test } from "bun:test";
 import { createWorld } from "../src/world";
@@ -12,18 +12,18 @@ import { casualBot, optimalBot } from "./bots";
 
 const ACTION_CAP = 5000;
 
-// Extended-slice caps (01:25, logged in PROGRESS): the runner is the
-// optimal policy with heal threshold 55 (the pinned 40 is a floor-measuring
-// device; across a five-fight gauntlet it refuses to heal and dies of
-// stubbornness). Measured: 23 deaths across 50 runs of the doubled
-// gauntlet, max 227 actions, every run clears; bosses may each claim a
+// Extended-slice caps (logged in PROGRESS): the PINNED heal-40 optimal
+// runs the scripted clear (correctness round 2 proved the earlier
+// threshold-55 unpinning was justified by a claim that does not reproduce
+// at HEAD; reverted). Measured at HEAD: 24 deaths across 50 runs, max 3
+// per run, max 226 actions, every run clears; bosses may each claim a
 // bad-seed death and the pity checkpoint carries the run, which is the
 // designed loop. Caps: every run clears, no run needs more than 3 deaths,
 // batch total at most 30.
 test("G2: scripted runner clears all 50 seeds of the full two-dungeon slice", () => {
   let totalDeaths = 0;
   for (let seed = 0; seed < 50; seed++) {
-    const r = runWorld(createWorld(seed), () => optimalBot(undefined, 55), ACTION_CAP);
+    const r = runWorld(createWorld(seed), () => optimalBot(), ACTION_CAP);
     expect(r.victory).toBe(true);
     expect(r.deaths).toBeLessThanOrEqual(3);
     totalDeaths += r.deaths;

@@ -79,12 +79,19 @@ function expectedNextLoss(state: CombatState): number {
   return (1 - miss) * dmg;
 }
 
+// Echo-aware: the judge must evaluate the damage the sim actually deals
+// (correctness round 2, MED-5: a stale 8 mispredicted breaks and kills).
+function effectiveDamage(state: CombatState, key: string): number {
+  const a = ABILITIES[key];
+  return key === "tailStrike" && state.relicEcho ? BASE.relicTailStrike : a.damage;
+}
+
 function expectedDamageDealt(state: CombatState, key: string): number {
   const a = ABILITIES[key];
   if (a.damage <= 0) return 0;
   const blind = getCondition(state.enemy, "blind");
   const dodge = blind?.level === 2 ? 0 : state.enemy.dodge;
-  return a.damage * (1 - dodge);
+  return effectiveDamage(state, key) * (1 - dodge);
 }
 
 // For a damaging ability vs a boss: pick the part with the best value.
@@ -109,8 +116,8 @@ function bestBossPart(state: CombatState, abilityDamage: number): { part: PartKe
 // the next enemy slot + healing value + lethal bonus. Deterministic.
 // Prevention is weighted 0.8x damage: a pure-defense action can never win the
 // fight, and an unweighted greedy turtles on Bubble forever once enemy damage
-// exceeds its own expected damage (found 00:06 Jul 29; the fix strengthens
-// the judge, the allowed direction).
+// exceeds its own expected damage (found during squid tuning; the fix
+// strengthens the judge, the allowed direction).
 // healThreshold defaults to the PINNED 40 (the heal-averse floor-measuring
 // judge). The G2 runner passes 55: across a five-fight gauntlet, heal
 // aversion is a measurement device turned suicide pact. Raising the
@@ -125,7 +132,7 @@ export function optimalBot(keys: string[] = ABILITY_KEYS, healThreshold = 40): B
     let bestValue = -Infinity;
     for (const key of options) {
       const a = ABILITIES[key];
-      const chosen = a.damage > 0 ? bestBossPart(state, a.damage) : null;
+      const chosen = a.damage > 0 ? bestBossPart(state, effectiveDamage(state, key)) : null;
       const probe = structuredClone(state);
       useAbility(probe, key, chosen?.part);
       const dealt = expectedDamageDealt(state, key);

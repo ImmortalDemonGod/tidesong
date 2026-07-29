@@ -234,8 +234,8 @@ if (demo) {
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 // Any runtime error paints the canvas so headless screenshots can never
-// silently show an empty page (found 00:25: a blank victory shot hid a
-// thrown exception).
+// silently show an empty page (a blank shot once hid a thrown exception
+// behind a first-paint race).
 window.addEventListener("error", (e) => {
   ctx.fillStyle = "#3a0f14";
   ctx.fillRect(0, 0, canvas.width, canvas.height);

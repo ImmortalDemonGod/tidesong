@@ -2,7 +2,7 @@
 // here without the matching PROGRESS.md change (and a logged reason) is gate
 // tampering; the adversarial panel diffs the two.
 //
-// METRIC NOTE (00:55, logged in PROGRESS): optimal floors and G4 margins
+// METRIC NOTE (logged in PROGRESS): optimal floors and G4 margins
 // measure meanDamageTaken (raw damage absorbed), not net hpLost, because
 // Heal Song can zero net HP loss and hide difficulty (correctness review
 // MED-4). Casual bands keep hpLost: casual represents a player experience,
@@ -82,7 +82,7 @@ test("G4: slow individually pays for its cost (slow-only beats no-conditions by 
 });
 
 // ---------- G3/G4: boss encounter (corrupted shark) ----------
-// Boss bands added 00:40 with logged reason (see PROGRESS.md G3): a climax
+// Boss bands added with logged reason (see PROGRESS.md G3): a climax
 // fight punishes random play harder and runs longer than a regular fight.
 
 test("G3 boss: casual win rate 30 to 75 percent", () => {
@@ -123,7 +123,9 @@ test("G4 boss: ignoring conditions costs at least 20 percent more damage", () =>
 // casual bands on a disjoint seed space (7000-7499), so numbers fitted to
 // the tuning sample cannot silently pass.
 
-const casualFresh = runBatch((seed) => casualBot(seed + 7000));
+// Shift BOTH the bot seed and the combat seed (correctness round 2,
+// MED-6: shifting only the bot seed left the combat RNG on tuning seeds).
+const casualFresh = runBatch((seed) => casualBot(seed + 7000), (seed) => createCombatBase(seed + 7000));
 const optimalFresh = runBatch(() => optimalBot(), (seed) => createCombatAt(seed + 7000));
 const bossCasualFresh = runBatch((seed) => casualBot(seed + 7000), (seed) => createBossCombatAt(seed + 7000));
 
@@ -178,4 +180,22 @@ test("G3 eel: boss bands hold (casual 30-75, 6-26 turns; optimal floors)", () =>
 
 test("G4 eel: ignoring conditions costs at least 20 percent more damage", () => {
   expect(eelNoCond.meanDamageTaken).toBeGreaterThanOrEqual(eelOptimal.meanDamageTaken * 1.2);
+});
+
+
+// Fresh-seed guards for the dungeon-2 batteries (correctness round 2,
+// MED-7), echo on, seeds 7000-7499:
+const elderFresh = runBatch((seed) => casualBot(seed + 7000), (seed) => echo(createElderCombat)(seed + 7000));
+const eelCasualFresh = runBatch((seed) => casualBot(seed + 7000), (seed) => echo(createBoss2Combat)(seed + 7000));
+const eelOptimalFresh = runBatch(() => optimalBot(), (seed) => echo(createBoss2Combat)(seed + 7000));
+
+test("anti-overfit: elder bands hold on 500 unseen seeds", () => {
+  expect(elderFresh.winRate).toBeGreaterThanOrEqual(0.6);
+  expect(elderFresh.winRate).toBeLessThanOrEqual(0.92);
+});
+
+test("anti-overfit: eel bands hold on 500 unseen seeds", () => {
+  expect(eelCasualFresh.winRate).toBeGreaterThanOrEqual(0.28);
+  expect(eelCasualFresh.winRate).toBeLessThanOrEqual(0.77);
+  expect(eelOptimalFresh.meanDamageTaken).toBeGreaterThanOrEqual(20);
 });

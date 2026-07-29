@@ -81,11 +81,11 @@ test("pre-breaking the eye in phase 1 cascades to victory at the phase break", (
 test("analyze names the current phase's key part", () => {
   const s = createBossCombat();
   useAbility(s, "analyze");
-  expect(s.log.some((l) => l.includes("target the jaw"))).toBe(true);
+  expect(s.log.some((l) => l.includes("target the Jaw"))).toBe(true);
   smash(s, "jaw");
   s.player.sta = s.player.maxSta;
   useAbility(s, "analyze");
-  expect(s.log.some((l) => l.includes("target the eye"))).toBe(true);
+  expect(s.log.some((l) => l.includes("target the Eye"))).toBe(true);
 });
 
 test("slow works on the boss: first affected slot is skipped", () => {
@@ -99,7 +99,7 @@ test("slow works on the boss: first affected slot is skipped", () => {
 test("the boss cannot dodge: player damage always lands", () => {
   // Aimed at the jaw explicitly: untargeted damage drifts randomly, and
   // 2 hits of 8 stay under the jaw's durability, so no overkill clamp
-  // (correctness review 00:47, MED-7: the drift version passed by seed
+  // (correctness review round 1, MED-7: the drift version passed by seed
   // lottery).
   const s = createBossCombat(3);
   for (let i = 0; i < 2; i++) {
@@ -108,4 +108,11 @@ test("the boss cannot dodge: player damage always lands", () => {
     useAbility(s, "tailStrike", "jaw");
     expect(s.enemy.hp).toBe(before - 8);
   }
+});
+
+test("eel key wanders per RUN: deaths re-roll fight RNG but never the key", () => {
+  const { createBoss2Combat } = require("../src/game");
+  const a = createBoss2Combat(101, 42).boss.keyPartByPhase[1];
+  const b = createBoss2Combat(9999, 42).boss.keyPartByPhase[1];
+  expect(a).toBe(b);
 });
