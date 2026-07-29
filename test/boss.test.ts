@@ -44,13 +44,16 @@ test("aimed damage hits exactly the chosen part", () => {
 
 test("breaking a utility part reduces boss damage, never ends a phase", () => {
   const s = createBossCombat();
-  expect(bossDamage(s)).toBe(12);
+  const base = s.boss!.baseDamageByPhase[1];
+  const cut = s.boss!.utilityBreakDamageReduction;
+  expect(bossDamage(s)).toBe(base);
   smash(s, "fin");
   expect(s.boss?.phase).toBe(1);
-  expect(bossDamage(s)).toBe(9);
+  expect(bossDamage(s)).toBe(base - cut);
   const hp = s.player.hp;
   advanceTurn(s);
-  expect(hp - s.player.hp).toBe(9);
+  // the first slot of a fresh fight is never a heavy, so the hit is flat
+  expect(hp - s.player.hp).toBe(base - cut);
 });
 
 test("breaking the jaw ends phase 1: FRENZY begins, key part becomes eye, damage rises", () => {
@@ -59,7 +62,8 @@ test("breaking the jaw ends phase 1: FRENZY begins, key part becomes eye, damage
   expect(s.boss?.phase).toBe(2);
   expect(s.boss?.phaseName).toBe("FRENZY");
   expect(currentKeyPart(s)).toBe("eye");
-  expect(bossDamage(s)).toBe(15);
+  expect(bossDamage(s)).toBe(s.boss!.baseDamageByPhase[2]);
+  expect(s.boss!.baseDamageByPhase[2]).toBeGreaterThan(s.boss!.baseDamageByPhase[1]);
   expect(s.outcome).toBe("ongoing");
 });
 

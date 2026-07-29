@@ -1284,3 +1284,42 @@ every evidence class before any PENDING becomes GREEN.
   the pinned bot still never bothers with blind. Blind is the specialist
   (evasive enemies), slow is the generalist. Whether type 3 should be a
   blind-answer enemy is a balance question for the team.
+- (git time of this commit) Played questions: "are the 6 options
+  actually useful in the fights or not; is there any real strategy; did
+  you sim play it thoroughly". Measured rather than argued, and the
+  answer was partly NO.
+  MEASUREMENT (tools/usage.ts, 300 fights per cell): Analyze 0 percent
+  and BUBBLE 0 PERCENT of optimal play on every enemy, which refutes my
+  own earlier claim that the heavy cycle gave Bubble "a right moment".
+  Two further probes: bubbling a telegraphed heavy COST 9 to 40 more
+  damage than never bubbling, and at 30 HP bubbling the lethal hit won
+  0 to 16 percent versus 34 to 67 percent for never bubbling. Bubble
+  was not underrated, it was a trap: a 60 percent discount on one hit
+  costs a whole turn, and the fight gets longer, so more hits land.
+  DESIGN FIX (not a tuning nudge): as a pure percentage the greedy judge
+  is bimodal (0 percent usage at 72, 42 percent and broken bands at 75),
+  so Bubble is now a GUARD with CHARGES like Heal Song: 80 percent
+  reduction, 2 uses per fight, refused when spent or already braced,
+  shown on the card. Result: 18 percent usage on the teaching fight,
+  0 percent spam viability, and at low HP it is a real save.
+  ALSO FIXED: the heavy cycle counted only ACTING slots, so slow both
+  prevented hits and pushed heavies apart. Heavies now run on a
+  SCHEDULE (a skipped slot still advances it), which cost the shark its
+  casual band; swept phase damage and softened 12/15 to 11/14, the cell
+  with the most room on both sides.
+  TRIED AND REVERTED, logged honestly: giving squids real evasion to
+  make BLIND their answer. It worked in isolation (blind 37.9 vs slow
+  53.9) but did not survive Bubble's arrival, so the squid is back at 28
+  HP / 15 percent dodge and its hint is slow, which is what the numbers
+  say. Enemy-specific disable preference is now a BACKLOG item for type
+  3 rather than a number I forced.
+  FINAL KIT on the teaching fight: tail 19 / silt 18 / fin 40 / heal 5 /
+  bubble 18 percent, five of six abilities in real use (Analyze is 0
+  percent for BOTS by construction: they read state for free, which is
+  a documented judge blindness, not a dead button for a human).
+  All bands in range, 104 tests green, G2 improved again: scripted
+  50/50 with 10 deaths max 173, casual 100/100 worst 930, x5000
+  5000/5000 zero fail seeds worst 1186 (was 2692). Two boss tests were
+  rewritten to assert the RULES (utility break subtracts the configured
+  reduction, phase 2 exceeds phase 1) instead of the tuned constants, so
+  a logged retune can never look like a broken mechanic again.

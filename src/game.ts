@@ -22,7 +22,19 @@ export const BASE = {
   healSongUses: 2,
   blindMiss: [0, 0.6, 0.8],
   slowDamageMult: 0.75,
-  bubbleReduction: 0.6,
+  // A full guard, not a discount (measured Jul 29: at 60 percent the
+  // pinned bot never chose Bubble on any enemy, bubbling a telegraphed
+  // heavy cost 9 to 40 MORE damage than not bubbling, and at low HP a
+  // bubbled lethal hit still killed you a turn later. A defensive turn
+  // has to actually cancel the thing it answers.)
+  bubbleReduction: 0.8,
+  // Bubble is a GUARD, not a stance: strong enough to answer a
+  // telegraphed heavy, limited so it can never become the whole plan.
+  // (Measured Jul 29: as a pure percentage the greedy judge was
+  // bimodal, ignoring Bubble entirely at 72 percent and spamming it to
+  // 42 percent of all actions at 75. A charge count is what makes it a
+  // decision instead of a stance.)
+  bubbleUses: 2,
   relicTailStrike: 11,
   // Enemy type 2, the ink squid (shipped Jul 29 from the sim-only lab on
   // the playtester's fun mandate; numbers are the lab's recommendation:
@@ -135,6 +147,7 @@ export interface CombatState {
   enemy: Combatant & { attackDamage: number; dodge: number; analyzeHint: ConditionKind; ink?: boolean };
   boss?: BossData;
   healSongUses: number;
+  bubbleUses: number;
   bubbleCharge: boolean;
   analyzed: boolean;
   slowSlots: number;
@@ -180,16 +193,17 @@ export function createCombat(seed = 1): CombatState {
     },
     enemy: {
       name: "vampire squid",
-      hp: 22,
-      maxHp: 22,
+      hp: 28,
+      maxHp: 28,
       sta: 0,
       maxSta: 0,
       conditions: [],
       attackDamage: 13,
-      dodge: 0.22,
-      analyzeHint: "blind",
+      dodge: 0.15,
+      analyzeHint: "slow",
     },
     healSongUses: BASE.healSongUses,
+    bubbleUses: BASE.bubbleUses,
     bubbleCharge: false,
     analyzed: false,
     slowSlots: 0,
@@ -236,7 +250,7 @@ export function createBossCombat(seed = 1): CombatState {
     phase: 1,
     phaseName: "CRUSH",
     keyPartByPhase: { 1: "jaw", 2: "eye" },
-    baseDamageByPhase: { 1: 12, 2: 15 },
+    baseDamageByPhase: { 1: 11, 2: 14 },
     utilityBreakDamageReduction: 3,
   };
   return state;
@@ -252,7 +266,6 @@ export function createElderCombat(seed = 1): CombatState {
   state.enemy.hp = 30;
   state.enemy.maxHp = 30;
   state.enemy.attackDamage = 14;
-  state.enemy.dodge = 0.24;
   state.enemy.analyzeHint = "slow";
   return state;
 }
@@ -401,6 +414,9 @@ export function useAbility(state: CombatState, abilityKey: string, targetPart?: 
   // Full-HP healing would burn a scarce charge for nothing: refuse like
   // the 0-uses case (correctness review round 1, LOW-9).
   if (ability.heals !== undefined && (state.healSongUses <= 0 || player.hp >= player.maxHp)) return false;
+  // a spent guard is refused like a spent song, and bracing twice over
+  // does nothing, so the charge is never thrown away
+  if (ability.bubble && (state.bubbleUses <= 0 || state.bubbleCharge)) return false;
 
   player.sta -= ability.staCost;
 
@@ -452,8 +468,9 @@ export function useAbility(state: CombatState, abilityKey: string, targetPart?: 
     state.log.push(`Heal Song: +${healed} HP (${state.healSongUses} left)`);
   }
   if (ability.bubble) {
+    state.bubbleUses -= 1;
     state.bubbleCharge = true;
-    state.log.push("Bubble: next hit reduced");
+    state.log.push(`Bubble: braced for the next hit (${state.bubbleUses} left)`);
   }
   if (ability.analyze) {
     state.analyzed = true;
@@ -540,7 +557,7 @@ export function advanceTurn(state: CombatState): void {
       if (state.bubbleCharge) {
         dmg = Math.round(dmg * (1 - BASE.bubbleReduction));
         state.bubbleCharge = false;
-        state.log.push("Bubble absorbed part of the hit");
+        state.log.push(BASE.bubbleReduction >= 1 ? "Bubble holds: the blow breaks on it" : "Bubble absorbed part of the hit");
       }
       player.hp = Math.max(0, player.hp - dmg);
       state.damageTaken += dmg;

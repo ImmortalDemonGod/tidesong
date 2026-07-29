@@ -56,7 +56,7 @@ const ABILITY_EFFECT: Record<string, (c: CombatState) => string> = {
   finSlash: () => `${ABILITIES.finSlash.damage} dmg + slow: it skips turns`,
   healSong: () => `mend ${BASE.healSongAmount} of your own HP`,
   analyze: () => "name its weakness",
-  bubble: () => `soften the next hit ${Math.round(BASE.bubbleReduction * 100)}%`,
+  bubble: () => `brace: the next hit lands ${Math.round((1 - BASE.bubbleReduction) * 100)}%`,
 };
 
 // Per-ability identity: an accent color and a small painted glyph, matched
@@ -1571,7 +1571,8 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
     const x = 330 + i * 152;
     const canAfford =
       c.player.sta >= a.staCost &&
-      !(a.heals !== undefined && (c.healSongUses <= 0 || c.player.hp >= c.player.maxHp));
+      !(a.heals !== undefined && (c.healSongUses <= 0 || c.player.hp >= c.player.maxHp)) &&
+      !(a.bubble && (c.bubbleUses <= 0 || c.bubbleCharge));
     const locked = ui.enemyBeat > 0; // the sea is answering; the hand waits
     const pressed = ui.buttonFlash[i] > 0;
     ctx.strokeStyle = pressed ? meta.accent : canAfford && !locked ? C.line : "#152836";
@@ -1598,7 +1599,7 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
     ctx.fillText(`${i + 1} ${a.name}`, x + 12, ch - 74);
     ctx.fillStyle = on ? C.muted : "#3a4c56";
     ctx.font = "12px ui-monospace, monospace";
-    const extra = a.heals !== undefined ? ` · ${c.healSongUses} left` : "";
+    const extra = a.heals !== undefined ? ` · ${c.healSongUses} left` : a.bubble ? ` · ${c.bubbleUses} left` : "";
     ctx.fillText(`${a.staCost} STA${extra}`, x + 12, ch - 54);
     // what it DOES, on the button itself: the answer to "what is slow"
     ctx.fillStyle = on ? "#7E9AA6" : "#33454e";
