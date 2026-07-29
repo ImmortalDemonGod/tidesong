@@ -318,3 +318,39 @@ test("hypothetical-break intent matches the sim's arithmetic exactly, plain and 
     }
   }
 });
+
+test("Analyze never lies about the best disable: every enemy's hint matches the measured winner", () => {
+  // The played question was "fin slash works best for almost every enemy,
+  // so why use tail strike": four of five hints said slow because slow
+  // WAS better everywhere (it also delayed the heavy cycle). Heavies now
+  // run on a schedule and squids evade, so blind is the squid answer.
+  // This pins hint == measurement so they can never drift apart again.
+  const noSilt = ABILITY_KEYS.filter((k: string) => k !== "siltBurst"); // slow kit
+  const noFin = ABILITY_KEYS.filter((k: string) => k !== "finSlash"); // blind kit
+  const cases: Array<[string, (s: number) => any]> = [
+    ["squid", createCombatBase],
+    ["elder", echo(createElderCombat)],
+    ["ink", echo(createInkCombat)],
+    ["shark", createBossCombat],
+    ["eel", echo(createBoss2Combat)],
+  ];
+  for (const [name, make] of cases) {
+    const slowDmg = runBatch(() => optimalBot(noSilt), make, 300).meanDamageTaken;
+    const blindDmg = runBatch(() => optimalBot(noFin), make, 300).meanDamageTaken;
+    const measured = blindDmg < slowDmg ? "blind" : "slow";
+    const claimed = make(1).enemy.analyzeHint;
+    expect(`${name}:${claimed}`).toBe(`${name}:${measured}`);
+  }
+});
+
+test("G4 on the teacher: both disables pay their cost against the enemy that teaches them", () => {
+  // the squid is the first fight and the only place the player is taught,
+  // so BOTH conditions must beat ignoring conditions there
+  const noSilt = ABILITY_KEYS.filter((k: string) => k !== "siltBurst");
+  const noFin = ABILITY_KEYS.filter((k: string) => k !== "finSlash");
+  const slowOnly = runBatch(() => optimalBot(noSilt), createCombatBase, 400).meanDamageTaken;
+  const blindOnly = runBatch(() => optimalBot(noFin), createCombatBase, 400).meanDamageTaken;
+  const noCond = runBatch(() => optimalBot(NO_CONDITION_KEYS), createCombatBase, 400).meanDamageTaken;
+  expect(slowOnly).toBeLessThan(noCond * 0.8);
+  expect(blindOnly).toBeLessThan(noCond * 0.8);
+});

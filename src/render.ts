@@ -50,13 +50,13 @@ export const ABILITY_ORDER = ["tailStrike", "siltBurst", "finSlash", "healSong",
 export const CAST_TIME = 0.42;
 
 // One line per ability, in the player's words, printed on the card.
-const ABILITY_EFFECT: Record<string, string> = {
-  tailStrike: "reliable damage",
-  siltBurst: "blind: it starts missing",
-  finSlash: "slow: it skips turns",
-  healSong: "mend your own wounds",
-  analyze: "name its weakness",
-  bubble: "soften the next hit",
+const ABILITY_EFFECT: Record<string, (c: CombatState) => string> = {
+  tailStrike: (c) => `${c.relicEcho ? BASE.relicTailStrike : ABILITIES.tailStrike.damage} damage: your main hit`,
+  siltBurst: () => `${ABILITIES.siltBurst.damage} dmg + blind: it misses`,
+  finSlash: () => `${ABILITIES.finSlash.damage} dmg + slow: it skips turns`,
+  healSong: () => `mend ${BASE.healSongAmount} of your own HP`,
+  analyze: () => "name its weakness",
+  bubble: () => `soften the next hit ${Math.round(BASE.bubbleReduction * 100)}%`,
 };
 
 // Per-ability identity: an accent color and a small painted glyph, matched
@@ -1603,7 +1603,7 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
     // what it DOES, on the button itself: the answer to "what is slow"
     ctx.fillStyle = on ? "#7E9AA6" : "#33454e";
     ctx.font = "10px system-ui";
-    ctx.fillText(ABILITY_EFFECT[key] ?? "", x + 12, ch - 36);
+    ctx.fillText(ABILITY_EFFECT[key]?.(c) ?? "", x + 12, ch - 36);
   });
 }
 

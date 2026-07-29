@@ -180,14 +180,14 @@ export function createCombat(seed = 1): CombatState {
     },
     enemy: {
       name: "vampire squid",
-      hp: 28,
-      maxHp: 28,
+      hp: 22,
+      maxHp: 22,
       sta: 0,
       maxSta: 0,
       conditions: [],
       attackDamage: 13,
-      dodge: 0.15,
-      analyzeHint: "slow",
+      dodge: 0.22,
+      analyzeHint: "blind",
     },
     healSongUses: BASE.healSongUses,
     bubbleCharge: false,
@@ -252,6 +252,8 @@ export function createElderCombat(seed = 1): CombatState {
   state.enemy.hp = 30;
   state.enemy.maxHp = 30;
   state.enemy.attackDamage = 14;
+  state.enemy.dodge = 0.24;
+  state.enemy.analyzeHint = "slow";
   return state;
 }
 
@@ -268,6 +270,7 @@ export function createInkCombat(seed = 1): CombatState {
   state.enemy.maxHp = 26;
   state.enemy.attackDamage = 13;
   state.enemy.ink = true;
+  state.enemy.analyzeHint = "slow";
   return state;
 }
 
@@ -299,7 +302,9 @@ export function createBoss2Combat(seed = 1, keySeed = seed): CombatState {
     conditions: [],
     attackDamage: 13,
     dodge: 0,
-    analyzeHint: "blind",
+    // measured, not guessed: slow beats blind by 25 damage taken against
+    // the eel (test/bands.test.ts pins hint == measurement)
+    analyzeHint: "slow",
   };
   state.boss = {
     kind: "eel",
@@ -455,7 +460,7 @@ export function useAbility(state: CombatState, abilityKey: string, targetPart?: 
     state.log.push(
       state.boss
         ? `Analyze: target the ${getPart(state, currentKeyPart(state)!)!.name} to end the ${state.boss.phaseName} phase (${bossDamage(state)} dmg per hit)`
-        : `Analyze: ${CONDITION_INFO[state.enemy.analyzeHint].ability} (${CONDITION_INFO[state.enemy.analyzeHint].key}) works best: ${CONDITION_INFO[state.enemy.analyzeHint].effect(1)}. It hits for ${state.enemy.attackDamage} and dodges ${Math.round(state.enemy.dodge * 100)}%`,
+        : `Analyze: best disable here is ${CONDITION_INFO[state.enemy.analyzeHint].ability} (${CONDITION_INFO[state.enemy.analyzeHint].key}): ${CONDITION_INFO[state.enemy.analyzeHint].effect(1)}. Damage is still Tail Strike's job. It hits for ${state.enemy.attackDamage} and dodges ${Math.round(state.enemy.dodge * 100)}%`,
     );
   }
   if (ability.inflicts) {
@@ -487,6 +492,7 @@ export function enemyIntent(state: CombatState, phase?: 1 | 2, extraUtilityBroke
   const slow = getCondition(state.enemy, "slow");
   const skip = !!slow && (state.slowSlots + 1) % 2 === 1;
   const heavy = !skip && (state.actSlots + 1) % BASE.heavyEvery === 0;
+  // (a skipped slot still advances the schedule, so a skip can eat a heavy)
   const blind = getCondition(state.enemy, "blind");
   let dmg = bossDamage(state, phase, extraUtilityBroken);
   if (heavy) dmg = Math.round(dmg * BASE.heavyMult);
@@ -513,11 +519,15 @@ export function advanceTurn(state: CombatState): void {
     state.slowSlots += 1;
     skipped = state.slowSlots % 2 === 1;
   }
+  // the windup is a schedule, not a turn count: a slot the enemy skips
+  // still brings the heavy closer, so slow buys tempo without also
+  // buying immunity to the big hit (that double-dip made slow the right
+  // answer on every enemy in the build)
+  state.actSlots += 1;
 
   if (skipped) {
     state.log.push("enemy slowed: skips its action");
   } else {
-    state.actSlots += 1;
     const heavy = state.actSlots % BASE.heavyEvery === 0;
     const blind = getCondition(enemy, "blind");
     const miss = blind ? BASE.blindMiss[blind.level] : 0;

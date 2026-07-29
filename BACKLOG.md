@@ -27,7 +27,15 @@ feature log (entries cite their evidence), DESIGN.md amendments.
    loses 89 HP under heavies) and bulwark squid (stacking damage;
    compounds with the heavy cycle, so start at +2 every 3rd slot, not
    every 2nd, or exclude heavy slots from the buff). Both sim-only.
-5. Trash variety: three of six encounters are squid-family. The ink
+5. Blind is the specialist, slow the generalist. After the Jul 29
+   measurement pass, blind is decisively right against evasive enemies
+   (squids) and slow against everything else. On the dungeon-2 enemies
+   the relic echo makes raw damage strong enough that the pinned bot
+   never casts blind at all. Options for the full game: give type 3 an
+   evasion or multi-hit profile so blind has a second home, make blind
+   scale with the heavy cycle, or accept the specialist role and lean
+   into it.
+6. Trash variety: three of six encounters are squid-family. The ink
    squid's player-condition twist was the playtests' favorite trash
    idea; more twists on that axis beat more stat variants.
 

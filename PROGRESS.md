@@ -1247,3 +1247,40 @@ every evidence class before any PENDING becomes GREEN.
   gets caught anyway, and one that proves the verse-guarding squid can
   still be dodged. 102 tests green; G2 identical (50/50, 100/100,
   5000/5000 zero fail seeds).
+- (git time of this commit) Played question: "so fin slash works best
+  for almost every enemy, so why would I ever use tail strike". Both
+  halves were real and the second was a measured gate failure my tests
+  never covered.
+  COMMUNICATION: the kit never showed its numbers. Ability cards now
+  print them from the sim constants (Tail Strike "8 damage: your main
+  hit" vs Fin Slash "3 dmg + slow: it skips turns"), so the question
+  answers itself on the buttons, and Analyze now says "best disable
+  here is X ... Damage is still Tail Strike's job".
+  BALANCE: measured across all five enemies, slow won EVERY matchup,
+  and on elder/ink/eel blind-only measured IDENTICAL to using no
+  conditions (the optimal line never cast Silt Burst). G4's "Blind and
+  Slow must each individually pay" had only ever been tested on the
+  squid. Root cause: the heavy cycle counted only ACTING slots, so slow
+  prevented hits AND pushed heavies apart, double-dipping. Fixed: the
+  windup is a schedule, and a skipped slot still advances it (a skip can
+  now eat a heavy, which is its own kind of good). Second lever: the
+  design already said Blind II drops the enemy's guard, but only one
+  enemy could dodge, so it never mattered. Squids now evade (squid 0.22,
+  elder 0.24), which makes BLIND their answer and keeps SLOW the bosses'.
+  Retuned the squid 28 to 22 HP to hold its band against the evasion
+  (swept hp x dodge and picked the cell where every band and every spam
+  margin passes AND blind beats slow decisively).
+  RESULT: squid casual 81.2 percent / 12.9 turns, optimal 28.5 damage,
+  blind-only 38.0 vs slow-only 53.6 vs no-conditions 152.0 (conditions
+  are now mandatory on the teaching fight); all other bands unchanged
+  and in range; G2 IMPROVED (scripted 50/50 with 15 deaths max 190;
+  casual 100/100 worst 1419, was 1614; x5000 5000/5000 zero fail seeds,
+  worst 2692). New tests: hint == measured winner for all five enemies
+  (it immediately caught the eel's hint claiming blind while slow won by
+  25 damage, a lie that had shipped), and a teacher-fight G4 requiring
+  BOTH disables to beat ignoring conditions on the squid. 104 tests.
+  HONEST REMAINDER, logged for Marc rather than papered over: on the
+  dungeon-2 enemies the relic echo makes raw damage strong enough that
+  the pinned bot still never bothers with blind. Blind is the specialist
+  (evasive enemies), slow is the generalist. Whether type 3 should be a
+  blind-answer enemy is a balance question for the team.

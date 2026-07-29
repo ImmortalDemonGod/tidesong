@@ -44,6 +44,14 @@ the build is placeholder for Marc's story and must be marked as such.
   skipped slots is what makes slow self-limiting instead of freely
   chainable). The enemy acts before durations tick. G4 verifies stack-spam does not
   dominate; if it does, fix the numbers, not the cap.
+- Enemies differ in WHICH disable answers them, and Analyze is how you
+  learn it (ruled Jul 29, measured not guessed): squids evade (22 to 24
+  percent), so BLIND is their answer because level II drops their guard
+  and your strikes land (measured 37.9 damage taken vs 53.9 for slow).
+  Bosses cannot dodge, so SLOW is theirs (shark 51.0 vs 83.0). A test
+  pins every enemy's hint to the measured winner, so the hint can never
+  drift from the numbers; it immediately caught the eel's hint claiming
+  blind while slow won by 25.
 - Bosses ONLY: full limb targeting. Each boss has ~4 targetable parts
   (e.g. JAW / EYE / FIN / TAIL), each with its own durability bar. Boss 1 has
   2 phases; each phase has ONE key part; breaking the key part ends the
@@ -61,10 +69,15 @@ the build is placeholder for Marc's story and must be marked as such.
   exclusive information: the most effective condition, enemy dodge, and
   the boss key part are never telegraphed for free.
 - Heavy cycle (added Jul 29, tactician playtest top change): every 3rd
-  ACTING slot, any enemy winds up a 1.6x blow, telegraphed one turn
-  ahead (NEXT: WINDS UP). Slow visibly delays the big turns (skipped
-  slots do not count), Bubble's 60 percent reduction has a right moment,
-  and heal timing matters. All bands re-measured in band after the
+  slot, any enemy winds up a 1.6x blow, telegraphed one turn ahead
+  (NEXT: WINDS UP). Bubble's 60 percent reduction has a right moment,
+  and heal timing matters. AMENDED the same day after a played question
+  ("fin slash works best for almost every enemy, so why use tail
+  strike"): the windup is a SCHEDULE, so a slot the enemy skips still
+  brings the heavy closer. Before this, slow both prevented hits and
+  pushed heavies apart, which measured slow as the correct answer on
+  every enemy in the build and left blind-only performing identically
+  to using no conditions at all on three of five. All bands re-measured in band after the
   change with no retune (casual rates settle ~10 points lower across
   the board; condition value RISES: no-cond 2.6x on the squid).
 - Condition levels decay, not vanish (amended Jul 29, tactician "II is
