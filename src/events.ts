@@ -46,6 +46,8 @@ export function classifyLogLine(line: string): GameEvent | null {
   // song-seal stones ring or jar audibly (played-experience hunt, HIGH-1)
   if (line.includes("rings true") || line.includes("stands open")) return "note";
   if (line.includes("jars against") || line.includes("dodged")) return "jar";
+  // the ink squid's twist lands against YOU: both sides of it sting
+  if (line.includes("ink takes your eyes") || line.includes("goes wide (inked)")) return "jar";
   if (line.includes("dmg") || line.includes("hits for") || line.includes("hits the")) return "hit";
   return null;
 }

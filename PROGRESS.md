@@ -791,3 +791,21 @@ every evidence class before any PENDING becomes GREEN.
   wrap to two rows. All render/data-side; sim rules untouched; 86 tests
   green; screenshots looked at: dungeon1, dungeon2, doorcard (sealed
   ring proven), victory (verses listed), fragment.
+- (git time of this commit) ENEMY TYPE 2 SHIPPED: the ink squid, from
+  the sim-only lab into dungeon 2's second fight, under the playtest
+  mandate ("this is a prototype; improve the design if it makes it fun";
+  the team's 11am playtest decides if the game gets built). The twist is
+  the axis the team reserved for type 2: a landed hit inks YOU (40
+  percent; blinds 2 of your actions; your damaging strikes miss 40
+  percent but your conditions still land, mirroring the dodge rule).
+  Tuning: 30 HP ran casual 15.2 turns (over the 15 band ceiling); 26 HP
+  lands casual 86.4 percent / 13.7 turns, optimal floor 24.9 damage
+  taken, no-cond 1.84x, worst spam margin 1.73x (reproduce: bun
+  tools/tune.ts). G2 re-measured: scripted 50/50 with deaths DOWN 16 to
+  9, casual 100/100 unchanged. New tests: band battery + anti-overfit
+  fresh seeds + mechanics invariants (ink only on landed hits, level I
+  refresh-only, misses spare damage never the disable). 90 tests green.
+  UI: night-dark squid variant with ink veil, INKED chip under the fish,
+  edge-darkening vignette while you are blinded, intent line warns "ink
+  in the water", demo=ink hook; screenshot verified. DESIGN amended:
+  type 2 recorded, deferred list reconciled (immunities stay type 3).

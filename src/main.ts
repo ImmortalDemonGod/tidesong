@@ -129,6 +129,13 @@ function drainLog(): void {
     if (line.includes("Bubble absorbed")) {
       ui.floaters.push({ text: "absorbed", color: "#7FB8E8", age: 0, side: "player" });
     }
+    // the ink squid's twist, both directions
+    if (line.includes("ink takes your eyes")) {
+      ui.floaters.push({ text: "INKED", color: "#8FA3E8", age: 0, side: "player" });
+    }
+    if (line.includes("goes wide (inked)")) {
+      ui.floaters.push({ text: "wide", color: "#7FA0AC", age: 0, side: "enemy" });
+    }
     if (line.includes("+2 STA") || line.includes("disable landed")) {
       ui.floaters.push({ text: "+2 STA", color: "#7FE8A9", age: 0, side: "player" });
     }
@@ -393,6 +400,19 @@ if (demo) {
       combatAction(world, "analyze");
       combatAction(world, "finSlash");
       ui.selectedPart = "jaw";
+    }
+  } else if (demo === "ink") {
+    world.hasTideRelic = true;
+    world.area = "dungeon2";
+    for (const e of world.encounters) if (e.kind !== "ink") e.defeated = true;
+    world.pos = { x: 13, y: 4 };
+    world.checkpoint = { area: "dungeon2", pos: { x: 1, y: 4 } };
+    step(world, "right");
+    if (world.combat) {
+      combatAction(world, "tailStrike");
+      // show the twist: the player inked, the veil down, the chip up
+      world.combat.player.conditions.push({ kind: "blind", level: 1, turns: 2 });
+      world.log.push("the ink takes your eyes: YOU are blinded");
     }
   } else if (demo === "boss2") {
     world.hasTideRelic = true;

@@ -215,14 +215,26 @@ function merfolk(ctx: CanvasRenderingContext2D, x: number, y: number, t: number)
   ctx.restore();
 }
 
-function squidSprite(ctx: CanvasRenderingContext2D, x: number, y: number, scale: number, t: number, elder = false): void {
+function squidSprite(ctx: CanvasRenderingContext2D, x: number, y: number, scale: number, t: number, variant: "vampire" | "elder" | "ink" = "vampire"): void {
+  const elder = variant === "elder";
+  const ink = variant === "ink";
   ctx.save();
   ctx.translate(x, y + Math.sin(t * 1.8) * 6);
   ctx.scale(scale, scale);
-  // elders wear the deep's colors and a crown of spines: a stats-only
-  // variant per the team ruling, but it must not LOOK like a rerun
-  const body = elder ? "#3F6E64" : "#6E4A8C";
-  const shade = elder ? "#2E544C" : "#5A3B75";
+  // elders wear the deep's colors and a crown of spines; ink squids are
+  // night-dark with a drifting ink veil (enemy type 2's tell)
+  const body = elder ? "#3F6E64" : ink ? "#2A3350" : "#6E4A8C";
+  const shade = elder ? "#2E544C" : ink ? "#1C2338" : "#5A3B75";
+  if (ink) {
+    ctx.fillStyle = "#141A2E";
+    ctx.globalAlpha = 0.5;
+    for (let i = 0; i < 6; i++) {
+      ctx.beginPath();
+      ctx.arc(-30 + i * 13, 16 + Math.sin(t * 2 + i) * 8, 8 + (i % 3) * 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
   if (elder) {
     ctx.fillStyle = shade;
     for (let i = -2; i <= 2; i++) {
@@ -762,8 +774,11 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
       squidSprite(ctx, px(e.x), py(e.y) - 10, 0.5, t + e.id);
       label = "vampire squid";
     } else if (e.kind === "elder") {
-      squidSprite(ctx, px(e.x), py(e.y) - 12, 0.62, t + e.id, true);
+      squidSprite(ctx, px(e.x), py(e.y) - 12, 0.62, t + e.id, "elder");
       label = "elder squid";
+    } else if (e.kind === "ink") {
+      squidSprite(ctx, px(e.x), py(e.y) - 12, 0.58, t + e.id, "ink");
+      label = "ink squid";
     } else if (e.kind === "boss") {
       sharkSprite(ctx, px(e.x), py(e.y) - 20, 0.42, t, new Set());
       label = "the corrupted shark";
@@ -999,7 +1014,7 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
     const rage = c.boss?.phase === 2 ? 1 + Math.sin(t * 6) * 0.015 : 1;
     if (c.boss?.kind === "eel") eelSprite(ctx, x, y, 1.32 * eScale * rage, t, broken);
     else if (c.boss) sharkSprite(ctx, x, y, 1.32 * eScale * rage, t, broken);
-    else squidSprite(ctx, x + 10, y, 2.1 * eScale, t, c.enemy.name.includes("elder"));
+    else squidSprite(ctx, x + 10, y, 2.1 * eScale, t, c.enemy.name.includes("elder") ? "elder" : c.enemy.name.includes("ink") ? "ink" : "vampire");
     ctx.restore();
   };
   // slow afterimages: the enemy drags ghosts of itself
@@ -1158,6 +1173,20 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
     ctx.restore();
   }
 
+  // your inked eyes: the water itself darkens at the edges while the
+  // player is blinded, and a chip under the fish says why (enemy type 2)
+  const pBlindUi = getCondition(c.player, "blind");
+  if (pBlindUi && !ui.victoryHold) {
+    ctx.save();
+    const vg = ctx.createRadialGradient(cw / 2, ch / 2, 230, cw / 2, ch / 2, 700);
+    vg.addColorStop(0, "rgba(8,6,20,0)");
+    vg.addColorStop(1, "rgba(8,6,20,0.6)");
+    ctx.fillStyle = vg;
+    ctx.fillRect(0, 0, cw, ch);
+    ctx.restore();
+    chip(ctx, 196, 496, `INKED · ${pBlindUi.turns}`, "#8FA3E8");
+  }
+
   // damage floaters
   for (const f of ui.floaters) {
     const x = f.side === "enemy" ? 800 + (f.age * 20) : 250;
@@ -1199,6 +1228,7 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
       text = `NEXT: strikes for ${intent.dmg}`;
       if (intent.missChance > 0) text += ` · ${Math.round(intent.missChance * 100)}% miss (blinded)`;
       if (intent.bubbled) text += " · your bubble holds";
+      if (c.enemy.ink) text += " · ink in the water";
       color = intent.missChance > 0 || intent.bubbled ? C.glow : C.danger;
     }
     ctx.fillStyle = color;

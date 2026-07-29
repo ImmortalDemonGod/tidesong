@@ -120,6 +120,16 @@ the build is placeholder for Marc's story and must be marked as such.
   genuinely informative every run; the Maw finale is fixed.
 - The relic combat echo (Tail Strike 8 to 11 with the relic) is the
   power growth that makes the second gauntlet survivable.
+- Ink squid (ADDED Jul 29, playtest mandate "improve the design if it
+  makes the game fun"): enemy TYPE 2, on exactly the axis the team
+  reserved for it (a condition applied to the PLAYER). One twist per
+  Marc's principle: a landed hit has a 40 percent chance to ink you for
+  2 of your actions; your damaging strikes then miss 40 percent (stamina
+  spent, damage lost) but your CONDITIONS still land, mirroring the
+  dodge rule, so informed play stays reliable and mashing eats the
+  punishment. 26 HP / 13 damage; introduced as the second fight of
+  dungeon 2. Numbers are the overnight lab's tested recommendation;
+  full G3/G4 batteries encoded in test/bands.test.ts.
 
 ### Exploration: hub reef + dungeons
 - Structure: 1 hub reef + 2 dungeons, each dungeon ends in a boss.
@@ -208,15 +218,18 @@ controls, input remapping, localization.
 
 RECONCILIATION (final panel seat 2, F1: per-item status instead of a
 blanket claim): SHIPPED AS STRETCH with logged justification: dungeon 2,
-boss 2 (the corrupted eel), the song-seal puzzle door, and the relic
-combat echo. STILL DEFERRED: localStorage saves, flee/escape, settings
+boss 2 (the corrupted eel), the song-seal puzzle door, the relic
+combat echo, and (Jul 29, playtest mandate) enemy type 2, the ink squid,
+from the enemy-variety lab. STILL DEFERRED: localStorage saves, flee/escape, settings
 beyond pause/mute, difficulty modes, speedrun timer, touch controls,
 input remapping, localization, third regular enemy type, and everything
 in the enemy-variety paragraph below.
 
 Also deferred (team discussion Jul 28, Marc's proposal, Glass_Goat's
-timing): enemy-applied conditions on the player, and per-enemy immunities
-or resistances (from Glass_Goat's original doc). These are the intended
+timing), AMENDED Jul 29: enemy-applied conditions on the player SHIPPED
+as the ink squid (type 2) under the playtest mandate, with the lab's
+tested numbers; per-enemy immunities or resistances (from Glass_Goat's
+original doc) remain deferred as type 3's twist. These are the intended
 design axis for enemy types 2 and 3 in jam scope: each new enemy gets one
 defining twist (applies a condition, resists one, or buffs) per Marc's
 one-mechanic-per-enemy principle. Not tonight: with one regular enemy and

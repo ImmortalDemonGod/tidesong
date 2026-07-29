@@ -199,3 +199,77 @@ test("anti-overfit: eel bands hold on 500 unseen seeds", () => {
   expect(eelCasualFresh.winRate).toBeLessThanOrEqual(0.77);
   expect(eelOptimalFresh.meanDamageTaken).toBeGreaterThanOrEqual(20);
 });
+
+// ---------- G3/G4: ink squid (enemy type 2, shipped Jul 29 on the ----------
+// playtest fun mandate; lab-derived numbers, thresholds verbatim from
+// PROGRESS.md regular bands)
+import { advanceTurn as advanceInk, createInkCombat, getCondition as getCondInk, useAbility as useInk } from "../src/game";
+const inkCasual = runBatch((seed) => casualBot(seed), echo(createInkCombat));
+const inkOptimal = runBatch(() => optimalBot(), echo(createInkCombat));
+const inkNoCond = runBatch(() => optimalBot(NO_CONDITION_KEYS), echo(createInkCombat));
+const inkSpamTail = runBatch(() => spamBot("tailStrike"), echo(createInkCombat));
+
+test("G3 ink squid: regular bands hold (casual 60-90, 4-15 turns; optimal floors)", () => {
+  expect(inkCasual.winRate).toBeGreaterThanOrEqual(0.6);
+  expect(inkCasual.winRate).toBeLessThanOrEqual(0.9);
+  expect(inkCasual.meanTurns).toBeGreaterThanOrEqual(4);
+  expect(inkCasual.meanTurns).toBeLessThanOrEqual(15);
+  expect(inkOptimal.meanTurns).toBeGreaterThanOrEqual(4);
+  expect(inkOptimal.meanDamageTaken).toBeGreaterThanOrEqual(10);
+});
+
+test("G4 ink squid: ignoring conditions and tail spam both cost at least 20 percent more damage", () => {
+  expect(inkNoCond.meanDamageTaken).toBeGreaterThanOrEqual(inkOptimal.meanDamageTaken * 1.2);
+  expect(inkSpamTail.meanDamageTaken).toBeGreaterThanOrEqual(inkOptimal.meanDamageTaken * 1.2);
+});
+
+const inkFresh = runBatch((seed) => casualBot(seed + 7000), (seed) => echo(createInkCombat)(seed + 7000));
+test("anti-overfit: ink squid bands hold on 500 unseen seeds", () => {
+  expect(inkFresh.winRate).toBeGreaterThanOrEqual(0.6);
+  expect(inkFresh.winRate).toBeLessThanOrEqual(0.92);
+});
+
+test("ink mechanics: only landed hits ink, refresh not stack, misses spare damage but never the disable", () => {
+  // sweep seeds: whenever the ink line appears, the same slot logged a
+  // landed hit (never a miss or skip); player blind stays level 1
+  let inked = 0;
+  for (let seed = 1; seed <= 80; seed++) {
+    const c = createInkCombat(seed);
+    let guard = 0;
+    while (c.outcome === "ongoing" && guard++ < 30) {
+      c.player.sta = c.player.maxSta;
+      c.player.hp = c.player.maxHp; // keep the fight running
+      const at = c.log.length;
+      useInk(c, "tailStrike");
+      if (c.outcome !== "ongoing") break;
+      advanceInk(c);
+      const lines = c.log.slice(at);
+      const inkLine = lines.findIndex((l) => l.includes("ink takes your eyes"));
+      if (inkLine >= 0) {
+        inked++;
+        expect(lines.slice(0, inkLine).some((l) => l.includes("enemy hits for"))).toBe(true);
+        const pb = getCondInk(c.player, "blind");
+        expect(pb?.level).toBe(1);
+      }
+    }
+  }
+  expect(inked).toBeGreaterThan(30);
+
+  // an inked miss spends stamina and deals no damage, but a condition
+  // ability STILL lands its condition (mirror of the dodge rule)
+  let sawMissWithCondition = false;
+  for (let seed = 1; seed <= 200 && !sawMissWithCondition; seed++) {
+    const c = createInkCombat(seed);
+    c.player.conditions.push({ kind: "blind", level: 1, turns: 9 });
+    c.enemy.dodge = 0;
+    const hpBefore = c.enemy.hp;
+    useInk(c, "finSlash");
+    const missed = c.log.some((l) => l.includes("goes wide (inked)"));
+    if (missed) {
+      expect(c.enemy.hp).toBe(hpBefore);
+      expect(getCondInk(c.enemy, "slow")).toBeDefined();
+      sawMissWithCondition = true;
+    }
+  }
+  expect(sawMissWithCondition).toBe(true);
+});

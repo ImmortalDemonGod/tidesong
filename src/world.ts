@@ -17,6 +17,7 @@ import {
   createBossCombat,
   createCombat,
   createElderCombat,
+  createInkCombat,
   useAbility,
   type CombatState,
   type PartKey,
@@ -45,7 +46,7 @@ export interface Encounter {
   area: AreaKey;
   x: number;
   y: number;
-  kind: "squid" | "elder" | "boss" | "boss2";
+  kind: "squid" | "elder" | "ink" | "boss" | "boss2";
   defeated: boolean;
 }
 
@@ -141,7 +142,9 @@ export function createWorld(seed = 1): WorldState {
       { id: 2, area: "dungeon1", x: 14, y: 4, kind: "squid", defeated: false },
       { id: 3, area: "dungeon1", x: 21, y: 4, kind: "boss", defeated: false },
       { id: 4, area: "dungeon2", x: 8, y: 4, kind: "elder", defeated: false },
-      { id: 5, area: "dungeon2", x: 14, y: 4, kind: "elder", defeated: false },
+      // enemy type 2 (Jul 29, playtest fun mandate): the second ruin's
+      // second fight introduces the ink squid before the eel
+      { id: 5, area: "dungeon2", x: 14, y: 4, kind: "ink", defeated: false },
       { id: 6, area: "dungeon2", x: 21, y: 4, kind: "boss2", defeated: false },
     ],
     deaths: 0,
@@ -219,7 +222,9 @@ function startCombat(w: WorldState, enc: Encounter): void {
         ? createBoss2Combat(seed, w.seed)
         : enc.kind === "elder"
           ? createElderCombat(seed)
-          : createCombat(seed);
+          : enc.kind === "ink"
+            ? createInkCombat(seed)
+            : createCombat(seed);
   c.player.hp = w.hp;
   c.healSongUses = w.healSongUses;
   c.relicEcho = w.hasTideRelic;

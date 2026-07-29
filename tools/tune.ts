@@ -23,3 +23,9 @@ console.log("casual  :", f(runBatch((seed) => casualBot(seed), withEcho(createBo
 console.log("optimal :", f(runBatch(() => optimalBot(), withEcho(createBoss2Combat))));
 console.log("no-cond :", f(runBatch(() => optimalBot(NO_CONDITION_KEYS), withEcho(createBoss2Combat))));
 for (const k of ["tailStrike", "siltBurst", "finSlash"]) console.log(`spam ${k.padEnd(10)}:`, f(runBatch(() => spamBot(k), withEcho(createBoss2Combat))));
+import { createInkCombat } from "../src/game";
+console.log("== ink squid (relic echo on; enemy type 2) ==");
+console.log("casual  :", f(runBatch((seed) => casualBot(seed), withEcho(createInkCombat))));
+console.log("optimal :", f(runBatch(() => optimalBot(), withEcho(createInkCombat))));
+console.log("no-cond :", f(runBatch(() => optimalBot(NO_CONDITION_KEYS), withEcho(createInkCombat))));
+for (const k of ABILITY_KEYS) console.log(`spam ${k.padEnd(10)}:`, f(runBatch(() => spamBot(k), withEcho(createInkCombat))));

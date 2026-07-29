@@ -24,6 +24,14 @@ export const BASE = {
   slowDamageMult: 0.75,
   bubbleReduction: 0.6,
   relicTailStrike: 11,
+  // Enemy type 2, the ink squid (shipped Jul 29 from the sim-only lab on
+  // the playtester's fun mandate; numbers are the lab's recommendation:
+  // 40 percent ink chance landed the 60-90 casual band, 50 sat on the
+  // floor). Its one twist per Marc's one-mechanic-per-enemy principle:
+  // a landed hit may blind YOU.
+  inkChance: 0.4,
+  inkMiss: 0.4,
+  inkTurns: 2,
 } as const;
 
 export type ConditionKind = "blind" | "slow";
@@ -98,7 +106,7 @@ export interface BossData {
 
 export interface CombatState {
   player: Combatant;
-  enemy: Combatant & { attackDamage: number; dodge: number; analyzeHint: ConditionKind };
+  enemy: Combatant & { attackDamage: number; dodge: number; analyzeHint: ConditionKind; ink?: boolean };
   boss?: BossData;
   healSongUses: number;
   bubbleCharge: boolean;
@@ -208,6 +216,22 @@ export function createElderCombat(seed = 1): CombatState {
   state.enemy.hp = 30;
   state.enemy.maxHp = 30;
   state.enemy.attackDamage = 14;
+  return state;
+}
+
+// Enemy type 2: the ink squid. Same body plan, one defining twist (the
+// deferred-axis design the team reserved for type 2): a landed hit can
+// blind the PLAYER, whose damaging attacks then miss 40 percent of the
+// time. Mirrors the dodge rule: a player miss affects DAMAGE only, the
+// ability's condition still lands, so informed play stays reliable and
+// button-mashing eats the punishment (the lab's whole verdict).
+export function createInkCombat(seed = 1): CombatState {
+  const state = createCombat(seed);
+  state.enemy.name = "ink squid";
+  state.enemy.hp = 26;
+  state.enemy.maxHp = 26;
+  state.enemy.attackDamage = 13;
+  state.enemy.ink = true;
   return state;
 }
 
@@ -342,6 +366,14 @@ export function useAbility(state: CombatState, abilityKey: string, targetPart?: 
     abilityKey === "tailStrike" && state.relicEcho ? BASE.relicTailStrike : ability.damage;
 
   if (ability.damage > 0) {
+    // inked eyes: the player's damaging strikes can go wide. Like the
+    // enemy dodge rule, a miss affects DAMAGE only; the ability's
+    // condition below still lands (Glass_Goat: consistent, predictable
+    // results for tactical play).
+    const pBlind = getCondition(player, "blind");
+    if (pBlind && nextRand(state) < BASE.inkMiss) {
+      state.log.push(`${ability.name}: your strike goes wide (inked)`);
+    } else {
     const blind = getCondition(enemy, "blind");
     const dodge = blind?.level === 2 ? 0 : enemy.dodge;
     if (dodge > 0 && nextRand(state) < dodge) {
@@ -366,6 +398,7 @@ export function useAbility(state: CombatState, abilityKey: string, targetPart?: 
     } else {
       enemy.hp = Math.max(0, enemy.hp - abilityDamage);
       state.log.push(`${ability.name}: ${abilityDamage} dmg`);
+    }
     }
   }
   if (ability.heals !== undefined) {
@@ -456,6 +489,16 @@ export function advanceTurn(state: CombatState): void {
       player.hp = Math.max(0, player.hp - dmg);
       state.damageTaken += dmg;
       state.log.push(`enemy hits for ${dmg}`);
+      // the ink squid's twist rides on landed hits only (a blinded miss
+      // or slowed skip never inks); level I, duration refresh only. The
+      // +1 compensates for this same slot's tick below so the blind
+      // covers inkTurns PLAYER actions, matching the lab's tested config.
+      if (state.enemy.ink && nextRand(state) < BASE.inkChance) {
+        const already = getCondition(player, "blind");
+        if (already) already.turns = BASE.inkTurns + 1;
+        else player.conditions.push({ kind: "blind", level: 1, turns: BASE.inkTurns + 1 });
+        state.log.push("the ink takes your eyes: YOU are blinded");
+      }
     }
   }
 
