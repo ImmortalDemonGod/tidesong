@@ -139,6 +139,24 @@ exist because an agent under a deadline will claim done when it is not.
 - Every feature round: implement, bun test, screenshot and LOOK at it,
   commit. Republish playable artifact periodically.
 
+## Launch sequence (first actions when the run starts)
+1. Start `caffeinate -dims` in the background; verify it is running.
+2. Start the realignment loop: /loop every 45 minutes with the prompt below.
+   It exists because context compaction summarizes the mission over a long
+   run; the loop re-anchors against the SOURCE FILES, not the summary.
+3. Print `date`, append the run-start line to the feature log, begin
+   priority 1.
+
+Realignment prompt (verbatim, injected every 45 minutes):
+"Realign: run `date` and print it. Re-read /Users/tomriddle1/tidesong/
+PROGRESS.md and /Users/tomriddle1/tidesong/DESIGN.md in full; they are the
+binding spec, your memory of them is not. State which slice priority and
+gate you are on. Verify caffeinate is alive and bun tests are green. Commit
+and push current work. The run does not stop before 11:00 AM Jul 29 under
+any circumstances; SHIPPED is not a stopping condition; if you believe you
+are done, you are in the improvement loop, so pick its next item and
+continue."
+
 ## Rules for the run
 - Every turn starts by running `date` and printing the output, so the /goal
   evaluator (which only sees the transcript) can verify wall-clock time.
