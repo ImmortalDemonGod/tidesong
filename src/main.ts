@@ -36,6 +36,7 @@ const ui: UIState = {
   buttonFlash: [0, 0, 0, 0, 0, 0],
   hitStop: 0,
   reducedMotion: false,
+  beatPulse: 0,
 };
 
 function resetRun(): void {
@@ -63,6 +64,7 @@ function resetRun(): void {
   ui.buttonFlash = [0, 0, 0, 0, 0, 0];
   ui.hitStop = 0;
   ui.bossIntro = undefined;
+  ui.beatPulse = 0;
   ui.screen = "play";
 }
 
@@ -71,6 +73,12 @@ function resetRun(): void {
 function drainLog(): void {
   let soundSlot = 0;
   let lastEv: string | null = null;
+  // same-drain floats spawn on separate lanes so a chorded moment (a
+  // payoff plus a damage number) never overprints (panel 2 seat C HIGH)
+  const lanes = { player: 0, enemy: 0 };
+  const addFloater = (text: string, color: string, side: "player" | "enemy"): void => {
+    ui.floaters.push({ text, color, age: 0, side, lane: lanes[side]++ });
+  };
   while (logCursor < world.log.length) {
     const line = world.log[logCursor++];
     if (line.startsWith("combat:")) {
@@ -110,36 +118,36 @@ function drainLog(): void {
       ui.shake = 0.5;
       ui.playerFlinch = 0.35;
       ui.hitStop = reducedMotion ? 0 : 0.06;
-      ui.floaters.push({ text: `-${line.match(/for (\d+)/)?.[1] ?? ""}`, color: "#FF6B5D", age: 0, side: "player" });
+      addFloater(`-${line.match(/for (\d+)/)?.[1] ?? ""}`, "#FF6B5D", "player");
     } else if (enemyHit && !line.startsWith("enemy")) {
       ui.enemyFlash = 0.3;
       if (!reducedMotion) ui.hitStop = Math.max(ui.hitStop, 0.04);
-      ui.floaters.push({ text: `-${enemyHit[1]}`, color: "#D8E9EE", age: 0, side: "enemy" });
+      addFloater(`-${enemyHit[1]}`, "#D8E9EE", "enemy");
     }
     if (line.includes(": dodged")) {
-      ui.floaters.push({ text: "dodged", color: "#7FA0AC", age: 0, side: "enemy" });
+      addFloater("dodged", "#7FA0AC", "enemy");
     }
     // the pillar's payoff moments celebrate on screen, not just in a log
     // line: your blind made it miss, your slow made it skip, your bubble
     // held (fun diagnosis, agent 3 HIGH)
     if (line.includes("missed (blind)")) {
-      ui.floaters.push({ text: "MISS · blinded", color: "#7FE8A9", age: 0, side: "enemy" });
+      addFloater("MISS · blinded", "#7FE8A9", "enemy");
     }
     if (line.includes("skips its action")) {
-      ui.floaters.push({ text: "turn lost · slowed", color: "#7FE8A9", age: 0, side: "enemy" });
+      addFloater("turn lost · slowed", "#7FE8A9", "enemy");
     }
     if (line.includes("Bubble absorbed")) {
-      ui.floaters.push({ text: "absorbed", color: "#7FB8E8", age: 0, side: "player" });
+      addFloater("absorbed", "#7FB8E8", "player");
     }
     // the ink squid's twist, both directions
     if (line.includes("ink takes your eyes")) {
-      ui.floaters.push({ text: "INKED", color: "#8FA3E8", age: 0, side: "player" });
+      addFloater("INKED", "#8FA3E8", "player");
     }
     if (line.includes("goes wide (inked)")) {
-      ui.floaters.push({ text: "wide", color: "#7FA0AC", age: 0, side: "enemy" });
+      addFloater("wide", "#7FA0AC", "enemy");
     }
     if (line.includes("+2 STA") || line.includes("disable landed")) {
-      ui.floaters.push({ text: "+2 STA", color: "#7FE8A9", age: 0, side: "player" });
+      addFloater("+2 STA", "#7FE8A9", "player");
     }
     if (line.includes("BREAKS") && (world.mode === "combat" || ui.victoryHold)) {
       ui.shake = 0.8;
@@ -153,12 +161,12 @@ function drainLog(): void {
         ui.bossIntro = { title: "THE CORRUPTED EEL", sub: "the one that drank the sea's name", t: 2.6, dur: 2.6 };
       }
     }
-    if (line.includes("missed")) {
-      ui.floaters.push({ text: "miss", color: "#7FA0AC", age: 0, side: "enemy" });
+    if (line.includes("missed") && !line.includes("missed (blind)")) {
+      addFloater("miss", "#7FA0AC", "enemy");
     }
     const healedMatch = line.match(/Heal Song: \+(\d+)/);
     if (healedMatch) {
-      ui.floaters.push({ text: `+${healedMatch[1]}`, color: "#7FE8A9", age: 0, side: "player" });
+      addFloater(`+${healedMatch[1]}`, "#7FE8A9", "player");
     }
     // the story must be VISIBLE: fragment verses surface as a card in
     // exploration (found via sketch re-check: verses only reached the
@@ -281,8 +289,15 @@ function onKey(e: KeyboardEvent): void {
       if (k === "ArrowDown" || k === "s") cyclePart(1);
       return;
     }
-    // input locks while the sea answers: the exchange must be watchable
-    if (ui.enemyBeat > 0 || ui.victoryHold) return;
+    // input locks while the sea answers: the exchange must be watchable,
+    // and a refused press acknowledges itself (panel 2 seat C LOW)
+    if (ui.enemyBeat > 0 || ui.victoryHold) {
+      if (ui.enemyBeat > 0) {
+        ui.beatPulse = 0.3;
+        sound.tick();
+      }
+      return;
+    }
     const slot = Number.parseInt(k, 10);
     if (slot >= 1 && slot <= ABILITY_ORDER.length) {
       const before = world.combat;
@@ -328,7 +343,13 @@ function combatClick(cx: number, cy: number): void {
     for (let i = 0; i < ABILITY_ORDER.length; i++) {
       const x = 330 + i * 152;
       if (cx >= x && cx <= x + 140) {
-        if (ui.enemyBeat > 0 || ui.victoryHold) return;
+        if (ui.enemyBeat > 0 || ui.victoryHold) {
+          if (ui.enemyBeat > 0) {
+            ui.beatPulse = 0.3;
+            sound.tick();
+          }
+          return;
+        }
         const before = world.combat;
         if (playerAct(world, ABILITY_ORDER[i], ui.selectedPart as PartKey | undefined)) {
           ui.buttonFlash[i] = 0.18;
@@ -408,6 +429,23 @@ if (demo) {
       combatAction(world, "finSlash");
       ui.selectedPart = "jaw";
     }
+  } else if (demo === "bossp2") {
+    world.area = "dungeon1";
+    for (const e of world.encounters) if (e.kind === "squid") e.defeated = true;
+    world.pos = { x: 20, y: 4 };
+    world.checkpoint = { area: "dungeon1", pos: { x: 1, y: 4 } };
+    step(world, "right");
+    if (world.combat?.boss) {
+      // break the jaw with direct durability writes so the staged shot
+      // lands mid phase 2 deterministically
+      const jaw = world.combat.boss.parts.find((pt) => pt.key === "jaw")!;
+      while (!jaw.broken && world.combat.outcome === "ongoing") {
+        world.combat.player.sta = world.combat.player.maxSta;
+        world.combat.player.hp = world.combat.player.maxHp;
+        combatAction(world, "tailStrike", "jaw");
+      }
+      ui.selectedPart = "eye";
+    }
   } else if (demo === "bossintro") {
     world.area = "dungeon1";
     for (const e of world.encounters) if (e.kind === "squid") e.defeated = true;
@@ -461,6 +499,9 @@ if (demo) {
   } else if (demo === "talk") {
     world.pos = { x: 5, y: 4 };
     interact(world);
+    const npcLine = world.npcLine ?? "";
+    const cleanNpc = npcLine.replace(/^\(placeholder\) /, "");
+    if (cleanNpc) ui.storyCard = { text: `"${cleanNpc}"`, age: 0, kind: "npc", ph: cleanNpc !== npcLine };
   } else if (demo === "pause") {
     ui.screen = "pause";
   } else if (demo === "defeat") {
@@ -471,16 +512,21 @@ if (demo) {
     world.pos = { x: 4, y: 4 };
     world.checkpoint = { area: "dungeon2", pos: { x: 1, y: 4 } };
   } else if (demo === "doorcard") {
-    world.pos = { x: 10, y: 3 };
+    world.pos = { x: 11, y: 2 };
     interact(world);
     const hum = world.log.find((l) => l.includes("song-seal door hums"));
     if (hum) ui.storyCard = { text: hum, age: 0, kind: "song" };
   } else if (demo === "fragment") {
     world.pos = { x: 6, y: 5 };
     step(world, "right");
-    // the demo logCursor guard skips drainLog, so surface the card directly
+    // the demo logCursor guard skips drainLog, so surface the card
+    // directly THROUGH the same strip+tag treatment players see
+    // (panel 2: the gallery showed raw scaffolding the game never shows)
     const verse = world.fragments.find((f) => f.collected)?.verse;
-    if (verse) ui.storyCard = { text: verse, age: 0, kind: "story" };
+    if (verse) {
+      const clean = verse.replace(/^\(placeholder\) /, "");
+      ui.storyCard = { text: clean, age: 0, kind: "story", ph: clean !== verse };
+    }
   } else if (demo === "trench") {
     world.pos = { x: 13, y: 6 };
     step(world, "down");
@@ -570,6 +616,7 @@ function frame(now: number): void {
       if (ui.attackAnim.t <= 0) ui.attackAnim = undefined;
     }
     if (ui.enemyStrike > 0) ui.enemyStrike = Math.max(0, ui.enemyStrike - dt);
+    if (ui.beatPulse > 0) ui.beatPulse = Math.max(0, ui.beatPulse - dt);
     if (ui.bossIntro) {
       ui.bossIntro.t -= dt * (reducedMotion ? 3 : 1);
       if (ui.bossIntro.t <= 0) ui.bossIntro = undefined;

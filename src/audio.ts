@@ -152,6 +152,12 @@ export class Sound {
     }
   }
 
+  // a quiet acknowledgment for inputs refused during the answer beat:
+  // audible, but nothing like the jar (which means "you cannot afford")
+  tick(): void {
+    this.tone(520, 0.04, "sine", 0.3);
+  }
+
   // delay staggers chorded drains so climaxes read as a phrase, not mush
   play(event: GameEvent, delay = 0): void {
     switch (event) {

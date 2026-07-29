@@ -10,6 +10,7 @@ export interface Floater {
   color: string;
   age: number; // seconds since spawn
   side: "player" | "enemy";
+  lane?: number; // same-drain spawn index: separates chorded floats
 }
 
 export interface UIState {
@@ -38,6 +39,7 @@ export interface UIState {
   hitStop: number; // brief presentation freeze on impact
   reducedMotion: boolean; // positional offsets collapse to flashes
   bossIntro?: { title: string; sub: string; t: number; dur: number }; // set-piece title card
+  beatPulse: number; // refused-input acknowledgment on the turn pill
 }
 
 export const ABILITY_ORDER = ["tailStrike", "siltBurst", "finSlash", "healSong", "analyze", "bubble"];
@@ -638,7 +640,7 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
     ctx.fillStyle = C.muted;
     ctx.font = "12px system-ui";
     ctx.textAlign = "center";
-    ctx.fillText("second ruin", px(HUB.mouth.x), py(HUB.mouth.y) - 52);
+    ctx.fillText("second ruin", px(HUB.mouth.x) - 46, py(HUB.mouth.y) - 52);
     ctx.textAlign = "left";
 
     merfolk(ctx, px(HUB.npc.x), py(HUB.npc.y), t);
@@ -1216,12 +1218,17 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
     chip(ctx, 196, 496, `INKED · ${pBlindUi.turns}`, "#8FA3E8");
   }
 
-  // damage floaters
+  // damage floaters: enemy floats rise off the BODY and fade before the
+  // nameplate band (panel 2: they blanked the intent line mid-payoff);
+  // lanes keep chorded floats apart
   for (const f of ui.floaters) {
-    const x = f.side === "enemy" ? 800 + (f.age * 20) : 250;
-    const y = (f.side === "enemy" ? 180 : 360) - f.age * 46;
+    const lane = f.lane ?? 0;
+    const x = (f.side === "enemy" ? 800 + f.age * 20 : 250) + lane * 12;
+    const y = (f.side === "enemy" ? 285 : 370) + lane * 24 - f.age * 46;
     ctx.save();
-    ctx.globalAlpha = Math.max(0, 1 - f.age / 1.3);
+    let alpha = Math.max(0, 1 - f.age / 1.3);
+    if (f.side === "enemy" && y < 195) alpha *= Math.max(0, (y - 165) / 30);
+    ctx.globalAlpha = alpha;
     ctx.font = "700 20px ui-monospace, monospace";
     ctx.fillStyle = f.color;
     ctx.textAlign = "center";
@@ -1250,6 +1257,7 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
     const intent = enemyIntent(c);
     let text: string;
     let color: string;
+    ctx.font = "600 13px ui-monospace, monospace";
     if (intent.skip) {
       text = "NEXT: held by the slow current, it will skip";
       color = C.biolum;
@@ -1259,9 +1267,16 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
       if (intent.bubbled) text += " · your bubble holds";
       if (c.enemy.ink) text += " · ink in the water";
       color = intent.missChance > 0 || intent.bubbled ? C.glow : C.danger;
+      // never off the canvas edge: compact tokens when the full line
+      // cannot fit right of the boss nameplate (panel 2 seat C MED)
+      if (ctx.measureText(text).width > cw - headX - 16) {
+        text = `NEXT: ${intent.dmg} dmg`;
+        if (intent.missChance > 0) text += ` · ${Math.round(intent.missChance * 100)}% miss`;
+        if (intent.bubbled) text += " · bubbled";
+        if (c.enemy.ink) text += " · ink";
+      }
     }
     ctx.fillStyle = color;
-    ctx.font = "600 13px ui-monospace, monospace";
     ctx.fillText(text, headX, c.enemy.conditions.length > 0 ? 152 : 116);
   }
 
@@ -1326,10 +1341,14 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
   } else {
   ctx.fillStyle = C.panel;
   ctx.strokeStyle = ui.enemyBeat > 0 ? C.danger : C.glow;
+  // a refused press during the answer flashes the pill so the lock is
+  // acknowledged, never silent (panel 2 seat C LOW)
+  ctx.lineWidth = ui.beatPulse > 0 ? 1 + ui.beatPulse * 8 : 1;
   ctx.beginPath();
   ctx.roundRect(cw / 2 - 85, c.boss ? 60 : 20, 170, 30, 15);
   ctx.fill();
   ctx.stroke();
+  ctx.lineWidth = 1;
   ctx.fillStyle = ui.enemyBeat > 0 ? C.danger : C.glow;
   ctx.font = "600 13px ui-monospace, monospace";
   ctx.textAlign = "center";
@@ -1504,7 +1523,7 @@ export function render(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
   }
 
   if (ui.screen === "victory" || w.mode === "victory") {
-    ctx.fillStyle = "rgba(4,12,20,0.96)";
+    ctx.fillStyle = "rgba(4,12,20,0.99)";
     ctx.fillRect(0, 0, cw, ch);
     centered(ctx, "the sea remembers its song", 230, "700 52px system-ui", C.glow, cw);
     centered(ctx, "both ruins stand quiet; the corruption recedes", 280, "17px system-ui", C.ink, cw);

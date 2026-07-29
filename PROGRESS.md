@@ -821,3 +821,32 @@ every evidence class before any PENDING becomes GREEN.
   screenshot-verified after two instrument fixes caught by looking
   (drainLog overwrote the demo's card; fade-in math pinned to a fixed
   2.6s and invisible at other durations). 90 tests green.
+- (git time of this commit) CONFIRMATION PANEL 2 CLOSED + response.
+  Seat A (re-break): NOT BROKEN, zero HIGH. The trench ratchet survived
+  ~83k hostile hazard deaths incl. teleports and state pokes plus a
+  real-key UI campaign (respawn never exceeded the lowest in-trench HP,
+  never touched pity); intent telegraph never lied across 283 as-played
+  beats; hit-stop freezes presentation only; mood flapping leaks nothing
+  (10k transitions, live intervals never above 1); victory hold survived
+  a 40-event storm; 38k-event storm zero throws. Its LOW is a RULING
+  note, not a bug: the pity ladder is deliberately a net-positive heal
+  after a lost fight (anti-softlock design, recorded so it stays a
+  decision). Seat B (visual): zero HIGH, G6 PASS recommended. Seat C
+  (fun): 4 of 6 playtester complaints ANSWERED, 2 PARTIAL, 1 HIGH found
+  and now FIXED: the payoff moment garbled itself (the "missed (blind)"
+  line matched both the payoff and generic miss floater rules, printing
+  twice on one spot, and enemy floats rose through the intent line).
+  Response batch: generic miss excludes the blind payoff; floats are
+  LANE-SEPARATED per drain and spawn on the enemy body, fading before
+  the nameplate band; boss intent line compacts its tokens when it
+  would clip the canvas edge; demo=fragment/talk route through the same
+  placeholder strip+tag players see; demo=doorcard fish moved off the
+  door label; demo=bossp2 added (phase-2 escalation now evidenced:
+  FRENZY banner, broken jaw, blood tint, 15-dmg intent); victory scrim
+  deepened; second-ruin label out of the barrier strands; refused
+  beat-lock inputs now acknowledge with a soft tick + pill pulse.
+  DEFERRED with reason: seat C's LOW that the telegraph erodes Analyze
+  on regular enemies (Analyze keeps best-condition + dodge + boss key;
+  a mechanical buff is a balance change awaiting the tactician playtest
+  verdict). Filmstrip re-captured: payoff lands clean on the body.
+  90 tests green.
