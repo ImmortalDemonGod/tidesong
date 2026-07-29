@@ -2,7 +2,7 @@
 // layers, underwater aerial perspective (far = bluer, dimmer), scale-by-depth
 // combat staging, all presentation-only. Palette follows the greybox sketch.
 
-import { ABILITIES, BASE, enemyIntent, getCondition, type CombatState, type PartKey } from "./game";
+import { ABILITIES, BASE, CONDITION_INFO, enemyIntent, getCondition, type CombatState, type PartKey } from "./game";
 import { AREAS, D1, HUB, nextObjective, optionalHere, type WorldState } from "./world";
 
 export interface Floater {
@@ -38,6 +38,7 @@ export interface UIState {
   buttonFlash: number[]; // pressed flash per ability card
   hitStop: number; // brief presentation freeze on impact
   reducedMotion: boolean; // positional offsets collapse to flashes
+  facing: 1 | -1; // the fish turns to swim: -1 when heading west
   bossIntro?: { title: string; sub: string; t: number; dur: number }; // set-piece title card
   beatPulse: number; // refused-input acknowledgment on the turn pill
 }
@@ -47,6 +48,16 @@ export const ABILITY_ORDER = ["tailStrike", "siltBurst", "finSlash", "healSong",
 // One cast beat: long enough to read as a move, short enough to stay
 // inside the 550ms answer beat (played report: the casts were a blip).
 export const CAST_TIME = 0.42;
+
+// One line per ability, in the player's words, printed on the card.
+const ABILITY_EFFECT: Record<string, string> = {
+  tailStrike: "reliable damage",
+  siltBurst: "blind: it starts missing",
+  finSlash: "slow: it skips turns",
+  healSong: "mend your own wounds",
+  analyze: "name its weakness",
+  bubble: "soften the next hit",
+};
 
 // Per-ability identity: an accent color and a small painted glyph, matched
 // by the cast effect and the synth voice so each ability reads as itself in
@@ -838,12 +849,12 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
       const bp = (t * 2 + i * 0.7) % 1;
       ctx.globalAlpha = 0.4 * (1 - bp);
       ctx.beginPath();
-      ctx.arc(fishX - 26 - i * 12, fishY - bp * 26 + Math.sin(t * 6 + i) * 3, 2 + (i % 2), 0, Math.PI * 2);
+      ctx.arc(fishX - ui.facing * (26 + i * 12), fishY - bp * 26 + Math.sin(t * 6 + i) * 3, 2 + (i % 2), 0, Math.PI * 2);
       ctx.stroke();
     }
     ctx.restore();
   }
-  fish(ctx, fishX, fishY, 1, t, 1);
+  fish(ctx, fishX, fishY, 1, t, ui.facing);
   // the low dark bites back: a red pulse from the depths on each chip
   if (ui.playerFlinch > 0) {
     ctx.save();
@@ -1342,6 +1353,15 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
   for (const cond of c.enemy.conditions) {
     chipX += chip(ctx, chipX, 108, `${cond.kind.toUpperCase()} ${cond.level === 2 ? "II" : "I"} · ${cond.turns}`, C.glow) + 8;
   }
+  // a chip that reads SLOW I means nothing on its own: say what it does
+  // (played report: "analyze said slow is effective, what does that mean")
+  if (c.enemy.conditions.length > 0 && !ui.victoryHold) {
+    ctx.fillStyle = C.biolum;
+    ctx.font = "12px system-ui";
+    c.enemy.conditions.forEach((cond, i) => {
+      ctx.fillText(`${cond.kind}: ${CONDITION_INFO[cond.kind].effect(cond.level)}`, headX, 148 + i * 16);
+    });
+  }
 
   // intent telegraph: what the sea will do next, so abilities become
   // answers to visible threats (the playtester's "make sense to use
@@ -1377,7 +1397,7 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
       color = intent.missChance > 0 || intent.bubbled ? C.glow : C.danger;
     }
     ctx.fillStyle = color;
-    const intentY = c.enemy.conditions.length > 0 ? 152 : 116;
+    const intentY = c.enemy.conditions.length > 0 ? 152 + c.enemy.conditions.length * 16 : 116;
     const budget = cw - headX - 16;
     // wrap at token boundaries; EVERY row respects the budget and every
     // token survives (final panel: compaction dropped the break warning;
@@ -1450,7 +1470,11 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
   } else if (c.analyzed) {
     ctx.fillStyle = C.biolum;
     ctx.font = "13px system-ui";
-    ctx.fillText(`analyze: ${c.enemy.analyzeHint} works best here`, 640, 140);
+    ctx.fillText(
+      `analyze: ${CONDITION_INFO[c.enemy.analyzeHint].ability} (${CONDITION_INFO[c.enemy.analyzeHint].key}) works best: ${CONDITION_INFO[c.enemy.analyzeHint].effect(1)}`,
+      640,
+      ch - 150,
+    );
   }
 
   // turn pill: input is always the player's to give in this turn flow
@@ -1555,11 +1579,15 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
     ctx.restore();
     ctx.fillStyle = on ? C.ink : "#4a5c66";
     ctx.font = "600 13px system-ui";
-    ctx.fillText(`${i + 1} ${a.name}`, x + 12, ch - 68);
+    ctx.fillText(`${i + 1} ${a.name}`, x + 12, ch - 74);
     ctx.fillStyle = on ? C.muted : "#3a4c56";
     ctx.font = "12px ui-monospace, monospace";
     const extra = a.heals !== undefined ? ` · ${c.healSongUses} left` : "";
-    ctx.fillText(`${a.staCost} STA${extra}`, x + 12, ch - 46);
+    ctx.fillText(`${a.staCost} STA${extra}`, x + 12, ch - 54);
+    // what it DOES, on the button itself: the answer to "what is slow"
+    ctx.fillStyle = on ? "#7E9AA6" : "#33454e";
+    ctx.font = "10px system-ui";
+    ctx.fillText(ABILITY_EFFECT[key] ?? "", x + 12, ch - 36);
   });
 }
 

@@ -1211,3 +1211,21 @@ every evidence class before any PENDING becomes GREEN.
   earlier guard test while shortening strings (the first and last hub
   objectives had stopped naming their destinations); both fixed.
   96 tests green.
+- (git time of this commit) Two played reports, both fixed:
+  (1) "it's not clear what slow means: I used analyze and it said slow
+  is effective, but what does that mean". The build never once said what
+  a condition DOES. Added CONDITION_INFO in game.ts as the single source
+  of that language, and spent it in three places: Analyze now names the
+  ability, its key, and the effect ("Fin Slash (3) works best: it skips
+  every other turn. It hits for 14 and dodges 15%"); every ACTIVE
+  condition prints its meaning under its chip ("slow: it skips every
+  other turn", level II adds the softer-hits clause and the numbers come
+  from BASE so they can never drift); and each ability card carries a
+  one-line effect under its cost ("slow: it skips turns"), so the answer
+  is on the button the player is deciding between. One collision caught
+  by render-and-look (explainer overlapping the chip box) and spaced.
+  (2) "moving backwards still has the character looking forward": the
+  explore fish was drawn with facing hard-coded to 1. It now turns with
+  the direction it swims, and the swim-bubble trail follows behind it
+  either way. Verified as played with a real west-then-east drive
+  (scratchpad/facing/*.png). 100 tests green.

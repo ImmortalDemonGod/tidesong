@@ -41,6 +41,26 @@ export const BASE = {
 } as const;
 
 export type ConditionKind = "blind" | "slow";
+
+// What a condition DOES, in the player's words, and which ability buys
+// it. The sim writes these into Analyze's line; the UI prints them under
+// the chips and on the ability cards. One source, so they can never
+// disagree with each other or with the numbers.
+export const CONDITION_INFO: Record<ConditionKind, { ability: string; key: number; effect: (level: number) => string }> = {
+  blind: {
+    ability: "Silt Burst",
+    key: 2,
+    effect: (level) => `its attacks miss ${Math.round(BASE.blindMiss[level] * 100)} percent of the time`,
+  },
+  slow: {
+    ability: "Fin Slash",
+    key: 3,
+    effect: (level) =>
+      level >= 2
+        ? `it skips every other turn, and hits ${Math.round((1 - BASE.slowDamageMult) * 100)} percent softer when it does act`
+        : "it skips every other turn",
+  },
+};
 export type ConditionLevel = 1 | 2;
 
 export interface Condition {
@@ -435,7 +455,7 @@ export function useAbility(state: CombatState, abilityKey: string, targetPart?: 
     state.log.push(
       state.boss
         ? `Analyze: target the ${getPart(state, currentKeyPart(state)!)!.name} to end the ${state.boss.phaseName} phase (${bossDamage(state)} dmg per hit)`
-        : `Analyze: ${state.enemy.analyzeHint} is most effective (${state.enemy.attackDamage} dmg, dodges ${Math.round(state.enemy.dodge * 100)}%)`,
+        : `Analyze: ${CONDITION_INFO[state.enemy.analyzeHint].ability} (${CONDITION_INFO[state.enemy.analyzeHint].key}) works best: ${CONDITION_INFO[state.enemy.analyzeHint].effect(1)}. It hits for ${state.enemy.attackDamage} and dodges ${Math.round(state.enemy.dodge * 100)}%`,
     );
   }
   if (ability.inflicts) {

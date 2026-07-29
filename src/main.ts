@@ -51,6 +51,7 @@ const ui: UIState = {
   buttonFlash: [0, 0, 0, 0, 0, 0],
   hitStop: 0,
   reducedMotion: false,
+  facing: 1,
   beatPulse: 0,
 };
 
@@ -82,6 +83,7 @@ function resetRun(): void {
   ui.hitStop = 0;
   ui.bossIntro = undefined;
   ui.beatPulse = 0;
+  ui.facing = 1;
   ui.screen = "play";
 }
 
@@ -755,7 +757,12 @@ function frame(now: number): void {
   ) {
     lastMoveAt = now;
     const dirsNow = heldDirs.dirs();
-    step(world, dirsNow[dirsNow.length - 1]);
+    const dir = dirsNow[dirsNow.length - 1];
+    // the fish turns to face the way it swims (played report: moving
+    // backwards still had it looking forward)
+    if (dir === "left") ui.facing = -1;
+    if (dir === "right") ui.facing = 1;
+    step(world, dir);
   }
 
   // No auto-selected boss part: unaimed hits drift to a random part in the
