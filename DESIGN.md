@@ -30,10 +30,17 @@ the build is placeholder for Marc's story and must be marked as such.
   Blind: the enemy's attacks miss with a fixed chance (choose in 50 to 75
   percent; gate G4 must show Blind pays for its cost; log the number).
   Slow: the enemy skips every other action.
-- Condition rules: different kinds stack (one chip per kind, readable at a
-  glance). Re-applying a condition refreshes its duration and does NOT refund
-  stamina. A duration of N turns means N enemy actions are affected; the
-  enemy acts before durations tick.
+- Condition rules (updated Jul 28 from Glass_Goat's input: effects add up,
+  restoring the accumulation idea from their original doc): each condition
+  has level I and level II, capped at II. First application refunds stamina;
+  raising to level II costs full price with NO refund, so spamming a strong
+  effect is a priced choice, not a free one. Blind II: higher miss chance
+  and the enemy's agility drops (easier to hit). Slow II: the enemy also
+  deals reduced damage when it acts. Re-applying at level II refreshes
+  duration only. Different kinds still coexist (one chip per kind, chip
+  shows level). A duration of N turns means N enemy actions are affected;
+  the enemy acts before durations tick. G4 verifies stack-spam does not
+  dominate; if it does, fix the numbers, not the cap.
 - Bosses ONLY: full limb targeting. Each boss has ~4 targetable parts
   (e.g. JAW / EYE / FIN / TAIL), each with its own durability bar. Boss 1 has
   2 phases; each phase has ONE key part; breaking the key part ends the
