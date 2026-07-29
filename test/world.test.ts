@@ -506,3 +506,39 @@ test("the keeper answers what you carry: her line changes with the verses you ho
   // and every line stays marked for Marc
   for (const line of lines) expect(line).toContain("(placeholder)");
 });
+
+test("the first enemy of a ruin holds the corridor; every other enemy can be slipped past", () => {
+  const w = createWorld();
+  walkTo(w, HUB.dungeonEntrance.x, HUB.dungeonEntrance.y);
+  expect(w.area).toBe("dungeon1");
+  // try to swim around the guard at (8,4) along the top edge
+  walkTo(w, 1, 0);
+  let guard = 0;
+  while (w.pos.x < 12 && w.mode === "explore" && guard++ < 40) step(w, "right");
+  expect(w.mode).toBe("combat"); // the column is barred at any depth
+  expect(w.combat!.enemy.name).toBe("vampire squid");
+  expect(w.pos.x).toBe(8);
+  winFight(w);
+
+  // the SECOND squid guards a verse and is dodgeable by depth
+  const before = w.encounters.find((e) => e.id === 2)!;
+  expect(before.defeated).toBe(false);
+  walkTo(w, 12, 3); // two tiles above it at (12,6)
+  expect(w.mode).toBe("explore");
+  let g2 = 0;
+  while (w.pos.x < 19 && w.mode === "explore" && g2++ < 40) step(w, "right");
+  expect(w.mode).toBe("explore"); // slipped past on purpose
+  expect(w.encounters.find((e) => e.id === 2)!.defeated).toBe(false);
+});
+
+test("beating a corrupted thing gives it its name back: the reason to fight what you could dodge", () => {
+  const w = createWorld();
+  walkTo(w, HUB.dungeonEntrance.x, HUB.dungeonEntrance.y);
+  walkTo(w, 8, 4);
+  expect(w.mode).toBe("combat");
+  winFight(w);
+  expect(w.log.some((l) => l.includes("its name back") && l.includes("vampire squid"))).toBe(true);
+  // bosses do not get the line: they get their own deaths
+  const bossLines = w.log.filter((l) => l.includes("its name back"));
+  expect(bossLines.length).toBe(1);
+});

@@ -832,6 +832,22 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
     ctx.font = "11px system-ui";
     ctx.textAlign = "center";
     ctx.fillText(label, px(e.x), py(e.y) + 52);
+    if (e.blocks) {
+      // the barred column, drawn: you can see it holds the passage
+      ctx.fillStyle = C.danger;
+      ctx.font = "10px ui-monospace, monospace";
+      ctx.fillText("it holds the corridor", px(e.x), py(e.y) + 66);
+      ctx.save();
+      ctx.strokeStyle = C.danger;
+      ctx.globalAlpha = 0.16 + Math.sin(t * 2) * 0.06;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([7, 9]);
+      ctx.beginPath();
+      ctx.moveTo(px(e.x), 150);
+      ctx.lineTo(px(e.x), 560);
+      ctx.stroke();
+      ctx.restore();
+    }
     ctx.textAlign = "left";
   }
 
@@ -1761,6 +1777,8 @@ export function render(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
         y += 40 + rows.length * 17 + 14;
       }
       centered(ctx, `${got.length}/${w.fragments.length} verses · +${got.length} max stamina · the pad carries them`, y + 6, "600 13px ui-monospace, monospace", C.biolum, cw);
+      const named = w.encounters.filter((e) => e.defeated).length;
+      centered(ctx, `${named}/${w.encounters.length} names given back to the sea`, y + 26, "600 13px ui-monospace, monospace", C.sand, cw);
     }
     centered(ctx, "all verses are placeholder drafts for Marc", ch - 26, "12px system-ui", C.muted, cw);
     return;
@@ -1803,7 +1821,9 @@ export function render(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
         ctx.fillText(line2, x + 140, 384);
         ctx.textAlign = "left";
       });
-      centered(ctx, `you carry ${collected.length} of ${w.fragments.length} verses: that is how much song you have to sing`, 462, "600 14px ui-monospace, monospace", C.sand, cw);
+      const namedNow = w.encounters.filter((e) => e.defeated).length;
+      centered(ctx, `you carry ${collected.length} of ${w.fragments.length} verses: that is how much song you have to sing`, 456, "600 14px ui-monospace, monospace", C.sand, cw);
+      centered(ctx, `you gave ${namedNow} of ${w.encounters.length} corrupted things their names back on the way down`, 480, "13px system-ui", C.muted, cw);
       centered(ctx, "press 1 or 2, or click a card", 500, "15px system-ui", C.glow, cw);
       centered(ctx, "this choice is Marc's central question, made playable: placeholder wording", ch - 26, "12px system-ui", C.muted, cw);
       return;
@@ -1823,7 +1843,8 @@ export function render(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
       : "the name thins and is gone: nothing can call the sea, and nothing can hunt it";
     centered(ctx, headline, 176, "700 50px system-ui", sung ? C.glow : C.muted, cw);
     centered(ctx, under, 220, "17px system-ui", C.ink, cw);
-    centered(ctx, `verses ${collected.length}/${w.fragments.length} · deaths ${w.deaths} · strokes ${w.steps}`, 254, "600 15px ui-monospace, monospace", C.muted, cw);
+    const named = w.encounters.filter((e) => e.defeated).length;
+    centered(ctx, `verses ${collected.length}/${w.fragments.length} · names returned ${named}/${w.encounters.length} · deaths ${w.deaths} · strokes ${w.steps}`, 254, "600 15px ui-monospace, monospace", C.muted, cw);
     if (collected.length > 0) {
       // recited in NARRATIVE order, never pickup order, so the song reads
       // as a song (analysis: pickup order made the arc noise)

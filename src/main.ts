@@ -167,6 +167,9 @@ function drainLog(): void {
       addFloater("absorbed", "#7FB8E8", "player");
     }
     // the ink squid's twist, both directions
+    if (line.includes("its name back")) {
+      ui.storyCard = { text: line, age: 0, kind: "song" };
+    }
     if (line.includes("ink takes your eyes")) {
       addFloater("INKED", "#8FA3E8", "player");
     }

@@ -1229,3 +1229,21 @@ every evidence class before any PENDING becomes GREEN.
   the direction it swims, and the swim-bubble trail follows behind it
   either way. Verified as played with a real west-then-east drive
   (scratchpad/facing/*.png). 100 tests green.
+- (git time of this commit) Played report: "am I supposed to be able to
+  bypass the other enemies and go straight to the shark?" It was never a
+  decision, just how adjacency triggers happened to work, and worse:
+  fighting had ZERO reward (no XP by design), so slipping past was
+  strictly optimal, which is a design smell. Ruled and fixed both ways.
+  (1) The first enemy of each ruin now HOLDS ITS COLUMN and is drawn
+  doing it (dashed bar, "it holds the corridor"): the teaching fight is
+  not skippable, so nobody meets a boss having never used a condition.
+  (2) Every other enemy stays skippable ON PURPOSE, which is now a
+  logged tactical choice rather than an accident, and the ones worth
+  fighting stand next to verses. (3) Fighting pays in the game's own
+  currency: a beaten corruption GIVES ITS NAME BACK, announced on a card
+  and counted next to the verses on the song screen and both endings
+  ("names returned 4/6"). No stat, per Marc's progression rule. Tests:
+  a probe that tries to swim around the guard along the top edge and
+  gets caught anyway, and one that proves the verse-guarding squid can
+  still be dodged. 102 tests green; G2 identical (50/50, 100/100,
+  5000/5000 zero fail seeds).

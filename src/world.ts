@@ -54,6 +54,13 @@ export interface Encounter {
   y: number;
   kind: "squid" | "elder" | "ink" | "boss" | "boss2";
   defeated: boolean;
+  // A corridor guard fills the passage: you cannot slip past it at any
+  // depth. Exactly one per ruin, the first one, because that fight is
+  // where the systems are taught (played report: "am I supposed to be
+  // able to bypass the other enemies and go straight to the shark?").
+  // Everything else stays skippable ON PURPOSE: dodging is a real
+  // tactical choice, and the enemies worth fighting guard verses.
+  blocks?: boolean;
 }
 
 export const AREAS: Record<AreaKey, { w: number; h: number }> = {
@@ -200,12 +207,12 @@ export function createWorld(seed = 1): WorldState {
       },
     ],
     encounters: [
-      { id: 1, area: "dungeon1", x: 8, y: 4, kind: "squid", defeated: false },
+      { id: 1, area: "dungeon1", x: 8, y: 4, kind: "squid", defeated: false, blocks: true },
       // moved off the corridor to guard the ruin's verse (playtest: a
       // duplicate corridor fight gated the shark, the build's best screen)
       { id: 2, area: "dungeon1", x: 12, y: 6, kind: "squid", defeated: false },
       { id: 3, area: "dungeon1", x: 21, y: 4, kind: "boss", defeated: false },
-      { id: 4, area: "dungeon2", x: 8, y: 4, kind: "elder", defeated: false },
+      { id: 4, area: "dungeon2", x: 8, y: 4, kind: "elder", defeated: false, blocks: true },
       // enemy type 2 (Jul 29, playtest fun mandate): the second ruin's
       // second fight introduces the ink squid before the eel
       { id: 5, area: "dungeon2", x: 14, y: 4, kind: "ink", defeated: false },
@@ -330,6 +337,11 @@ function endCombat(w: WorldState): void {
     w.healSongUses = c.healSongUses;
     const enc = w.encounters.find((e) => e.id === w.activeEncounter)!;
     enc.defeated = true;
+    if (enc.kind !== "boss" && enc.kind !== "boss2") {
+      // the reason to fight anything optional: naming is the theme, and
+      // a beaten corruption lets go of what it took
+      w.log.push(`you give the ${c.enemy.name} its name back: the corruption lets go`);
+    }
     if (enc.kind === "boss") {
       w.hasTideRelic = true;
       // the guardian's verse, paid off in his death instead of only told
@@ -493,13 +505,14 @@ export function step(w: WorldState, dir: Dir): boolean {
   }
 
   for (const e of w.encounters) {
-    if (
-      !e.defeated &&
-      e.area === w.area &&
-      Math.abs(e.x - w.pos.x) + Math.abs(e.y - w.pos.y) <= 1
-    ) {
-      startCombat(w, e);
-      return true;
+    if (!e.defeated && e.area === w.area) {
+      const adjacent = Math.abs(e.x - w.pos.x) + Math.abs(e.y - w.pos.y) <= 1;
+      // a corridor guard holds its whole column: no depth gets past it
+      const barred = e.blocks === true && e.x === w.pos.x;
+      if (adjacent || barred) {
+        startCombat(w, e);
+        return true;
+      }
     }
   }
 

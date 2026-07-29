@@ -235,6 +235,21 @@ The parts every game needs that no design doc remembered to write down:
 - Combat entry: touching a corrupted enemy in exploration opens the combat
   scene; winning returns to exploration with that enemy gone (per the death
   rule, defeated encounters stay defeated).
+- AVOIDANCE IS A CHOICE, WITH ONE EXCEPTION (ruled Jul 29 after a played
+  report asked "am I supposed to be able to bypass the other enemies and
+  go straight to the shark?"). Enemies trigger on adjacency, so slipping
+  past them at depth is deliberate and allowed: it trades the fight for
+  the risk of meeting a boss untaught. EXCEPT the first enemy of each
+  ruin, which holds its whole column and is drawn holding it (a dashed
+  bar and the label "it holds the corridor"). That fight is where the
+  systems are taught, so it is not skippable. Everything else is either
+  optional or stands next to a verse, which is its own argument.
+- FIGHTING PAYS IN THE GAME'S OWN CURRENCY, NOT IN STATS (same ruling):
+  beating a corrupted creature gives it its name back, announced on a
+  card and counted beside the verses ("names returned 4/6") on the song
+  screen and both endings. No XP, no stat: Marc's proposal ties
+  progression to relics and understanding, so the reason to fight an
+  avoidable enemy is that naming is the whole theme.
 - Ability availability: all 6 abilities from the first fight. Relic-based
   ability upgrades were scoped optional stretch; one shipped (the relic
   combat echo, see RECONCILIATION).
