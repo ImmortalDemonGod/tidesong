@@ -112,7 +112,8 @@ the build is placeholder for Marc's story and must be marked as such.
   RULING, written here so the designer sees it: stats variants do NOT
   count as enemy TYPES against the one-twist-per-enemy principle or the
   3-type budget; the twist axis (conditions on the player, immunities,
-  buffs) remains reserved for true types 2 and 3 in jam scope.
+  buffs) is for true types only. Type 2 (the ink squid, below) shipped
+  Jul 29; type 3's twist (immunity or buff) stays jam scope.
 - Boss 2, the corrupted eel: parts Maw / Lure / Coil / Tail; phases
   CONSTRICT then THRASH (13/16 damage); its one new idea, inside agreed
   systems: the phase-1 key part WANDERS per run (seeded from the world,
