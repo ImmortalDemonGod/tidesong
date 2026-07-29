@@ -1111,3 +1111,8 @@ every evidence class before any PENDING becomes GREEN.
   consecutive full-suite soak green (93/93 each), and the published
   artifact verified byte-identical to dist at HEAD (shared sha
   374f3ca4).
+- (git time of this commit) BACKLOG.md compiled: every deferred
+  finding from the night's review rounds, playtests, and panels
+  organized for the team with evidence pointers (design questions,
+  presentation polish, deferred scope, the engine decision). Zero
+  build risk; the slice is untouched.
