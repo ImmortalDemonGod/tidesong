@@ -58,6 +58,12 @@ Judge bots are pinned BEFORE any tuning and may not be weakened afterward:
 - casual bot: uniform random over currently affordable abilities
 - optimal bot: greedy with 1 to 2 ply lookahead
 - spam-X bot: always ability X when affordable, else pass
+- nav bot (added 00:50, pinned before the world existed): axis-greedy
+  stepping toward the current objective in a fixed objective order; fights
+  along the way use the casual combat policy for softlock checks and the
+  optimal policy for the scripted full-run clear. No pathfinding smarter
+  than axis-greedy; if the world needs A* to be beatable, the world is too
+  complicated for the jam.
 The adversarial panel reviews the bot code as well as the game; changing a
 bot policy after tuning starts requires a logged reason and re-running every
 gate that used it.
@@ -229,3 +235,16 @@ continue."
   turns / 33.0 hpLost (>=20 floor); no-cond +55% HP; spam margins: tail
   +182%, silt 20-point win gap, fin +24%. Bands encoded in
   test/bands.test.ts boss section.
+- 01:10 P4-P6 world layer: hub reef (NPC, song-seal door stub, trench with
+  2 HP chip and a fragment inside it, 3 fragments with placeholder verses
+  marked for Marc), dungeon 1 (2 squids, boss chamber), Tide Relic gate
+  (barrier shoves back without relic, G1 invariant test), persistent HP
+  across fights, checkpoint + death rule, dungeon entrance moved off the
+  main corridor after tests proved the barrier was unreachable without
+  entering the dungeon. DEATH RULE AMENDED (logged in DESIGN.md): flat 60
+  percent respawn death-looped 20 of 100 casual runs (7,660 total deaths,
+  the compounding spiral the merge explicitly cut); pity escalator 60/75/90
+  capped fixes it: casual 100/100 within the 5,000-action cap, max 1,862
+  actions, 1,168 total deaths; scripted optimal 50/50 clears, 0 deaths,
+  max 100 actions, 3/3 fragments every run. G2 encoded in
+  test/fullrun.test.ts. Evidence: `bun test` 53 pass / 0 fail.
