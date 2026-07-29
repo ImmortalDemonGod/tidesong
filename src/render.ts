@@ -1069,11 +1069,15 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
   if (ui.attackAnim && !rm) {
     const k = ui.attackAnim.kind;
     if (k === "tailStrike") {
-      // a committed dash: stretch into it, snap back
-      pose.dx = attackP * 215;
-      pose.rot = Math.sin(Math.PI * castLin) * 0.12;
-      pose.sx = 1 + attackP * 0.22;
-      pose.sy = 1 - attackP * 0.12;
+      // swim in, then PIVOT so the tail lashes across the target: the
+      // strike is the turn, not the travel
+      const closeIn = Math.min(1, castLin / 0.45);
+      const whip = castLin < 0.45 ? 0 : Math.min(1, (castLin - 0.45) / 0.35);
+      const recover = castLin < 0.8 ? 0 : (castLin - 0.8) / 0.2;
+      pose.dx = 215 * closeIn * (1 - recover * 0.9);
+      pose.rot = -2.9 * whip * (1 - recover); // the body swings tail-first
+      pose.sx = 1 + closeIn * 0.14;
+      pose.sy = 1 - closeIn * 0.06;
     } else if (k === "finSlash") {
       // an arc: rise, roll through the cut, come down
       pose.dx = attackP * 165;
@@ -1081,10 +1085,12 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
       pose.rot = -0.9 * Math.sin(Math.PI * castLin);
       pose.sx = 1 + attackP * 0.1;
     } else if (k === "siltBurst") {
-      // a tail-flick that kicks the silt out and shoves the fish back
-      pose.dx = -attackP * 46;
-      pose.rot = 0.3 * Math.sin(Math.PI * castLin);
-      pose.sy = 1 + attackP * 0.16;
+      // dive at the floor and sweep it: the cloud has to come from
+      // somewhere, and silt comes from the bottom
+      pose.dx = attackP * 70;
+      pose.dy = attackP * 120; // down toward the sand
+      pose.rot = 0.55 * Math.sin(Math.PI * castLin);
+      pose.sy = 1 + attackP * 0.1;
     } else if (k === "healSong") {
       // rises and swells while it sings
       pose.dy = -attackP * 46;
@@ -1254,23 +1260,38 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
     ctx.save();
     ctx.globalAlpha = Math.max(0, fade);
     if (fx.kind === "tailStrike") {
-      // impact star at the enemy
+      // THE ARC THE TAIL TRAVELS: the strike is the sweep, not the swim
       ctx.strokeStyle = accent;
+      ctx.lineWidth = 9 * (1 - p * 0.5);
+      ctx.beginPath();
+      ctx.arc(fx2x, fx2y, 56, -Math.PI * 0.95 + p * 2.6, Math.PI * 0.2 + p * 2.6);
+      ctx.stroke();
+      ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      ctx.arc(fx2x, fx2y, 80, -Math.PI * 0.8 + p * 2.6, Math.PI * 0.02 + p * 2.6);
+      ctx.stroke();
+      // and the crack where the tail lands
       ctx.lineWidth = 3;
-      for (let i = 0; i < 6; i++) {
-        const a = i * (Math.PI / 3) + 0.3;
+      for (let i = 0; i < 4; i++) {
+        const a = -0.5 + i * 0.34;
         ctx.beginPath();
-        ctx.moveTo(ex + Math.cos(a) * 26, eyBase + Math.sin(a) * 26);
-        ctx.lineTo(ex + Math.cos(a) * (26 + 34 * p), eyBase + Math.sin(a) * (26 + 34 * p));
+        ctx.moveTo(ex + Math.cos(a) * 20, eyBase + Math.sin(a) * 20);
+        ctx.lineTo(ex + Math.cos(a) * (20 + 42 * p), eyBase + Math.sin(a) * (20 + 42 * p));
         ctx.stroke();
       }
     } else if (fx.kind === "siltBurst") {
-      // sand cloud billowing over the enemy's eyes
+      // a plume kicked off the SEABED that rises and drifts over the
+      // enemy's eyes: silt has to come from somewhere
       ctx.fillStyle = accent;
-      for (let i = 0; i < 16; i++) {
-        const a = i * 2.4;
+      const floorY = 596;
+      for (let i = 0; i < 24; i++) {
+        const spread = (i % 12) - 6;
+        // it has to ARRIVE at the eyes: that is what blinds it
+        const rise = p * (300 + (i % 5) * 34);
+        const drift = p * ((ex - 60 - fx2x) + spread * 14);
+        ctx.globalAlpha = Math.max(0, (1 - p) * 0.85);
         ctx.beginPath();
-        ctx.arc(ex - 50 + Math.cos(a) * 90 * p, eyBase - 40 + Math.sin(a) * 55 * p, 3.5 + p * 3, 0, Math.PI * 2);
+        ctx.arc(fx2x + 40 + drift + spread * 10, floorY - rise - Math.abs(spread) * 6, 4 + p * 8, 0, Math.PI * 2);
         ctx.fill();
       }
     } else if (fx.kind === "finSlash") {
@@ -1281,12 +1302,31 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
       ctx.arc(ex - 20, eyBase, 90 + p * 40, Math.PI * (1.1 + p * 0.3), Math.PI * (1.7 + p * 0.3));
       ctx.stroke();
     } else if (fx.kind === "healSong") {
-      // green motes rising off the fish
-      ctx.fillStyle = accent;
-      for (let i = 0; i < 12; i++) {
+      // it is a SONG: sound rings out of the singer, then notes rise
+      ctx.strokeStyle = accent;
+      for (let r = 0; r < 3; r++) {
+        const rp = Math.min(1, Math.max(0, p * 1.4 - r * 0.22));
+        if (rp <= 0) continue;
+        ctx.globalAlpha = Math.max(0, (1 - rp) * 0.75);
+        ctx.lineWidth = 3 - r * 0.6;
         ctx.beginPath();
-        ctx.arc(fx2x - 30 + (i % 5) * 16, fx2y + 12 - p * 150 - i * 8, 3.4, 0, Math.PI * 2);
+        ctx.arc(fx2x, fx2y, 24 + rp * 120, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = Math.max(0, 1 - p);
+      ctx.fillStyle = accent;
+      for (let i = 0; i < 5; i++) {
+        const nx = fx2x - 40 + i * 22 + Math.sin(p * 6 + i) * 7;
+        const ny = fx2y - 10 - p * (90 + i * 14);
+        ctx.beginPath();
+        ctx.ellipse(nx, ny, 5, 3.6, -0.4, 0, Math.PI * 2);
         ctx.fill();
+        ctx.strokeStyle = accent;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(nx + 4.6, ny + 1);
+        ctx.lineTo(nx + 4.6, ny - 13);
+        ctx.stroke();
       }
     } else if (fx.kind === "analyze") {
       // scanline sweeping the enemy

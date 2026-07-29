@@ -1323,3 +1323,30 @@ every evidence class before any PENDING becomes GREEN.
   rewritten to assert the RULES (utility break subtracts the configured
   reduction, phase 2 exceeds phase 1) instead of the tuned constants, so
   a logged retune can never look like a broken mechanic again.
+- (git time of this commit) Played question: "the 6 options still don't
+  look that interesting: did you look visually at them and compare them
+  to the NAME. Just look at Tail Strike, does that even look like a tail
+  strike to you". No, it did not, and neither did two others. I had
+  built per-ability effects without ever asking whether the picture
+  matches the word.
+  TAIL STRIKE was a body ram: the fish charged forward and the tail did
+  nothing. It now swims in, PIVOTS, and lashes: the body swings
+  tail-first through 2.9 radians and the effect is the ARC THE TAIL
+  TRAVELS (a double crescent trailing the turn) plus cracks where it
+  lands. The strike is the sweep, not the swim.
+  SILT BURST spawned a cloud in mid-water at the enemy, from nothing.
+  Silt comes off the bottom, so the fish now dives at the seabed and
+  sweeps it: the plume erupts from the floor line and rises and drifts
+  across to the enemy's EYES, which is what the blind means.
+  HEAL SONG was green motes with nothing musical about it. It is a
+  SONG: sound rings expand out of the singer and notes rise off her.
+  Verified by capturing three frames through each cast at 120/230/330ms
+  and looking at the motion, not one pose (scratchpad/poses/v2-*.png);
+  the heal needed a probe that takes damage first because a full-HP
+  demo refuses the ability, which is itself correct behaviour.
+  PROCESS NOTE, logged because it bit me twice this session: my edit
+  scripts do every replacement then write once at the end, so a later
+  failed assertion silently discards earlier successful replacements. I
+  shipped a pose change whose matching effect never landed and only
+  caught it by looking at the screenshot. One edit per script, and grep
+  the file afterwards.
