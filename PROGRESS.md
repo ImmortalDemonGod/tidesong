@@ -39,7 +39,7 @@ Slice target, in priority order:
    the morning report as "Enemy variety lab" for Marc's balance question.
    Hard rule: none of this appears in dist/index.html tonight.
 
-## State: SCAFFOLD READY, BUILD NOT STARTED
+## State: RUN IN PROGRESS (priority 1: combat core)
 
 ## Exit gates
 
@@ -185,4 +185,17 @@ continue."
   detail in the feature log.
 
 ## Feature log (chronological)
-(empty; the overnight run appends here)
+- 23:59 Jul 28 RUN START. caffeinate alive (pid confirmed), realignment
+  cron armed (job a2466bf3, :13/:43, rounded from 45m since cron cannot
+  cycle 45 cleanly; 30m also tightens the commit ceiling), /goal hook
+  active with the 11 AM + morning-report condition.
+- 00:02 Combat core v1: condition levels I/II per Glass_Goat stacking
+  (refund only on first application), Blind 60%/80% miss with II zeroing
+  dodge, Slow skip-every-other with II halving damage, Heal Song 40x2,
+  Bubble 60% next-hit, Analyze flag, seeded mulberry32 RNG, enemy action
+  in advanceTurn, victory/defeat outcomes. Numbers logged in game.ts
+  header; dodge affects damage only, conditions always land (cites
+  Glass_Goat doc: "consistent and predictable results"). Evidence:
+  `bun test` 19 pass / 0 fail, 10,998 expect() calls, incl. 100-seed
+  fuzz with invariant checks (STA/HP bounds, condition levels, fights
+  terminate under 200 rounds). dist builds 2.8 KB.
