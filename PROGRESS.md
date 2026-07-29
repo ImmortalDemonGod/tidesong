@@ -1127,3 +1127,19 @@ every evidence class before any PENDING becomes GREEN.
   human-length holds). One nit the probe caught, fixed: the generic
   first-fight banner now picks A or AN by vowel (A ELDER SQUID read
   wrong in demo sessions). 93 tests green.
+- (git time of this commit) Enemy-variety lab RE-RUN at final
+  mechanics (heavy cycle + II decay changed every baseline; the earlier
+  lab conclusions predate them). For Marc's type-3 decision, current
+  numbers (500 fights per cell, pinned judges, tools/lab.ts): the
+  lab's original 50-percent ink hook now runs casual 37.2 percent
+  (confirming the SHIPPED ink squid's gentler 40-percent / 26 HP
+  tuning, which measures 79.7 percent in band, was the right call);
+  the warded (slow-immune) squid punishes wrong-tool play far harder
+  under heavies (pinned optimal that insists on slow: 55.8 percent win
+  / 89.4 lost, vs blind-only 100 percent / 19.8): immunity is fair
+  ONLY telegraphed, unchanged but sharper; the bulwark squid drops
+  casual to 37.0 percent (below band) with no-cond at zero: its
+  stacking compounds with the heavy cycle, so type 3 as bulwark needs
+  softer numbers than the pre-heavy recommendation (start +2 every 3rd
+  slot under heavies, not every 2nd) or heavy slots excluded from the
+  buff. BACKLOG updated to match.

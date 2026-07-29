@@ -20,10 +20,13 @@ feature log (entries cite their evidence), DESIGN.md amendments.
 3. Heavy-cycle shape: the every-3rd-slot metronome shipped and holds
    all bands. Should heavies vary per enemy type in the full game
    (different cycles, multi-turn windups, feints)?
-4. Enemy type 3: the lab's tested candidates with numbers in the
-   PROGRESS "Enemy variety lab" section: warded squid (immunity;
-   requires Analyze telegraphing and a visible ward) and bulwark squid
-   (stacking damage; start at +2 every 2nd slot). Both sim-only.
+4. Enemy type 3: the lab's tested candidates, RE-MEASURED at final
+   mechanics (post heavy-cycle; see the lab re-run entry in
+   PROGRESS.md): warded squid (immunity; fair ONLY if Analyze
+   telegraphs it and the sprite shows a ward: wrong-tool play now
+   loses 89 HP under heavies) and bulwark squid (stacking damage;
+   compounds with the heavy cycle, so start at +2 every 3rd slot, not
+   every 2nd, or exclude heavy slots from the buff). Both sim-only.
 5. Trash variety: three of six encounters are squid-family. The ink
    squid's player-condition twist was the playtests' favorite trash
    idea; more twists on that axis beat more stat variants.
