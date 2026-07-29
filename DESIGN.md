@@ -53,6 +53,13 @@ the build is placeholder for Marc's story and must be marked as such.
   puzzles, not HP walls.
 - Turn flow: player picks an ability, targets enemy (or a boss part), resolves,
   enemy acts. Speed stats and turn order stay simple.
+- Intent telegraph (added Jul 29 from the playtest verdict "abilities
+  should make sense at key moments"): the UI shows what the enemy's next
+  slot will attempt (strike damage, a slowed skip, blind miss chance, a
+  held bubble), read from sim state without consuming RNG. Conditions
+  thereby become visible counterplay. Analyze keeps its exclusive
+  information: the most effective condition, enemy dodge, and the boss
+  key part are never telegraphed for free.
 - Enemy attack patterns and damage are deliberately not pinned here: choose
   them under gates G3/G4 and record the chosen behavior in the feature log.
 

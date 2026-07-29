@@ -626,7 +626,7 @@ optimal 14.4 HP lost):
 ## until the final adversarial panel rules; this section is complete only
 ## when no PENDING remains)
 
-- G1 BUG-FREE: PENDING FINAL PANEL. Evidence staged: 82 tests / 266,484
+- G1 BUG-FREE: PENDING FINAL PANEL. Evidence staged: 86 tests / 267,413
   assertions at HEAD; soaked 10x clean (00:59) and 25x clean (endurance);
   night-watch 50x soak COMPLETE, all clean; world fuzz 20k actions + 12k
   dungeon-2-seeded actions with per-action invariants incl. the relic
@@ -652,13 +652,17 @@ optimal 14.4 HP lost):
   user's morning playtest is the true verdict). Scorecard above with
   curve updated post-retunes; usage and fairness studies attached.
 - G6 VISUAL: PENDING FINAL PANEL. Two reviewer rounds PASS (second after
-  recapture), 14-state gallery (02:15 capture, final render surface) + 3
-  filmstrips with measured labels (all three re-shot on the final surface
-  after seat 3 caught two as stale).
+  recapture); gallery FULLY re-captured after the fun pass (14 states +
+  3 measured filmstrips, /tmp/tidesong-gallery/final-*, git time of the
+  wave-3 commit); confirmation panel 2 seat B is the fresh-eyes review
+  of that surface.
 - G7 AUDIO: PENDING FINAL PANEL. All named events wired and proven from
   DELIVERED logs post-pipe-fix (13 oscillator starts measured in a real
-  fought fight vs zero before); pad and stagger by construction; musical
-  quality permanently UNVERIFIED (human ears).
+  fought fight vs zero before); fun pass added per-ability cast voices,
+  the payoff event (real-line classified, tested), mood-aware pad with
+  fragment harmony voices, and verse phrases; stagger and master-gain
+  clipping headroom by construction; musical quality permanently
+  UNVERIFIED (human ears).
 - G8 FIDELITY: PENDING FINAL PANEL. Two rounds: coverage COMPLETE,
   parking-lot CLEAN, all deviations fixed, DESIGN.md reconciled.
 - G9 THIS REPORT: PENDING by definition until the panel rules and every
