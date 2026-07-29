@@ -11,7 +11,7 @@
 // All batches are seeded and deterministic: same code, same numbers, forever.
 
 import { expect, test } from "bun:test";
-import { createBossCombat } from "../src/game";
+import { createBossCombat, createCombat as createCombatBase } from "../src/game";
 import {
   ABILITY_KEYS,
   NO_CONDITION_KEYS,
@@ -116,4 +116,31 @@ test("G4 boss: every spam bot underperforms mixed play", () => {
 
 test("G4 boss: ignoring conditions costs at least 20 percent more damage", () => {
   expect(bossNoCond.meanDamageTaken).toBeGreaterThanOrEqual(bossOptimal.meanDamageTaken * 1.2);
+});
+
+// ---------- anti-overfit guard: bands must hold on seeds never used to tune ----------
+// Tuning ran on seeds 0-499. These assert the load-bearing floors and the
+// casual bands on a disjoint seed space (7000-7499), so numbers fitted to
+// the tuning sample cannot silently pass.
+
+const casualFresh = runBatch((seed) => casualBot(seed + 7000));
+const optimalFresh = runBatch(() => optimalBot(), (seed) => createCombatAt(seed + 7000));
+const bossCasualFresh = runBatch((seed) => casualBot(seed + 7000), (seed) => createBossCombatAt(seed + 7000));
+
+function createCombatAt(seed: number) {
+  return createCombatBase(seed);
+}
+function createBossCombatAt(seed: number) {
+  return createBossCombat(seed);
+}
+
+test("anti-overfit: squid bands hold on 500 unseen seeds", () => {
+  expect(casualFresh.winRate).toBeGreaterThanOrEqual(0.6);
+  expect(casualFresh.winRate).toBeLessThanOrEqual(0.92);
+  expect(optimalFresh.meanDamageTaken).toBeGreaterThanOrEqual(10);
+});
+
+test("anti-overfit: boss bands hold on 500 unseen seeds", () => {
+  expect(bossCasualFresh.winRate).toBeGreaterThanOrEqual(0.28);
+  expect(bossCasualFresh.winRate).toBeLessThanOrEqual(0.77);
 });

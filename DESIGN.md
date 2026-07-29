@@ -38,8 +38,11 @@ the build is placeholder for Marc's story and must be marked as such.
   and the enemy's agility drops (easier to hit). Slow II: the enemy also
   deals reduced damage when it acts. Re-applying at level II refreshes
   duration only. Different kinds still coexist (one chip per kind, chip
-  shows level). A duration of N turns means N enemy actions are affected;
-  the enemy acts before durations tick. G4 verifies stack-spam does not
+  shows level). A duration of N turns means N enemy action SLOTS; a
+  slot the enemy skips (slowed) still burns a turn of duration (deviation
+  from the earlier "actions affected" wording, logged 01:05: burning on
+  skipped slots is what makes slow self-limiting instead of freely
+  chainable). The enemy acts before durations tick. G4 verifies stack-spam does not
   dominate; if it does, fix the numbers, not the cap.
 - Bosses ONLY: full limb targeting. Each boss has ~4 targetable parts
   (e.g. JAW / EYE / FIN / TAIL), each with its own durability bar. Boss 1 has
