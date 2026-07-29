@@ -53,6 +53,7 @@ const ui: UIState = {
   reducedMotion: false,
   facing: 1,
   beatPulse: 0,
+  endingPick: 0,
 };
 
 function resetRun(): void {
@@ -84,6 +85,7 @@ function resetRun(): void {
   ui.bossIntro = undefined;
   ui.beatPulse = 0;
   ui.facing = 1;
+  ui.endingPick = 0;
   ui.screen = "play";
 }
 
@@ -358,9 +360,30 @@ function onKey(e: KeyboardEvent): void {
   if (world.mode === "victory") {
     // R waits out the final SPENT hold: the climax must render (seat 1 MED-2)
     if (world.mode === "victory" && !world.ending && !ui.victoryHold) {
-      // the last decision: answer it before the run can be replayed
-      if (k === "1") chooseEnding(world, "sung");
-      if (k === "2") chooseEnding(world, "released");
+      // the last decision takes every input the rest of the game takes
+      // (played report: arrows and A/D did nothing here, only 1/2/click)
+      if (k === "ArrowLeft" || k === "a" || k === "ArrowUp" || k === "w") {
+        ui.endingPick = 0;
+        sound.play("note");
+        return;
+      }
+      if (k === "ArrowRight" || k === "d" || k === "ArrowDown" || k === "s") {
+        ui.endingPick = 1;
+        sound.play("note");
+        return;
+      }
+      if (k === "Enter" || k === " " || k === "e") {
+        chooseEnding(world, ui.endingPick === 0 ? "sung" : "released");
+        return;
+      }
+      if (k === "1") {
+        ui.endingPick = 0;
+        chooseEnding(world, "sung");
+      }
+      if (k === "2") {
+        ui.endingPick = 1;
+        chooseEnding(world, "released");
+      }
       return;
     }
     if (k === "r" && !ui.victoryHold) {
@@ -488,8 +511,13 @@ canvas.addEventListener("pointerdown", (e) => {
       const cx0 = ((e.clientX - rect0.left) / rect0.width) * canvas.width;
       const cy0 = ((e.clientY - rect0.top) / rect0.height) * canvas.height;
       if (cy0 >= 288 && cy0 <= 420) {
-        if (cx0 >= canvas.width / 2 - 300 && cx0 <= canvas.width / 2 - 20) chooseEnding(world, "sung");
-        else if (cx0 >= canvas.width / 2 + 20 && cx0 <= canvas.width / 2 + 300) chooseEnding(world, "released");
+        if (cx0 >= canvas.width / 2 - 300 && cx0 <= canvas.width / 2 - 20) {
+          ui.endingPick = 0;
+          chooseEnding(world, "sung");
+        } else if (cx0 >= canvas.width / 2 + 20 && cx0 <= canvas.width / 2 + 300) {
+          ui.endingPick = 1;
+          chooseEnding(world, "released");
+        }
       }
       return;
     }

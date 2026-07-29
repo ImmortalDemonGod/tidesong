@@ -1350,3 +1350,18 @@ every evidence class before any PENDING becomes GREEN.
   shipped a pose change whose matching effect never landed and only
   caught it by looking at the screenshot. One edit per script, and grep
   the file afterwards.
+- (git time of this commit) Played report: "you cannot even use the
+  arrow keys or A or D to choose another option in the ending scene, you
+  have to click it". True, and embarrassing on the game's single most
+  important decision: the choice screen accepted only 1, 2, or a click
+  while every other screen in the build takes arrows and WASD. It now
+  has a real cursor: arrows or A/D/W/S move it (with the song-seal note
+  tone as the tick), ENTER or SPACE or E answers with the highlighted
+  card, 1 and 2 still pick directly, and clicking moves the cursor as
+  well as answering so mouse and keyboard never disagree. The selected
+  card is drawn selected (brighter fill, thicker biolum border, a >
+  marker) instead of card one merely LOOKING selected, which it did
+  before while not being selectable. Verified as played in the real
+  bundle: ArrowRight moved the marker to "> 2 LET IT GO", A moved it
+  back to "> 1 SING IT BACK", ENTER produced "the sea half remembers",
+  and D then SPACE produced "the sea keeps its silence". 105 tests.

@@ -542,3 +542,18 @@ test("beating a corrupted thing gives it its name back: the reason to fight what
   const bossLines = w.log.filter((l) => l.includes("its name back"));
   expect(bossLines.length).toBe(1);
 });
+
+test("either ending is reachable by choice alone, and answering is final", () => {
+  // the UI routes arrows/A/D/Enter/Space/1/2/click into this one call,
+  // so the sim-level contract is what every input path must satisfy
+  for (const pick of ["sung", "released"] as const) {
+    const w = createWorld();
+    w.mode = "victory";
+    w.fragments[0].collected = true;
+    expect(chooseEnding(w, pick)).toBe(true);
+    expect(w.ending).toBe(pick);
+    const other = pick === "sung" ? "released" : "sung";
+    expect(chooseEnding(w, other)).toBe(false);
+    expect(w.ending).toBe(pick);
+  }
+});

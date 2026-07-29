@@ -41,6 +41,7 @@ export interface UIState {
   facing: 1 | -1; // the fish turns to swim: -1 when heading west
   bossIntro?: { title: string; sub: string; t: number; dur: number }; // set-piece title card
   beatPulse: number; // refused-input acknowledgment on the turn pill
+  endingPick: 0 | 1; // which ending card the keyboard has selected
 }
 
 export const ABILITY_ORDER = ["tailStrike", "siltBurst", "finSlash", "healSong", "analyze", "bubble"];
@@ -1843,17 +1844,18 @@ export function render(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
       ];
       cards.forEach(([key, title, line1, line2], i) => {
         const x = i === 0 ? cw / 2 - 300 : cw / 2 + 20;
-        ctx.fillStyle = "rgba(10,26,38,0.9)";
-        ctx.strokeStyle = i === 0 ? C.biolum : C.muted;
-        ctx.lineWidth = 2;
+        const picked = ui.endingPick === i;
+        ctx.fillStyle = picked ? "rgba(16,40,54,0.95)" : "rgba(10,26,38,0.85)";
+        ctx.strokeStyle = picked ? C.biolum : C.line;
+        ctx.lineWidth = picked ? 3 : 1.5;
         ctx.beginPath();
         ctx.roundRect(x, 288, 280, 132, 12);
         ctx.fill();
         ctx.stroke();
         ctx.textAlign = "center";
-        ctx.fillStyle = i === 0 ? C.biolum : C.ink;
+        ctx.fillStyle = picked ? C.biolum : C.muted;
         ctx.font = "700 20px system-ui";
-        ctx.fillText(`${key}   ${title}`, x + 140, 328);
+        ctx.fillText(`${picked ? "> " : ""}${key}   ${title}`, x + 140, 328);
         ctx.fillStyle = C.ink;
         ctx.font = "14px system-ui";
         ctx.fillText(line1, x + 140, 360);
@@ -1865,7 +1867,7 @@ export function render(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
       const namedNow = w.encounters.filter((e) => e.defeated).length;
       centered(ctx, `you carry ${collected.length} of ${w.fragments.length} verses: that is how much song you have to sing`, 456, "600 14px ui-monospace, monospace", C.sand, cw);
       centered(ctx, `you gave ${namedNow} of ${w.encounters.length} corrupted things their names back on the way down`, 480, "13px system-ui", C.muted, cw);
-      centered(ctx, "press 1 or 2, or click a card", 500, "15px system-ui", C.glow, cw);
+      centered(ctx, "arrows or A/D to choose · ENTER or SPACE to answer · or press 1 / 2 · or click", 500, "15px system-ui", C.glow, cw);
       centered(ctx, "this choice is Marc's central question, made playable: placeholder wording", ch - 26, "12px system-ui", C.muted, cw);
       return;
     }
