@@ -215,6 +215,9 @@ function applyDeath(w: WorldState, cause: "combat" | "hazard" = "combat"): void 
     if (w.pityDeaths >= 3 && w.healSongUses === 0) {
       w.healSongUses = 1;
       w.log.push("the current takes pity: one Heal Song returns");
+      if (w.lastDeathHint && !w.lastDeathHint.includes("takes pity")) {
+        w.lastDeathHint += " || the current takes pity: one Heal Song returns";
+      }
     }
   } else {
     // hazard deaths are fight-free: respawn HP is capped at what you
@@ -288,8 +291,10 @@ function endCombat(w: WorldState): void {
     // a wall (casual retry wins 0/0.6/17.3 percent at 60/75/90 with no
     // heals). The boss loop is deliberately one-more-try; trash deaths
     // still wait for the pity>=3 mercy rung.
+    let mercyGranted = false;
     if (c.boss && w.healSongUses === 0) {
       w.healSongUses = 1;
+      mercyGranted = true;
       w.log.push("the current takes pity: one Heal Song returns");
     }
     // one teaching line for the veil, chosen from what the fatal fight
@@ -303,6 +308,7 @@ function endCombat(w: WorldState): void {
           : c.boss && c.aimedHits === 0
             ? "aim with up/down: drifting strikes feed it"
             : "the sea forgives: press on";
+    if (mercyGranted) w.lastDeathHint += " || the current takes pity: one Heal Song returns";
     applyDeath(w);
   }
 }
@@ -443,9 +449,10 @@ function enterDungeon(w: WorldState, area: "dungeon1" | "dungeon2", entrance: Ve
   w.pos = { ...entrance };
   w.checkpoint = { area, pos: { ...entrance } };
   if (!w.healRestored[area]) {
+    const restored = w.healSongUses < 2;
     w.healSongUses = 2;
     w.healRestored[area] = true;
-    w.log.push("checkpoint: dungeon entrance (Heal Song restored)");
+    w.log.push(restored ? "checkpoint: dungeon entrance (Heal Song restored)" : "checkpoint: dungeon entrance");
     // the same current mends wounds ONCE per dungeon: a legitimate
     // recovery point so a deliberate death is never the best plan and
     // the second gauntlet is not entered broken (both the tactician and

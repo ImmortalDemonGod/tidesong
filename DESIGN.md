@@ -79,6 +79,12 @@ the build is placeholder for Marc's story and must be marked as such.
   fully between fights).
 - HP is the sacred resource: it does NOT regenerate freely. Heal Song exists
   but is deliberately scarce (rare uses, e.g. limited per dungeon).
+- The entrance current (added Jul 29, playtest rounds: both the masher
+  and the tactician hit the arrive-at-boss-broken spiral from opposite
+  directions): on the FIRST entry to each dungeon the checkpoint current
+  mends wounds up to 65 HP alongside the charge restore. Once per
+  dungeon, never on re-entry, never on respawn: HP stays sacred inside
+  the ruin; the door is the one place the sea helps you stand up.
 - A landed disable refunds some stamina (+2 on baseline, first application
   only; raising a condition to level II costs full price with no refund, per
   the condition-levels amendment). This replaces the cut Resonance system:

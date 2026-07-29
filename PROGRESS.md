@@ -680,17 +680,22 @@ from git). The final panel's verdicts are stamped below.
 ## until the final adversarial panel rules; this section is complete only
 ## when no PENDING remains)
 
-- G1 BUG-FREE: PENDING FINAL PANEL. Evidence staged: 86 tests / 267,413
-  assertions at HEAD; soaked 10x clean (00:59) and 25x clean (endurance);
-  night-watch 50x soak COMPLETE, all clean; world fuzz 20k actions + 12k
+- G1 BUG-FREE: PENDING FINAL PANEL. Evidence at HEAD (restamped after
+  the final panel caught the pre-heavy digits): 92 tests / 267,445
+  assertions; night-watch 50x soak clean; world fuzz 20k + 12k
   dungeon-2-seeded actions with per-action invariants incl. the relic
-  gate; on-canvas error overlay with 15+ gallery states rendering clean.
-  Reproduce: `~/.bun/bin/bun test`.
-- G2 WINNABLE: PENDING FINAL PANEL. Evidence staged: scripted pinned-bot
-  50/50 clears (16 pity deaths, max 189 actions); casual 100/100,
-  5000/5000, and the night watch's 20,000/20,000 with ZERO failure seeds
-  (worst 3,374 of the 5,000 cap); no-heal 50/50 (119 deaths); fastest
-  clear 148 actions. Reproduce: `bun tools/worldsim.ts`.
+  gate; three hostile storms through the real handlers this night (10k,
+  38k, 12k events) with zero throws or error paints; the error overlay
+  now registers before ALL page code (final panel: a demo-path throw
+  could previously blank silently; the 00:27 "can never hide" claim was
+  overstated until this fix). Reproduce: `~/.bun/bin/bun test`.
+- G2 WINNABLE: PENDING FINAL PANEL. Evidence at HEAD (restamped, post
+  heavy-cycle + mercy rules): scripted pinned-bot 50/50 clears (12
+  deaths, max 194 actions); casual 100/100 (worst 1614) and 5000/5000
+  at scale with ZERO failure seeds (worst 3078; the x5000 soak earlier
+  caught seed 1932's 147-death treadmill and drove the mercy rules);
+  no-heal optimal 50/50 (93 deaths, fastest 150). Reproduce:
+  `bun tools/worldsim.ts`, `bun tools/megasim.ts`, `bun tools/noheal.ts`.
 - G3 BANDS: PENDING FINAL PANEL. Evidence staged (post heavy-cycle +
   II-decay retune of Jul 29 04:22, all five encounters, echo on where
   played): squid casual 76.4 percent / 14.3 turns, optimal 29.3 damage
@@ -714,11 +719,12 @@ from git). The final panel's verdicts are stamped below.
   and B (opening, guidance, heavy cycle, II decay); playtest round 2 is
   re-measuring the verdicts against the new build. Usage and fairness
   studies attached.
-- G6 VISUAL: PENDING FINAL PANEL. Two reviewer rounds PASS (second after
-  recapture); gallery FULLY re-captured after the fun pass (14 states +
-  3 measured filmstrips, /tmp/tidesong-gallery/final-*, git time of the
-  wave-3 commit); confirmation panel 2 seat B is the fresh-eyes review
-  of that surface.
+- G6 VISUAL: PENDING FINAL PANEL. Three fresh-eyes reviewer rounds
+  PASS-recommended across the night; gallery at
+  /tmp/tidesong-gallery/v4-* (17 states + 3 measured filmstrips,
+  recaptured at the git time of this commit on the final surface after
+  the final panel caught demo-seam arrival banners polluting exhibits
+  and the stale v3 capture predating the round-2 fixes).
 - G7 AUDIO: PENDING FINAL PANEL. All named events wired and proven from
   DELIVERED logs post-pipe-fix (13 oscillator starts measured in a real
   fought fight vs zero before); fun pass added per-ability cast voices,
@@ -1001,3 +1007,44 @@ every evidence class before any PENDING becomes GREEN.
   (east); victory R returns to the TITLE for the shared 11am keyboard;
   demo victory sessions no longer consume the reassembled-song one-shot
   before audio unlock. 92 tests green.
+- (git time of this commit) FINAL PANEL 2 CLOSED + response. Seat 1
+  (break): 1 HIGH, the sharpest catch of the panel rounds: the
+  phase-break warning was DEFEATED BY ITS OWN COMPACTION: the "N if it
+  breaks" clause is exactly what pushed the intent line over the 364px
+  budget, and the compact branch dropped it, so every heavy-slot break
+  and every blind/bubble-crowded break showed the phase-1 number at
+  decision time (19 shown, 24 landed; 32 percent of player-caused
+  breaks in an 800-fight sweep). The sim-level honesty test could not
+  see it: the drop lived in the untested render branch. FIXED: the
+  intent line now WRAPS to a second row at token boundaries and never
+  drops information; the break warning also extends to aimed utility
+  parts (their number goes DOWN: "N if it breaks" shows the reduced
+  answer). LOGGED RULING per seats 1+2: unaimed drift breaks (11
+  percent) still show the pre-break number at press time; the line
+  updates during the answer beat; accepted as the aimed-information
+  contract. Seat 1 also verified the mercy economy exploit-free with
+  exact arithmetic (converged retry stock 130 effective vs honest 180:
+  no net-positive loop), the heavy cycle exact at all five enemies,
+  and a 12,000-event storm clean. Its MED fixed: the mercy announcement
+  was dead code (the death handler wiped the card in the same frame);
+  mercy now speaks on the death veil beside the teaching hint. Seat 2
+  (visual+fidelity): played game passed every probe, parking lot
+  provably clean; its HIGHs fixed: demo/filmstrip exhibits no longer
+  bloom arrival banners over fights (stale lastArea synced in all demo
+  and filmstrip lanes; bossintro exhibit re-proven), and the stale
+  staged digits (shared with seat 3). Its MEDs fixed: the entrance mend
+  is now IN DESIGN.md (it was built-not-documented, a G8b violation);
+  utility-break warning shipped as above; v4 gallery recaptured on the
+  true final surface (17 states + 3 filmstrips). Its LOWs fixed:
+  "Heal Song restored" only logs when something was restored; both
+  help-chip rows fit the fold; second-ruin label clear of the strands.
+  Seat 3 (evidence audit): all 14 git-time stamps verified contiguous
+  and truthful, G3/G5 reproduce digit for digit, independent 3-seed
+  G2 walk 6/6, deliverable byte-identical to a source rebuild; its
+  G9-blocking HIGH fixed: staged G1/G2/G6 bullets RESTAMPED from fresh
+  HEAD runs (92 tests / 267,445; scripted 50/50 / 12 deaths / max 194;
+  casual 100/100 / worst 1614; x5000 5000/5000 ZERO fail seeds / worst
+  3078; no-heal 50/50 / 93 deaths / fastest 150). Its MED fixed: the
+  error overlay now registers before ALL page code (a demo-path throw
+  could blank silently; the 00:27 "never" claim corrected in the G1
+  bullet). 92 tests green at every step.

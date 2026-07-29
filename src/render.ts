@@ -640,7 +640,7 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
     ctx.fillStyle = C.muted;
     ctx.font = "12px system-ui";
     ctx.textAlign = "center";
-    ctx.fillText("second ruin", px(HUB.mouth.x) - 46, py(HUB.mouth.y) - 52);
+    ctx.fillText("second ruin", px(HUB.mouth.x) - 78, py(HUB.mouth.y) - 62);
     ctx.textAlign = "left";
 
     merfolk(ctx, px(HUB.npc.x), py(HUB.npc.y), t);
@@ -1240,27 +1240,46 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
       color = C.biolum;
     } else {
       text = intent.heavy ? `NEXT: WINDS UP · heavy blow for ${intent.dmg}` : `NEXT: strikes for ${intent.dmg}`;
-      if (c.boss && c.boss.phase === 1 && ui.selectedPart === c.boss.keyPartByPhase[1]) {
+      // break consequences for the AIMED part in breaking range: the key
+      // part raises the answer (phase 2), a utility part lowers it. The
+      // final panel proved the old compact branch DROPPED this clause on
+      // exactly the crowded lines that carry it; information is now
+      // never dropped, the line wraps instead.
+      if (c.boss && ui.selectedPart) {
         const aimedPart = c.boss.parts.find((p2) => p2.key === ui.selectedPart);
-        if (aimedPart && !aimedPart.broken && aimedPart.durability <= (c.relicEcho ? BASE.relicTailStrike : 8)) {
-          text += ` · ${enemyIntent(c, 2).dmg} if it breaks`;
+        const maxHit = c.relicEcho ? BASE.relicTailStrike : 8;
+        if (aimedPart && !aimedPart.broken && aimedPart.durability <= maxHit) {
+          const isKey = c.boss.phase === 1 && ui.selectedPart === c.boss.keyPartByPhase[1];
+          const isUtility = ui.selectedPart !== c.boss.keyPartByPhase[1] && ui.selectedPart !== c.boss.keyPartByPhase[2];
+          if (isKey) text += ` · ${enemyIntent(c, 2).dmg} if it breaks`;
+          else if (isUtility) {
+            const reduced = Math.max(1, intent.dmg - c.boss.utilityBreakDamageReduction * (intent.heavy ? Math.round(BASE.heavyMult) : 1));
+            text += ` · ${reduced} if it breaks`;
+          }
         }
       }
       if (intent.missChance > 0) text += ` · ${Math.round(intent.missChance * 100)}% miss (blinded)`;
       if (intent.bubbled) text += " · your bubble holds";
       if (c.enemy.ink) text += " · ink in the water";
       color = intent.missChance > 0 || intent.bubbled ? C.glow : C.danger;
-      // never off the canvas edge: compact tokens when the full line
-      // cannot fit right of the boss nameplate (panel 2 seat C MED)
-      if (ctx.measureText(text).width > cw - headX - 16) {
-        text = intent.heavy ? `NEXT: HEAVY ${intent.dmg}` : `NEXT: ${intent.dmg} dmg`;
-        if (intent.missChance > 0) text += ` · ${Math.round(intent.missChance * 100)}% miss`;
-        if (intent.bubbled) text += " · bubbled";
-        if (c.enemy.ink) text += " · ink";
-      }
     }
     ctx.fillStyle = color;
-    ctx.fillText(text, headX, c.enemy.conditions.length > 0 ? 152 : 116);
+    const intentY = c.enemy.conditions.length > 0 ? 152 : 116;
+    const budget = cw - headX - 16;
+    if (ctx.measureText(text).width <= budget) {
+      ctx.fillText(text, headX, intentY);
+    } else {
+      // wrap at token boundaries; every token survives (final panel
+      // seat 1 HIGH: compaction dropped the break warning at decision
+      // time in 32 percent of player-caused breaks)
+      const tokens = text.split(" · ");
+      let row = tokens.shift() ?? "";
+      while (tokens.length > 0 && ctx.measureText(`${row} · ${tokens[0]}`).width <= budget) {
+        row += ` · ${tokens.shift()}`;
+      }
+      ctx.fillText(row, headX, intentY);
+      if (tokens.length > 0) ctx.fillText(tokens.join(" · "), headX, intentY + 16);
+    }
   }
 
   // phase banner (not over the SPENT hold: the fight is decided)
@@ -1559,8 +1578,12 @@ export function render(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
     centered(ctx, "the sea reclaims you", ch / 2 - 12, "600 34px system-ui", C.danger, cw);
     centered(ctx, "waking at the last checkpoint...", ch / 2 + 24, "15px system-ui", C.muted, cw);
     if (w.lastDeathHint) {
-      // the pity ladder escalates HP; this line escalates knowledge
-      centered(ctx, w.lastDeathHint, ch / 2 + 58, "600 15px system-ui", C.biolum, cw);
+      // the pity ladder escalates HP; these lines escalate knowledge
+      // (and announce mercy: the panel proved the story card version was
+      // wiped by the death handler in the same frame, dead code)
+      w.lastDeathHint.split(" || ").forEach((line, i) => {
+        centered(ctx, line, ch / 2 + 58 + i * 26, "600 15px system-ui", C.biolum, cw);
+      });
     }
   }
 

@@ -9,6 +9,21 @@ canvas.width = 1280;
 canvas.height = 720;
 const ctx = canvas.getContext("2d")!;
 
+// Any runtime error paints the canvas so headless screenshots can never
+// silently show an empty page (a blank shot once hid a thrown exception
+// behind a first-paint race).
+window.addEventListener("error", (e) => {
+  ctx.fillStyle = "#3a0f14";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#FFD9D9";
+  ctx.font = "16px ui-monospace, monospace";
+  ctx.fillText("RUNTIME ERROR:", 40, 60);
+  String(e.message)
+    .match(/.{1,110}/g)
+    ?.forEach((chunk, i) => ctx.fillText(chunk, 40, 90 + i * 22));
+  ctx.fillText(`${e.filename ?? ""}:${e.lineno ?? ""}`, 40, 200);
+});
+
 const sound = new Sound();
 let world: WorldState = createWorld((Math.random() * 1e9) | 0);
 let logCursor = 0;
@@ -218,9 +233,6 @@ function drainLog(): void {
       ui.storyCard = { text: "the entrance current mends your song: Heal Song restored", age: 0, kind: "heal" };
     }
     if (line.includes("mends your wounds")) sawMend = true;
-    if (line.includes("takes pity")) {
-      ui.storyCard = { text: "the current takes pity: one Heal Song returns", age: 0, kind: "heal" };
-    }
     if (line.includes("Tide Relic is yours")) {
       ui.storyCard = { text: `${line} · the wall to the east will part for you`, age: 0, kind: "relic" };
     }
@@ -596,25 +608,12 @@ if (demo) {
   }
   ui.animX = world.pos.x;
   ui.animY = world.pos.y;
+  lastArea = world.area;
   logCursor = world.log.length;
 }
 
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-// Any runtime error paints the canvas so headless screenshots can never
-// silently show an empty page (a blank shot once hid a thrown exception
-// behind a first-paint race).
-window.addEventListener("error", (e) => {
-  ctx.fillStyle = "#3a0f14";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "#FFD9D9";
-  ctx.font = "16px ui-monospace, monospace";
-  ctx.fillText("RUNTIME ERROR:", 40, 60);
-  String(e.message)
-    .match(/.{1,110}/g)
-    ?.forEach((chunk, i) => ctx.fillText(chunk, 40, 90 + i * 22));
-  ctx.fillText(`${e.filename ?? ""}:${e.lineno ?? ""}`, 40, 200);
-});
 
 let last = performance.now();
 let victorySung = false; // one-shot: the reassembled song plays once
@@ -742,6 +741,7 @@ if (filmstrip === "click") {
   world = createWorld(7);
   ui.screen = "play";
   world.area = "dungeon1";
+  lastArea = world.area; // no arrival banner over the strip (final panel)
   world.pos = { x: 7, y: 4 };
   world.checkpoint = { area: "dungeon1", pos: { x: 1, y: 4 } };
   step(world, "right");
@@ -799,6 +799,7 @@ if (filmstrip === "click") {
   world = createWorld(7);
   ui.screen = "play";
   world.area = "dungeon1";
+  lastArea = world.area; // no arrival banner over the strip (final panel)
   world.pos = { x: 7, y: 4 };
   world.checkpoint = { area: "dungeon1", pos: { x: 1, y: 4 } };
   step(world, "right");
@@ -852,11 +853,13 @@ if (filmstrip === "click") {
   world = createWorld(7);
   ui.screen = "play";
   world.area = "dungeon1";
+  lastArea = world.area; // no arrival banner over the strip (final panel)
   world.pos = { x: 7, y: 4 };
   world.checkpoint = { area: "dungeon1", pos: { x: 1, y: 4 } };
   step(world, "right"); // trigger the squid: real encounter path
   ui.animX = world.pos.x;
   ui.animY = world.pos.y;
+  lastArea = world.area;
   logCursor = world.log.length;
 
   const snaps: { label: string; img: HTMLCanvasElement }[] = [];
