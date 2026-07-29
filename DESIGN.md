@@ -106,8 +106,22 @@ the build is placeholder for Marc's story and must be marked as such.
 
 The parts every game needs that no design doc remembered to write down:
 
-- Perspective: 2D side-view underwater, matching the visual sketch, for both
-  exploration (free swim) and combat (framed scene like sketch screens 2/3).
+- Perspective: faked 2.5D (user decision, Jul 28). Gameplay logic stays 2D
+  side-view; depth is PRESENTATION ONLY, in render.ts, so the pure-sim rule
+  and bots are untouched. What 2.5D means here, in priority order:
+  1. Parallax depth layers in exploration (3 to 5: distant ruins, mid reef,
+     play plane, foreground), moving at different rates with the camera
+  2. Underwater aerial perspective: farther layers shift bluer, dimmer, and
+     less saturated; light rays and drifting particles at multiple depths
+  3. Scale-by-depth staging in combat: enemies larger and slightly angled,
+     boss fills the frame with parts overlapping at different depths,
+     subtle idle bob and squash/stretch to sell volume
+  4. Camera drift/zoom moments (combat entry, phase break) that exercise
+     the parallax
+  Floor if time runs short: static layered parallax with depth fog still
+  ships; cutting mechanics to fund depth is never allowed. The point is to
+  read closer to the team's 3D target (Glass_Goat's Wind Waker direction)
+  while staying an overnight-sized canvas build.
 - Controls: WASD or arrows to swim, E to interact, combat via clickable
   ability buttons plus 1 to 6 hotkeys, P pauses, M mutes, R on death screen.
 - Combat entry: touching a corrupted enemy in exploration opens the combat

@@ -83,7 +83,9 @@ gate that used it.
   builder may fix or escalate to a second independent agent, never
   downgrade. All high-severity findings fixed and re-rendered. Placeholder
   art must be readable and cohesive, and designed to be reskinned by
-  Glass_Goat.
+  Glass_Goat. 2.5D check: depth layering must never cost gameplay
+  readability; the reviewer screenshots must confirm the play plane, enemy
+  states, and boss parts stay unambiguous over the parallax.
 - G7 AUDIO: GREEN requires at minimum these named events shipped and
   machine-verified as wired (fires on the right state change): hit, disable
   landed, phase break, fragment pickup, death, mute toggle. Levels checked
