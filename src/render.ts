@@ -3,7 +3,7 @@
 // combat staging, all presentation-only. Palette follows the greybox sketch.
 
 import { ABILITIES, BASE, enemyIntent, getCondition, type CombatState, type PartKey } from "./game";
-import { AREAS, D1, HUB, nextObjective, type WorldState } from "./world";
+import { AREAS, D1, HUB, nextObjective, optionalHere, type WorldState } from "./world";
 
 export interface Floater {
   text: string;
@@ -920,18 +920,25 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
 
   // the standing objective: the player must never wonder where to go
   // (played report: "I defeat the boss but I'm just stuck here")
+  const optional = optionalHere(w);
   ctx.fillStyle = "rgba(6,18,28,0.82)";
   ctx.beginPath();
-  ctx.roundRect(18, 116, 292, 30, 8);
+  ctx.roundRect(18, 116, 292, optional ? 48 : 30, 8);
   ctx.fill();
   ctx.fillStyle = C.biolum;
   ctx.font = "600 11px ui-monospace, monospace";
   ctx.fillText("NEXT", 32, 135);
   ctx.fillStyle = C.ink;
   ctx.font = "12px system-ui";
-  const objective = nextObjective(w);
-  const objLine = objective;
-  ctx.fillText(objLine, 70, 135);
+  ctx.fillText(nextObjective(w), 70, 135);
+  if (optional) {
+    // optional treasure in THIS area, so nothing is silently missable
+    ctx.fillStyle = C.sand;
+    ctx.font = "600 11px ui-monospace, monospace";
+    ctx.fillText("ALSO", 32, 154);
+    ctx.font = "12px system-ui";
+    ctx.fillText(optional, 70, 154);
+  }
 
   const hint =
     w.area === "hub"

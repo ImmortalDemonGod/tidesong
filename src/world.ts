@@ -492,11 +492,29 @@ export function nextObjective(w: WorldState): string {
     return "west: back to the reef";
   }
   if (!boss1.defeated) {
-    if (hubVerses.length > 0) return `${hubVerses.length} verse(s) here, then east`;
+    if (hubVerses.length > 0) {
+      const n = hubVerses.length;
+      return `${n} verse${n === 1 ? "" : "s"} here, then the first ruin`;
+    }
     return "east: the first ruin";
   }
   if (!w.hasTideRelic) return "east: the first ruin";
-  return "east: the wall parts for the relic";
+  return "east: the second ruin";
+}
+
+// Optional treasure in the area the player is standing in, named so it
+// can never be silently missed (played question: "am I supposed to go
+// back for the hidden verse?" -- you never have to, but nothing told you
+// it was there). Returns null when this area holds nothing optional.
+export function optionalHere(w: WorldState): string | null {
+  if (w.mode !== "explore") return null;
+  const here = w.fragments.filter((f) => !f.collected && f.area === w.area);
+  if (here.length === 0) return null;
+  const sealed = here.find((f) => f.x === HUB.alcove.x && f.y === HUB.alcove.y && w.area === "hub");
+  if (sealed) return w.doorOpen ? "the alcove stands open: a verse waits" : "a sealed verse: sing the stones";
+  const inTrenchVerse = here.find((f) => inTrench(w.area, { x: f.x, y: f.y }));
+  if (inTrenchVerse) return "a verse in the low dark";
+  return here.length > 1 ? `${here.length} verses hidden here` : "a verse hidden here";
 }
 
 export function interact(w: WorldState): boolean {

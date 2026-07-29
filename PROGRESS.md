@@ -1199,3 +1199,15 @@ every evidence class before any PENDING becomes GREEN.
   100/100 worst 1614, x5000 5000/5000 zero fail seeds. 95 tests green
   (two new: the dividend, and the objective line changing per stage).
   Two label collisions caught by render-and-look before commit.
+- (git time of this commit) Played question: "am I supposed to go back
+  for the hidden verse?" Answer in the build itself: you never have to
+  (the seal is solvable the moment you arrive), but nothing told you it
+  was there if you left without it, and the verse dividend makes it
+  worth real stamina now. Added an ALSO row under the objective naming
+  the optional treasure in the area you are standing in ("a sealed
+  verse: sing the stones" to "the alcove stands open: a verse waits" to
+  "a verse in the low dark"), pure optionalHere() reader, tested across
+  the whole seal flow. Two objective-line regressions caught by my own
+  earlier guard test while shortening strings (the first and last hub
+  objectives had stopped naming their destinations); both fixed.
+  96 tests green.

@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { D1, D2, HUB, combatAction, combatPass, createWorld, interact, nextObjective, step, type WorldState } from "../src/world";
+import { D1, D2, HUB, combatAction, combatPass, createWorld, interact, nextObjective, optionalHere, step, type WorldState } from "../src/world";
 
 function walkTo(w: WorldState, x: number, y: number, cap = 200): void {
   // Stops on any area or mode change: entering a dungeon or a fight is a
@@ -419,4 +419,30 @@ test("the objective line always names a next step, and it changes with progress"
   expect(nextObjective(w)).toContain("second ruin");
   expect(seen.size).toBe(4); // every stage speaks differently
   for (const line of seen) expect(line.length).toBeGreaterThan(8);
+});
+
+test("optional treasure is never silently missable: each area names what it still hides", () => {
+  const w = createWorld(9);
+  // hub opens with the sealed verse called out
+  expect(optionalHere(w)).toBe("a sealed verse: sing the stones");
+  walkTo(w, 7, 5); // take the open reef verse
+  expect(optionalHere(w)).toBe("a sealed verse: sing the stones");
+  // solve the seal: the line changes to say the way is open
+  for (const idx of w.melody) {
+    walkTo(w, HUB.stones[idx].x, HUB.stones[idx].y);
+    interact(w);
+  }
+  expect(w.doorOpen).toBe(true);
+  expect(optionalHere(w)).toBe("the alcove stands open: a verse waits");
+  walkTo(w, HUB.alcove.x, HUB.door.y + 1);
+  step(w, "up");
+  step(w, "up");
+  step(w, "up");
+  expect(w.fragments.find((f) => f.id === 4)!.collected).toBe(true);
+  // only the trench verse remains in the hub
+  expect(optionalHere(w)).toBe("a verse in the low dark");
+  // and a swept area says nothing at all
+  const w2 = createWorld();
+  for (const f of w2.fragments) f.collected = true;
+  expect(optionalHere(w2)).toBe(null);
 });
