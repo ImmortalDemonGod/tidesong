@@ -58,6 +58,12 @@ export const HUB = {
   start: { x: 2, y: 4 },
   npc: { x: 4, y: 4 },
   door: { x: 10, y: 2 },
+  alcove: { x: 10, y: 0 },
+  stones: [
+    { name: "dusk", x: 8, y: 3 },
+    { name: "dawn", x: 10, y: 4 },
+    { name: "tide", x: 12, y: 3 },
+  ],
   dungeonEntrance: { x: 18, y: 2 },
   barrierX: 20,
   mouth: { x: 21, y: 4 },
@@ -87,6 +93,11 @@ export interface WorldState {
   combat?: CombatState;
   activeEncounter?: number;
   npcLine?: string;
+  // Song-seal puzzle: the door hums a seeded 3-note order; echo it on the
+  // stones to open the alcove (stretch item 8; sketch shows the 3 glyphs).
+  melody: number[];
+  attempt: number[];
+  doorOpen: boolean;
   seed: number;
   log: string[];
 }
@@ -106,6 +117,7 @@ export function createWorld(seed = 1): WorldState {
       { id: 1, area: "hub", x: 7, y: 5, collected: false, verse: "(placeholder) when the choir hall still sang" },
       { id: 2, area: "hub", x: 14, y: 7, collected: false, verse: "(placeholder) the low dark took the bravest first" },
       { id: 3, area: "dungeon1", x: 11, y: 6, collected: false, verse: "(placeholder) the shark was a guardian once" },
+      { id: 4, area: "hub", x: HUB.alcove.x, y: HUB.alcove.y, collected: false, verse: "(placeholder) the seal keepers sang in threes" },
     ],
     encounters: [
       { id: 1, area: "dungeon1", x: 8, y: 4, kind: "squid", defeated: false },
@@ -115,9 +127,27 @@ export function createWorld(seed = 1): WorldState {
     deaths: 0,
     steps: 0,
     checkpoint: { area: "hub", pos: { ...HUB.start } },
+    melody: shuffledMelody(seed | 0),
+    attempt: [],
+    doorOpen: false,
     seed: seed | 0,
     log: [],
   };
+}
+
+// Seeded Fisher-Yates over [0,1,2]: the note order differs per run but is
+// deterministic per seed (bots and tests stay reproducible).
+function shuffledMelody(seed: number): number[] {
+  const order = [0, 1, 2];
+  let s = (seed ^ 0x5019) | 0;
+  for (let i = order.length - 1; i > 0; i--) {
+    let t = (s = (s + 0x6d2b79f5) | 0);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    const j = (((t ^ (t >>> 14)) >>> 0) / 4294967296) * (i + 1) | 0;
+    [order[i], order[j]] = [order[j], order[i]];
+  }
+  return order;
 }
 
 function inTrench(area: AreaKey, p: Vec): boolean {
@@ -223,6 +253,13 @@ export function step(w: WorldState, dir: Dir): boolean {
     return true;
   }
 
+  // The sealed alcove: the door tile and everything above it are blocked
+  // until the song opens it.
+  if (w.area === "hub" && !w.doorOpen && next.x === HUB.alcove.x && next.y <= HUB.door.y) {
+    w.log.push("the seal holds: the door wants its song");
+    return true;
+  }
+
   w.pos = next;
 
   if (w.area === "hub" && w.pos.x === HUB.dungeonEntrance.x && w.pos.y === HUB.dungeonEntrance.y) {
@@ -291,8 +328,32 @@ export function interact(w: WorldState): boolean {
     return true;
   }
   if (w.area === "hub" && near(HUB.door)) {
-    w.log.push("the song-seal door hums, unmoved. (its melody is not yet known)");
+    if (w.doorOpen) {
+      w.log.push("the song-seal door stands open, its song spent");
+    } else {
+      const names = w.melody.map((i) => HUB.stones[i].name).join(", ");
+      w.log.push(`the song-seal door hums: ${names}`);
+    }
     return true;
+  }
+  if (w.area === "hub" && !w.doorOpen) {
+    const idx = HUB.stones.findIndex((st) => near(st));
+    if (idx >= 0) {
+      w.attempt.push(idx);
+      const upTo = w.attempt.length;
+      const matches = w.melody.slice(0, upTo).every((n, i) => n === w.attempt[i]);
+      if (!matches) {
+        w.attempt = [];
+        w.log.push(`the ${HUB.stones[idx].name} stone jars against the song: the seal resets`);
+      } else if (upTo === w.melody.length) {
+        w.doorOpen = true;
+        w.attempt = [];
+        w.log.push("the three notes align: the song-seal door BREAKS open");
+      } else {
+        w.log.push(`the ${HUB.stones[idx].name} stone rings true (${upTo}/${w.melody.length})`);
+      }
+      return true;
+    }
   }
   return false;
 }

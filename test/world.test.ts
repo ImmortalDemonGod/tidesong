@@ -165,6 +165,45 @@ test("pity escalator: respawn HP climbs 60, 75, 90 and caps at 90", () => {
   expect(observed).toEqual([60, 75, 90, 90]);
 });
 
+test("song-seal: door blocks the alcove, hums its order, wrong note resets, right order opens", () => {
+  const w = createWorld(9);
+  walkTo(w, HUB.alcove.x, HUB.door.y + 1);
+  step(w, "up");
+  expect(w.pos.y).toBe(HUB.door.y + 1);
+  expect(w.log.some((l) => l.includes("seal holds"))).toBe(true);
+
+  interact(w); // near door: hums the order
+  expect(w.log.some((l) => l.includes("door hums"))).toBe(true);
+
+  // Correct first note, then the same stone again: a wrong continuation.
+  walkTo(w, HUB.stones[w.melody[0]].x, HUB.stones[w.melody[0]].y);
+  interact(w);
+  expect(w.attempt.length).toBe(1);
+  interact(w);
+  expect(w.attempt.length).toBe(0);
+  expect(w.log.some((l) => l.includes("seal resets"))).toBe(true);
+
+  for (const idx of w.melody) {
+    walkTo(w, HUB.stones[idx].x, HUB.stones[idx].y);
+    interact(w);
+  }
+  expect(w.doorOpen).toBe(true);
+  walkTo(w, HUB.alcove.x, HUB.door.y + 1);
+  step(w, "up");
+  step(w, "up");
+  step(w, "up");
+  expect(w.pos.y).toBe(HUB.alcove.y);
+  expect(w.fragments.find((f) => f.id === 4)?.collected).toBe(true);
+});
+
+test("song-seal: melody order varies by seed but is deterministic", () => {
+  const a1 = createWorld(1).melody.join("");
+  const a2 = createWorld(1).melody.join("");
+  expect(a1).toBe(a2);
+  const others = [2, 3, 4, 5, 6].map((s) => createWorld(s).melody.join(""));
+  expect(others.some((m) => m !== a1)).toBe(true);
+});
+
 test("boss victory grants the Tide Relic; the barrier parts; slice victory", () => {
   const w = createWorld();
   walkTo(w, HUB.dungeonEntrance.x, HUB.dungeonEntrance.y);
