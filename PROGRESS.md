@@ -1151,3 +1151,9 @@ every evidence class before any PENDING becomes GREEN.
   eel's wandering key stays FAIR under the heavy cycle (keyfairness at
   final mechanics: eye 40.3 / fin 38.9 / tail 35.7 percent casual, all
   in the boss band, optimal floors 29-32).
+- (git time of this commit) Depth block: 20,000 fresh-seed fights per
+  encounter per bot (10x the deepsoak scale, seed space 500k+ disjoint
+  from every tuning space): squid 77.6 / shark 34.3 / elder 78.1 /
+  ink 79.2 / eel 37.3 percent casual, optimal floors 27.0 to 44.9
+  damage taken. All five encounters in band at 10x scale: the final
+  tuning is overfit-free with 100,000 fresh fights of margin.
