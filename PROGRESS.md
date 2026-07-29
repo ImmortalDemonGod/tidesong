@@ -904,3 +904,16 @@ every evidence class before any PENDING becomes GREEN.
   G2 scripted 50/50 (16 deaths, max 215), casual 100/100 (max 3335).
   The intent-honesty property test held unmodified through the change:
   announced heavies are exactly what lands. 90 tests green.
+- (git time of this commit) Focused confirmation of the panel-2 HIGH
+  fix: ZERO HIGH. All three claims CONFIRMED FIXED as played with pixel
+  evidence against a hermetic d76b451 snapshot: 41 blind misses across
+  two fights produced exactly 41 payoff floaters and zero generic
+  doubles; enemy floats die 49+px below the nameplate band (lanes
+  proven on chorded drains); boss intent compaction fires exactly at
+  the 364px budget, and the ink squid's longest possible line renders
+  legible un-compacted. Beat-lock refusals verified (one 520Hz tick +
+  pill pulse per refusal, accepted actions clean); demo cards faithful
+  to real play. Its one data nuance taken: the fresh-world merfolk
+  line, the single unmarked dialogue line, now carries the placeholder
+  mark like every other line of Marc's domain. The panel-2 round is
+  closed at zero high-severity across all seats plus confirmation.

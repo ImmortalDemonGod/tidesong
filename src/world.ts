@@ -455,7 +455,7 @@ export function interact(w: WorldState): boolean {
         ? "(placeholder) You gave the door its song back. The first ruin lies east; its guardian forgot its own name."
         : frags >= 2
           ? "(placeholder) The verses gather around you. The stones by the door know their order; sing it to them."
-          : "Follow the fragments, little one. The songs remember the way.";
+          : "(placeholder) Follow the fragments, little one. The songs remember the way.";
     w.log.push(`npc: ${w.npcLine}`);
     return true;
   }
