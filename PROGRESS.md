@@ -30,6 +30,14 @@ Slice target, in priority order:
 6. Dungeon 1 connecting hub to boss 1
 7. Juice pass: water mood, hit feedback, condition VFX, sound if time
 8. Stretch: song-seal puzzle door, dungeon 2 + boss 2
+9. Stretch, SIM-ONLY (no UI, nothing shipped in the playable build): the
+   enemy-variety lab. Prototype jam-scope enemy twists as pure game.ts
+   variants and bot-test them: an enemy that applies Blind or Slow to the
+   player, an enemy immune or resistant to one condition, an enemy that
+   buffs. Run the G3/G4 bot batteries against each variant and write the
+   results (win-rate deltas, dominance checks, recommended numbers) into
+   the morning report as "Enemy variety lab" for Marc's balance question.
+   Hard rule: none of this appears in dist/index.html tonight.
 
 ## State: SCAFFOLD READY, BUILD NOT STARTED
 

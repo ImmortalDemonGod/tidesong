@@ -164,7 +164,9 @@ one-mechanic-per-enemy principle. Not tonight: with one regular enemy and
 two conditions, immunities only delete player options, and player-side
 conditions double the UI surface. When they land, balance them with the
 same bot harness (G3/G4 bands) built tonight; the harness is the reusable
-answer to "which mixes are fair."
+answer to "which mixes are fair." Tonight's run MAY prototype these as
+sim-only experiments (PROGRESS.md slice item 9, the enemy-variety lab):
+bot data for the team, nothing shipped in the playable build.
 
 ## Verification requirements (non-negotiable)
 - `src/game.ts` stays a pure simulation: no DOM, no canvas, no timers.
