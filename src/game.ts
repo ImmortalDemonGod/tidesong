@@ -64,9 +64,35 @@ export const ABILITIES: Record<string, Ability> = {
 
 export type Outcome = "ongoing" | "victory" | "defeat";
 
+export type PartKey = "jaw" | "eye" | "fin" | "tail";
+
+export interface BossPart {
+  key: PartKey;
+  name: string;
+  durability: number;
+  maxDurability: number;
+  broken: boolean;
+}
+
+// Boss rules per DESIGN.md: 2 phases, ONE key part per phase, breaking the
+// key part ends the phase (phase 2 key = victory). Non-key parts pay a
+// lesser, never-trap payoff: each broken utility part permanently reduces
+// boss damage. All parts are targetable in any phase; pre-breaking the
+// phase-2 key part means the phase break cascades immediately (same total
+// durability either way, so no degenerate shortcut).
+export interface BossData {
+  parts: BossPart[];
+  phase: 1 | 2;
+  phaseName: string;
+  keyPartByPhase: Record<1 | 2, PartKey>;
+  baseDamageByPhase: Record<1 | 2, number>;
+  utilityBreakDamageReduction: number;
+}
+
 export interface CombatState {
   player: Combatant;
   enemy: Combatant & { attackDamage: number; dodge: number; analyzeHint: ConditionKind };
+  boss?: BossData;
   healSongUses: number;
   bubbleCharge: boolean;
   analyzed: boolean;
@@ -117,6 +143,82 @@ export function createCombat(seed = 1): CombatState {
   };
 }
 
+// Boss 1: the corrupted shark. Tuned 00:35 under G3 (journey in PROGRESS.md):
+// parts jaw 26 / eye 22 / fin 12 / tail 12; phase damage 14 then 17; each
+// broken utility part (fin, tail) takes 3 off boss damage permanently. Boss cannot
+// dodge (a huge target); enemy.hp mirrors total remaining durability so the
+// HUD and the hp<=0 victory path stay uniform with regular fights.
+export function createBossCombat(seed = 1): CombatState {
+  const parts: BossPart[] = [
+    { key: "jaw", name: "Jaw", durability: 26, maxDurability: 26, broken: false },
+    { key: "eye", name: "Eye", durability: 22, maxDurability: 22, broken: false },
+    { key: "fin", name: "Fin", durability: 12, maxDurability: 12, broken: false },
+    { key: "tail", name: "Tail", durability: 12, maxDurability: 12, broken: false },
+  ];
+  const total = parts.reduce((sum, p) => sum + p.durability, 0);
+  const state = createCombat(seed);
+  state.enemy = {
+    name: "corrupted shark",
+    hp: total,
+    maxHp: total,
+    sta: 0,
+    maxSta: 0,
+    conditions: [],
+    attackDamage: 14,
+    dodge: 0,
+    analyzeHint: "slow",
+  };
+  state.boss = {
+    parts,
+    phase: 1,
+    phaseName: "CRUSH",
+    keyPartByPhase: { 1: "jaw", 2: "eye" },
+    baseDamageByPhase: { 1: 14, 2: 17 },
+    utilityBreakDamageReduction: 3,
+  };
+  return state;
+}
+
+export function getPart(state: CombatState, key: PartKey): BossPart | undefined {
+  return state.boss?.parts.find((p) => p.key === key);
+}
+
+export function currentKeyPart(state: CombatState): PartKey | undefined {
+  return state.boss?.keyPartByPhase[state.boss.phase];
+}
+
+export function bossDamage(state: CombatState): number {
+  const boss = state.boss;
+  if (!boss) return state.enemy.attackDamage;
+  const utilityBroken = boss.parts.filter(
+    (p) => p.broken && p.key !== boss.keyPartByPhase[1] && p.key !== boss.keyPartByPhase[2],
+  ).length;
+  return Math.max(1, boss.baseDamageByPhase[boss.phase] - utilityBroken * boss.utilityBreakDamageReduction);
+}
+
+function breakPart(state: CombatState, part: BossPart): void {
+  const boss = state.boss!;
+  part.broken = true;
+  state.log.push(`${part.name} BREAKS`);
+  if (part.key === boss.keyPartByPhase[boss.phase]) {
+    if (boss.phase === 1) {
+      boss.phase = 2;
+      boss.phaseName = "FRENZY";
+      state.log.push("PHASE BREAK: the Crush ends, the Frenzy begins");
+      const nextKey = getPart(state, boss.keyPartByPhase[2]);
+      if (nextKey?.broken) {
+        state.outcome = "victory";
+        state.log.push("the corrupted shark is spent: victory");
+      }
+    } else {
+      state.outcome = "victory";
+      state.log.push("the corrupted shark is spent: victory");
+    }
+  } else {
+    state.log.push(`the shark weakens: damage down ${boss.utilityBreakDamageReduction}`);
+  }
+}
+
 export function getCondition(c: Combatant, kind: ConditionKind): Condition | undefined {
   return c.conditions.find((x) => x.kind === kind);
 }
@@ -143,7 +245,7 @@ function applyCondition(state: CombatState, kind: ConditionKind, turns: number):
   }
 }
 
-export function useAbility(state: CombatState, abilityKey: string): boolean {
+export function useAbility(state: CombatState, abilityKey: string, targetPart?: PartKey): boolean {
   if (state.outcome !== "ongoing") return false;
   const ability = ABILITIES[abilityKey];
   if (!ability) throw new Error(`unknown ability: ${abilityKey}`);
@@ -158,6 +260,18 @@ export function useAbility(state: CombatState, abilityKey: string): boolean {
     const dodge = blind?.level === 2 ? 0 : enemy.dodge;
     if (dodge > 0 && nextRand(state) < dodge) {
       state.log.push(`${ability.name}: dodged`);
+    } else if (state.boss) {
+      // Damage routes to a part; default target is the current key part.
+      let part = targetPart ? getPart(state, targetPart) : undefined;
+      if (!part || part.broken) part = getPart(state, currentKeyPart(state)!);
+      if (part && part.broken) part = state.boss.parts.find((p) => !p.broken);
+      if (part) {
+        const dealt = Math.min(ability.damage, part.durability);
+        part.durability -= dealt;
+        enemy.hp = Math.max(0, enemy.hp - dealt);
+        state.log.push(`${ability.name} hits the ${part.name}: ${dealt}`);
+        if (part.durability <= 0 && !part.broken) breakPart(state, part);
+      }
     } else {
       enemy.hp = Math.max(0, enemy.hp - ability.damage);
       state.log.push(`${ability.name}: ${ability.damage} dmg`);
@@ -174,7 +288,11 @@ export function useAbility(state: CombatState, abilityKey: string): boolean {
   }
   if (ability.analyze) {
     state.analyzed = true;
-    state.log.push(`Analyze: ${state.enemy.analyzeHint} is most effective`);
+    state.log.push(
+      state.boss
+        ? `Analyze: target the ${currentKeyPart(state)} to end the ${state.boss.phaseName} phase`
+        : `Analyze: ${state.enemy.analyzeHint} is most effective`,
+    );
   }
   if (ability.inflicts) {
     applyCondition(state, ability.inflicts, ability.inflictTurns ?? 1);
@@ -207,7 +325,7 @@ export function advanceTurn(state: CombatState): void {
     if (miss > 0 && nextRand(state) < miss) {
       state.log.push("enemy attack missed (blind)");
     } else {
-      let dmg = enemy.attackDamage;
+      let dmg = bossDamage(state);
       if (slow?.level === 2) dmg = Math.round(dmg * BASE.slowDamageMult);
       if (state.bubbleCharge) {
         dmg = Math.round(dmg * (1 - BASE.bubbleReduction));

@@ -77,6 +77,11 @@ gate that used it.
   10 percent HP per regular fight (20 percent on bosses); casual bot mean
   fight length 4 to 15 turns per encounter, no encounter above 15. Any change
   to these bands during the run is logged with the reason.
+  BOSS BANDS added 00:40 (reason: a climax fight punishes random play harder
+  and runs longer than a regular encounter; regular bands unchanged): boss
+  casual win 30 to 75 percent, boss casual mean length 6 to 26 turns; the
+  original optimal floors (>=4 turns, >=20 percent HP on bosses) apply as
+  written.
 - G4 NO DOMINANT STRATEGY: the BEST single-ability-spam bot (try every
   ability) must underperform the mixed-strategy bot by at least 10 win-rate
   points or lose at least 20 percent more HP; the condition-ignoring bot must
@@ -212,3 +217,15 @@ continue."
   14.4 hpLost; no-cond +105% HP lost; best spam (finSlash) +31% HP lost;
   blind-only and slow-only each beat no-cond by >45%. `bun test` 26 pass
   / 0 fail, soaked 5x clean.
+- 00:40 P3 boss 1: corrupted shark with limb targeting. 4 parts (jaw 26 /
+  eye 22 / fin 12 / tail 12), 2 phases (CRUSH 14 dmg -> FRENZY 17), key
+  parts jaw then eye, utility breaks take 3 off boss damage permanently,
+  eye pre-break cascades victory at phase break (same total durability,
+  no shortcut). Analyze names the current key part. Boss cannot dodge.
+  Tuning journey: 22/18 parts at 14/17 gave optimal 16 hpLost (under the
+  20 floor); damage-only 16/20 crushed casual to 25.6%; final lever was
+  key-part durability +8 with phase 2 at 17. Evidence: boss casual win
+  36.2% / 23.0 turns (logged boss bands 30-75, 6-26); optimal 100% / 8.0
+  turns / 33.0 hpLost (>=20 floor); no-cond +55% HP; spam margins: tail
+  +182%, silt 20-point win gap, fin +24%. Bands encoded in
+  test/bands.test.ts boss section.

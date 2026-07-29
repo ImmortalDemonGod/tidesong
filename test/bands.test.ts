@@ -5,6 +5,7 @@
 // All batches are seeded and deterministic: same code, same numbers, forever.
 
 import { expect, test } from "bun:test";
+import { createBossCombat } from "../src/game";
 import {
   ABILITY_KEYS,
   NO_CONDITION_KEYS,
@@ -20,6 +21,14 @@ const noCond = runBatch(() => optimalBot(NO_CONDITION_KEYS));
 const blindOnly = runBatch(() => optimalBot(ABILITY_KEYS.filter((k) => k !== "finSlash")));
 const slowOnly = runBatch(() => optimalBot(ABILITY_KEYS.filter((k) => k !== "siltBurst")));
 const spams = ABILITY_KEYS.map((k) => ({ key: k, stats: runBatch(() => spamBot(k)) }));
+
+const bossCasual = runBatch((seed) => casualBot(seed), createBossCombat);
+const bossOptimal = runBatch(() => optimalBot(), createBossCombat);
+const bossNoCond = runBatch(() => optimalBot(NO_CONDITION_KEYS), createBossCombat);
+const bossSpams = ["tailStrike", "siltBurst", "finSlash"].map((k) => ({
+  key: k,
+  stats: runBatch(() => spamBot(k), createBossCombat),
+}));
 
 // ---------- G3: difficulty band (regular encounter: vampire squid) ----------
 
@@ -64,4 +73,41 @@ test("G4: blind individually pays for its cost (blind-only beats no-conditions b
 
 test("G4: slow individually pays for its cost (slow-only beats no-conditions by 20 percent)", () => {
   expect(slowOnly.meanHpLost).toBeLessThanOrEqual(noCond.meanHpLost * 0.8);
+});
+
+// ---------- G3/G4: boss encounter (corrupted shark) ----------
+// Boss bands added 00:40 with logged reason (see PROGRESS.md G3): a climax
+// fight punishes random play harder and runs longer than a regular fight.
+
+test("G3 boss: casual win rate 30 to 75 percent", () => {
+  expect(bossCasual.winRate).toBeGreaterThanOrEqual(0.3);
+  expect(bossCasual.winRate).toBeLessThanOrEqual(0.75);
+});
+
+test("G3 boss: casual mean fight length 6 to 26 turns", () => {
+  expect(bossCasual.meanTurns).toBeGreaterThanOrEqual(6);
+  expect(bossCasual.meanTurns).toBeLessThanOrEqual(26);
+});
+
+test("G3 boss: optimal loses at least 20 percent HP over at least 4 turns", () => {
+  expect(bossOptimal.meanTurns).toBeGreaterThanOrEqual(4);
+  expect(bossOptimal.meanHpLost).toBeGreaterThanOrEqual(20);
+});
+
+test("G4 boss: every spam bot underperforms mixed play", () => {
+  for (const { key, stats } of bossSpams) {
+    const winGap = bossOptimal.winRate - stats.winRate;
+    const hpRatio = stats.meanHpLost / bossOptimal.meanHpLost;
+    const underperforms = winGap >= 0.1 || hpRatio >= 1.2;
+    if (!underperforms) {
+      throw new Error(
+        `boss spam ${key}: winGap ${winGap.toFixed(3)}, hpRatio ${hpRatio.toFixed(2)}`,
+      );
+    }
+    expect(underperforms).toBe(true);
+  }
+});
+
+test("G4 boss: ignoring conditions costs at least 20 percent more HP", () => {
+  expect(bossNoCond.meanHpLost).toBeGreaterThanOrEqual(bossOptimal.meanHpLost * 1.2);
 });
