@@ -13,6 +13,7 @@ const sound = new Sound();
 let world: WorldState = createWorld((Math.random() * 1e9) | 0);
 let logCursor = 0;
 let lastDeaths = 0;
+let lastArea = world.area;
 
 const ui: UIState = {
   screen: "title",
@@ -34,6 +35,7 @@ function resetRun(): void {
   world = createWorld((Math.random() * 1e9) | 0);
   logCursor = 0;
   lastDeaths = 0;
+  lastArea = world.area;
   ui.animX = world.pos.x;
   ui.animY = world.pos.y;
   ui.selectedPart = undefined;
@@ -79,6 +81,16 @@ function drainLog(): void {
   if (world.deaths > lastDeaths) {
     lastDeaths = world.deaths;
     ui.deathFlash = 1.6;
+    // respawn teleports: the camera must snap, not glide across the map
+    ui.animX = world.pos.x;
+    ui.animY = world.pos.y;
+  }
+  if (world.area !== lastArea) {
+    lastArea = world.area;
+    // area transitions teleport too (user-found class: plays wrong vs
+    // tests right; a lerp here slides the fish across the whole level)
+    ui.animX = world.pos.x;
+    ui.animY = world.pos.y;
   }
 }
 
