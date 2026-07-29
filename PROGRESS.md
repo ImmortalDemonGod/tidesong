@@ -195,6 +195,25 @@ continue."
   layout, HUD element, and label. Cite which doc informed any invented
   detail in the feature log.
 
+- 02:15 G6 visual review round 1 returned PASS WITH FIXES: 1 HIGH (no
+  on-body target indication in boss fights: panel-to-body mapping was
+  ambiguous), 7 MED, 7 LOW. ALL fixed: on-body part labels + dashed aim
+  reticle + aim confirm line (HIGH); part bars uniform orange with outline
+  selection; YOUR MOVE pill; barrier, NPC, door, and stone labels with a
+  Talk [E] proximity pill; trench danger vignette + warning + the shot now
+  proves it; ability teach line; squid side-fins; victory overlay opacity
+  (hides background bleed), "strokes" stat rename, dynamic fragment
+  count; HUD unified to n/max with STA row; demo states enriched (combat
+  shows a live condition chip, victory shows collected fragments). Two
+  self-caught collisions in the fix batch (pill vs boss name, teach line
+  vs bar edge) fixed and re-shot. Gallery regenerated at
+  /tmp/tidesong-gallery. Reviewer passes preserved: chips, phase banner,
+  part panel, ability bar, 2.5D readability, zero em dashes.
+- 02:20 Stretch 8 song-seal puzzle shipped (see 210b3cc): seeded 3-note
+  order, hum at the door, echo on dusk/dawn/tide stones, wrong note
+  resets, alcove holds optional 4th fragment. Door tile itself was
+  swim-through in the first cut; test caught it before commit.
+
 ## G5 fun audit (machine ceiling: EVIDENCED; the user's morning playtest is the verdict)
 
 - LOOP (explore, fight, collect, unlock, return): closes end to end. The

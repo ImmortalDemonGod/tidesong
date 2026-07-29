@@ -166,6 +166,9 @@ if (demo) {
     world.pos = { x: 7, y: 4 };
     world.checkpoint = { area: "dungeon1", pos: { x: 1, y: 4 } };
     step(world, "right");
+    if (world.combat) {
+      combatAction(world, "siltBurst");
+    }
   } else if (demo === "boss") {
     world.area = "dungeon1";
     for (const e of world.encounters) if (e.kind === "squid") e.defeated = true;
@@ -178,11 +181,14 @@ if (demo) {
     }
   } else if (demo === "victory") {
     world.hasTideRelic = true;
+    for (const f of world.fragments) if (f.id <= 3) f.collected = true;
+    world.steps = 340;
     world.pos = { x: 19, y: 4 };
     step(world, "right");
     step(world, "right");
   } else if (demo === "trench") {
     world.pos = { x: 13, y: 6 };
+    step(world, "down");
   }
   ui.animX = world.pos.x;
   ui.animY = world.pos.y;

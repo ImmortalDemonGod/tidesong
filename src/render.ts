@@ -132,6 +132,18 @@ function squidSprite(ctx: CanvasRenderingContext2D, x: number, y: number, scale:
   ctx.beginPath();
   ctx.ellipse(0, -20, 34, 30, 0, Math.PI, 0);
   ctx.fill();
+  // swept side-fins so the silhouette reads squid, not jellyfish
+  ctx.fillStyle = "#5A3B75";
+  ctx.beginPath();
+  ctx.moveTo(-30, -34);
+  ctx.quadraticCurveTo(-58, -52, -44, -14);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(30, -34);
+  ctx.quadraticCurveTo(58, -52, 44, -14);
+  ctx.closePath();
+  ctx.fill();
   ctx.strokeStyle = "#5A3B75";
   ctx.lineWidth = 8;
   ctx.lineCap = "round";
@@ -316,8 +328,8 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
     ctx.quadraticCurveTo(px(HUB.door.x) + 52, py(HUB.door.y) - 60, px(HUB.door.x) + 44, groundY + 30);
     ctx.closePath();
     ctx.fill();
-    ctx.fillStyle = "#12354E";
-    ctx.strokeStyle = "#1E4560";
+    ctx.fillStyle = w.doorOpen ? "#0A2233" : "#12354E";
+    ctx.strokeStyle = w.doorOpen ? C.biolum : C.glow;
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.roundRect(px(HUB.door.x) - 22, py(HUB.door.y) - 34, 44, 70, 8);
@@ -326,9 +338,19 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
     for (let i = 0; i < 3; i++) {
       ctx.beginPath();
       ctx.arc(px(HUB.door.x) - 10 + i * 10, py(HUB.door.y) - 12, 4, 0, Math.PI * 2);
-      ctx.strokeStyle = C.muted;
-      ctx.stroke();
+      if (w.doorOpen || i < w.attempt.length) {
+        ctx.fillStyle = C.biolum;
+        ctx.fill();
+      } else {
+        ctx.strokeStyle = C.muted;
+        ctx.stroke();
+      }
     }
+    ctx.fillStyle = C.muted;
+    ctx.font = "11px system-ui";
+    ctx.textAlign = "center";
+    ctx.fillText(w.doorOpen ? "song-seal door (open)" : "song-seal door", px(HUB.door.x), py(HUB.door.y) + 52);
+    ctx.textAlign = "left";
 
     // dungeon entrance arch on twin pillars rooted in the floor
     ctx.fillStyle = "#0D2A40";
@@ -359,8 +381,51 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
       ctx.stroke();
     }
     ctx.globalAlpha = 1;
+    ctx.font = "600 13px ui-monospace, monospace";
+    ctx.fillStyle = C.glow;
+    ctx.textAlign = "center";
+    ctx.fillText("current wall", px(HUB.barrierX) - 60, 120);
+    ctx.font = "12px system-ui";
+    ctx.fillStyle = C.muted;
+    ctx.fillText(w.hasTideRelic ? "the relic parts it" : "needs the Tide Relic", px(HUB.barrierX) - 60, 138);
+    ctx.textAlign = "left";
+
+    // song stones (dusk, dawn, tide)
+    for (const st of HUB.stones) {
+      ctx.fillStyle = "#1E4560";
+      ctx.beginPath();
+      ctx.ellipse(px(st.x), py(st.y) + 10, 14, 18, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = C.biolum;
+      ctx.globalAlpha = 0.9;
+      ctx.beginPath();
+      ctx.arc(px(st.x), py(st.y), 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = C.muted;
+      ctx.font = "11px system-ui";
+      ctx.textAlign = "center";
+      ctx.fillText(st.name, px(st.x), py(st.y) + 36);
+      ctx.textAlign = "left";
+    }
 
     merfolk(ctx, px(HUB.npc.x), py(HUB.npc.y), t);
+    ctx.fillStyle = C.muted;
+    ctx.font = "11px system-ui";
+    ctx.textAlign = "center";
+    ctx.fillText("merfolk", px(HUB.npc.x), py(HUB.npc.y) + 58);
+    ctx.textAlign = "left";
+    if (Math.abs(w.pos.x - HUB.npc.x) + Math.abs(w.pos.y - HUB.npc.y) <= 1) {
+      ctx.fillStyle = "rgba(6,18,28,0.9)";
+      ctx.beginPath();
+      ctx.roundRect(px(HUB.npc.x) - 44, py(HUB.npc.y) - 78, 88, 26, 13);
+      ctx.fill();
+      ctx.fillStyle = C.ink;
+      ctx.font = "13px system-ui";
+      ctx.textAlign = "center";
+      ctx.fillText("Talk [E]", px(HUB.npc.x), py(HUB.npc.y) - 60);
+      ctx.textAlign = "left";
+    }
   } else {
     // dungeon dressing: pillars and bones of the ruin
     ctx.fillStyle = "#0D2A40";
@@ -419,23 +484,46 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
   ctx.restore();
   particles(ctx, cw, ch, t, 1.2);
 
+  // trench danger treatment: darkness closes in inside the low dark
+  const inLowDark =
+    w.area === "hub" &&
+    w.pos.x >= HUB.trench.x0 &&
+    w.pos.x <= HUB.trench.x1 &&
+    w.pos.y >= HUB.trench.y0;
+  if (inLowDark) {
+    const g = ctx.createRadialGradient(cw / 2, ch / 2, 200, cw / 2, ch / 2, 700);
+    g.addColorStop(0, "rgba(2,6,10,0)");
+    g.addColorStop(1, "rgba(2,6,10,0.75)");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, cw, ch);
+    ctx.fillStyle = C.danger;
+    ctx.font = "600 14px system-ui";
+    ctx.textAlign = "center";
+    ctx.fillText("the low dark bites: swim up", cw / 2, 130);
+    ctx.textAlign = "left";
+  }
+
   // HUD
   ctx.fillStyle = "rgba(6,18,28,0.85)";
   ctx.beginPath();
-  ctx.roundRect(18, 16, 250, 74, 10);
+  ctx.roundRect(18, 16, 274, 92, 10);
   ctx.fill();
   ctx.fillStyle = C.muted;
   ctx.font = "600 12px ui-monospace, monospace";
   ctx.fillText("HP", 32, 42);
   bar(ctx, 62, 32, 150, 12, w.hp / w.maxHp, C.coral);
   ctx.fillStyle = C.muted;
-  ctx.fillText(`${w.hp}`, 222, 42);
-  ctx.fillText("SONG", 32, 68);
-  ctx.fillStyle = C.ink;
-  ctx.fillText(`${"~".repeat(w.healSongUses) || "-"}`, 76, 68);
+  ctx.fillText(`${w.hp}/${w.maxHp}`, 220, 42);
+  ctx.fillText("STA", 32, 66);
+  bar(ctx, 62, 56, 150, 12, 1, C.glow);
   ctx.fillStyle = C.muted;
-  ctx.fillText(`fragments ${w.fragments.filter((f) => f.collected).length}/3`, 120, 68);
-  if (w.hasTideRelic) chip(ctx, 280, 24, "TIDE RELIC", C.glow);
+  ctx.fillText("20/20", 220, 66);
+  ctx.fillText("SONG", 32, 90);
+  ctx.fillStyle = C.ink;
+  ctx.fillText(`${"~".repeat(w.healSongUses) || "-"}`, 76, 90);
+  ctx.fillStyle = C.muted;
+  ctx.fillText(`fragments ${w.fragments.filter((f) => f.collected).length}/${w.fragments.length}`, 120, 90);
+  if (w.hasTideRelic) chip(ctx, 304, 24, "TIDE RELIC", C.glow);
 
   const hint =
     w.area === "hub"
@@ -486,6 +574,35 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
   const broken = new Set<PartKey>((c.boss?.parts ?? []).filter((p) => p.broken).map((p) => p.key));
   if (c.boss) sharkSprite(ctx, 800, 300, 1.25, t, broken);
   else squidSprite(ctx, 810, 300, 2.1, t);
+
+  // On-body part anchors: labels always, dashed reticle on the aimed part
+  // (G6 HIGH fix: the panel-to-body mapping must be unambiguous).
+  if (c.boss) {
+    const anchors: Record<PartKey, { x: number; y: number }> = {
+      jaw: { x: 800 - 110 * 1.25, y: 300 + 38 * 1.25 },
+      eye: { x: 800 - 96 * 1.25, y: 300 - 18 * 1.25 },
+      fin: { x: 800, y: 300 - 68 * 1.25 },
+      tail: { x: 800 + 168 * 1.25, y: 300 },
+    };
+    for (const p of c.boss.parts) {
+      const a = anchors[p.key];
+      ctx.font = "700 12px ui-monospace, monospace";
+      ctx.fillStyle = p.broken ? "#4a5c66" : C.ink;
+      ctx.textAlign = "center";
+      ctx.fillText(p.broken ? `${p.name.toUpperCase()} x` : p.name.toUpperCase(), a.x, a.y - 26);
+      ctx.textAlign = "left";
+      if (ui.selectedPart === p.key && !p.broken) {
+        ctx.save();
+        ctx.strokeStyle = C.glow;
+        ctx.lineWidth = 3;
+        ctx.setLineDash([8, 6]);
+        ctx.beginPath();
+        ctx.arc(a.x, a.y, 30 + Math.sin(t * 4) * 3, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+  }
   if (ui.enemyFlash > 0) {
     ctx.save();
     ctx.globalAlpha = Math.min(0.5, ui.enemyFlash * 1.8);
@@ -522,12 +639,14 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
   }
   ctx.restore();
 
-  // enemy header: name, HP, condition chips with levels
+  // enemy header: name, HP, condition chips with levels (shifted right in
+  // boss fights so the YOUR MOVE pill never overlaps the name)
+  const headX = c.boss ? 900 : 640;
   ctx.fillStyle = C.ink;
   ctx.font = "600 16px system-ui";
-  ctx.fillText(c.enemy.name, 640, 78);
-  bar(ctx, 640, 88, 260, 12, c.enemy.hp / c.enemy.maxHp, C.danger);
-  let chipX = 640;
+  ctx.fillText(c.enemy.name, headX, 78);
+  bar(ctx, headX, 88, 260, 12, c.enemy.hp / c.enemy.maxHp, C.danger);
+  let chipX = headX;
   for (const cond of c.enemy.conditions) {
     chipX += chip(ctx, chipX, 108, `${cond.kind.toUpperCase()} ${cond.level === 2 ? "II" : "I"} · ${cond.turns}`, C.glow) + 8;
   }
@@ -558,11 +677,17 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
     ctx.fillText("TARGET (up/down keys)", panelX, py2 - 8);
     for (const p of c.boss.parts) {
       const selected = ui.selectedPart === p.key;
-      const isKey = c.boss.keyPartByPhase[c.boss.phase] === p.key;
+      if (selected && !p.broken) {
+        ctx.strokeStyle = C.glow;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(panelX - 4, py2 - 4, 168, 44, 6);
+        ctx.stroke();
+      }
       ctx.fillStyle = p.broken ? "#3a4a56" : selected ? C.glow : C.ink;
       ctx.font = "600 13px ui-monospace, monospace";
-      ctx.fillText(`${selected ? "> " : "  "}${p.name.toUpperCase()}${p.broken ? " (broken)" : isKey && c.player.sta >= 0 && ui.selectedPart ? "" : ""}`, panelX, py2 + 12);
-      if (!p.broken) bar(ctx, panelX + 4, py2 + 20, 150, 8, p.durability / p.maxDurability, isKey ? C.glow : C.coral);
+      ctx.fillText(`${selected ? "> " : "  "}${p.name.toUpperCase()}${p.broken ? " (broken)" : ""}`, panelX, py2 + 12);
+      if (!p.broken) bar(ctx, panelX + 4, py2 + 20, 150, 8, p.durability / p.maxDurability, C.coral);
       py2 += 54;
     }
     if (c.analyzed) {
@@ -576,12 +701,47 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
     ctx.fillText(`analyze: ${c.enemy.analyzeHint} works best here`, 640, 140);
   }
 
+  // turn pill: input is always the player's to give in this turn flow
+  ctx.fillStyle = C.panel;
+  ctx.strokeStyle = C.glow;
+  ctx.beginPath();
+  ctx.roundRect(cw / 2 - 70, c.boss ? 60 : 20, 140, 30, 15);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = C.glow;
+  ctx.font = "600 13px ui-monospace, monospace";
+  ctx.textAlign = "center";
+  ctx.fillText("YOUR MOVE", cw / 2, c.boss ? 80 : 40);
+  ctx.textAlign = "left";
+
+  // aim confirm line (boss): what will a number key hit right now?
+  if (c.boss) {
+    ctx.fillStyle = ui.selectedPart ? C.glow : C.muted;
+    ctx.font = "13px ui-monospace, monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(
+      ui.selectedPart
+        ? `aiming at the ${ui.selectedPart.toUpperCase()}`
+        : "no aim: hits drift (up/down to aim)",
+      cw / 2,
+      ch - 128,
+    );
+    ctx.textAlign = "left";
+  }
+
+  // ability teach line
+  ctx.fillStyle = C.muted;
+  ctx.font = "12px system-ui";
+  ctx.textAlign = "center";
+  ctx.fillText("Silt Burst blinds · Fin Slash slows · Heal Song mends · Analyze reveals · Bubble guards the next hit", cw / 2, ch - 110);
+  ctx.textAlign = "left";
+
   // recent log lines
   ctx.fillStyle = C.muted;
   ctx.font = "13px system-ui";
   ui.lastLines.slice(-3).forEach((line, i) => {
     ctx.globalAlpha = 0.45 + i * 0.25;
-    ctx.fillText(line, 380, 560 + i * 18);
+    ctx.fillText(line, 380, 540 + i * 18);
   });
   ctx.globalAlpha = 1;
 
@@ -665,12 +825,12 @@ export function render(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
   }
 
   if (ui.screen === "victory" || w.mode === "victory") {
-    ctx.fillStyle = "rgba(6,18,28,0.88)";
+    ctx.fillStyle = "rgba(4,12,20,0.96)";
     ctx.fillRect(0, 0, cw, ch);
     centered(ctx, "the currents part", 230, "700 52px system-ui", C.glow, cw);
     centered(ctx, "the way to the second ruin lies open", 280, "17px system-ui", C.ink, cw);
     const frags = w.fragments.filter((f) => f.collected).length;
-    centered(ctx, `memory fragments ${frags}/3 · deaths ${w.deaths} · steps ${w.steps}`, 340, "600 15px ui-monospace, monospace", C.muted, cw);
+    centered(ctx, `memory fragments ${frags}/${w.fragments.length} · deaths ${w.deaths} · strokes ${w.steps}`, 340, "600 15px ui-monospace, monospace", C.muted, cw);
     centered(ctx, "TIDESONG (vertical slice)", 470, "600 20px system-ui", C.ink, cw);
     centered(ctx, "design and story · Marc", 505, "15px system-ui", C.muted, cw);
     centered(ctx, "art (everything you saw is a placeholder skeleton) · Glass_Goat", 530, "15px system-ui", C.muted, cw);
