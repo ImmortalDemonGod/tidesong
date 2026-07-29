@@ -612,3 +612,26 @@ test("pillar: the song-seal recurs in the gullet, harder, and combines with the 
   step(w, "up");
   expect(w.fragments.find((f) => f.id === 5)!.collected).toBe(true);
 });
+
+test("the two charged abilities have different scopes: heals span a ruin, guards reset per fight", () => {
+  const w = createWorld();
+  walkTo(w, HUB.dungeonEntrance.x, HUB.dungeonEntrance.y);
+  walkTo(w, 8, 4);
+  expect(w.mode).toBe("combat");
+  // spend a guard and a heal in fight one
+  w.combat!.player.hp = 40;
+  w.combat!.player.sta = 20;
+  combatAction(w, "bubble");
+  expect(w.combat!.bubbleUses).toBe(1);
+  w.combat!.player.sta = 20;
+  combatAction(w, "healSong");
+  expect(w.combat!.healSongUses).toBe(1);
+  winFight(w);
+  expect(w.healSongUses).toBe(1); // the heal stays spent for the ruin
+
+  // fight two: the guard is back, the heal is not
+  walkTo(w, 12, 6);
+  expect(w.mode).toBe("combat");
+  expect(w.combat!.bubbleUses).toBe(2); // per fight
+  expect(w.combat!.healSongUses).toBe(1); // per ruin
+});

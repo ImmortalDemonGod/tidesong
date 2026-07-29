@@ -1391,3 +1391,17 @@ every evidence class before any PENDING becomes GREEN.
   team) and the relic appears once (the slice has one relic).
   107 tests green, all bands in range, G2 holds: scripted 50/50 with 17
   deaths max 191, casual 100/100 worst 924, x5000 zero fail seeds.
+- (git time of this commit) Played question: "you only get a certain
+  number of heal songs and bubble for the entire game or per fight?" The
+  two charged abilities have DIFFERENT scopes and the UI printed both as
+  "2 left", which is the whole reason the question had to be asked. Heal
+  Song is 2 PER RUIN (it persists across every fight and every death
+  inside a dungeon, refills once on first entry to each ruin, and the
+  mercy rules can return one); Bubble is 2 PER FIGHT (reset every
+  encounter). The cards now say "2/ruin" and "2/fight", the explore HUD
+  spells out "heal x2 this ruin" under the SONG row, and DESIGN records
+  both scopes with the measurement that produced the guard charges. A
+  test pins the distinction by spending one of each in fight one and
+  asserting the guard is back in fight two while the heal is not. One
+  collision caught by looking (the scope text ran into the card glyph)
+  and the glyph moved up beside the name. 108 tests green.

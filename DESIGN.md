@@ -152,7 +152,15 @@ the build is placeholder for Marc's story and must be marked as such.
 - Analyze (1 STA): on regular enemies, reveals stats and the most effective
   condition (do NOT invent a weakness/element system); on bosses, highlights
   the key part
-- Bubble (2 STA): defensive, reduces incoming damage
+- Bubble (2 STA): defensive guard. AMENDED Jul 29 after measurement: as
+  a plain percentage it was never worth a turn (the pinned judge chose
+  it 0 percent of the time on every enemy, bubbling a telegraphed heavy
+  cost 9 to 40 MORE damage than not bubbling, and at low HP it lost runs
+  it was meant to save). It is now a GUARD WITH CHARGES: 80 percent
+  reduction, 2 uses PER FIGHT (reset every encounter, unlike Heal Song's
+  per-ruin budget), refused when spent or already braced. The two
+  scopes are printed on the cards ("2/ruin" versus "2/fight") because
+  showing both as "2 left" read as one rule.
 
 ### Dungeon 2 contents (amended when stretch item 8 shipped; seat 2 F2/F3)
 - Elder squid: the second ruin's regular enemy, a STATS-ONLY variant of

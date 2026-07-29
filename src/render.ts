@@ -1015,7 +1015,12 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
   ctx.fillText(`${BASE.playerSta + verses}/${BASE.playerSta + verses}`, 220, 66);
   ctx.fillText("SONG", 32, 90);
   ctx.fillStyle = C.ink;
+  // these are Heal Song charges, and they last the whole ruin
   ctx.fillText(`${"~".repeat(w.healSongUses) || "-"}`, 76, 90);
+  ctx.fillStyle = C.muted;
+  ctx.font = "10px ui-monospace, monospace";
+  ctx.fillText(`heal x${w.healSongUses} this ruin`, 76, 103);
+  ctx.font = "600 12px ui-monospace, monospace";
   ctx.fillStyle = C.muted;
   ctx.fillText(`verses ${verses}/${w.fragments.length}`, 120, 90);
   if (verses > 0) {
@@ -1711,14 +1716,18 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
     ctx.roundRect(x, ch - 92, 5, 64, 2);
     ctx.fill();
     ctx.strokeStyle = meta.accent;
-    meta.glyph(ctx, x + 118, ch - 60);
+    meta.glyph(ctx, x + 120, ch - 76); // up beside the name: the cost row now carries scope text
     ctx.restore();
     ctx.fillStyle = on ? C.ink : "#4a5c66";
     ctx.font = "600 13px system-ui";
     ctx.fillText(`${i + 1} ${a.name}`, x + 12, ch - 74);
     ctx.fillStyle = on ? C.muted : "#3a4c56";
     ctx.font = "12px ui-monospace, monospace";
-    const extra = a.heals !== undefined ? ` · ${c.healSongUses} left` : a.bubble ? ` · ${c.bubbleUses} left` : "";
+    // the two charged abilities have DIFFERENT scopes and used to show
+    // the identical "N left" (played question: "is that for the entire
+    // game or per fight?"). Say which.
+    const extra =
+      a.heals !== undefined ? ` · ${c.healSongUses}/ruin` : a.bubble ? ` · ${c.bubbleUses}/fight` : "";
     ctx.fillText(`${a.staCost} STA${extra}`, x + 12, ch - 54);
     // what it DOES, on the button itself: the answer to "what is slow"
     ctx.fillStyle = on ? "#7E9AA6" : "#33454e";
