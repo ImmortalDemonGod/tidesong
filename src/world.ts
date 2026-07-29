@@ -413,7 +413,17 @@ export function interact(w: WorldState): boolean {
   const near = (p: { x: number; y: number }) =>
     Math.abs(p.x - w.pos.x) + Math.abs(p.y - w.pos.y) <= 1;
   if (w.area === "hub" && near(HUB.npc)) {
-    w.npcLine = "Follow the fragments, little one. The songs remember the way.";
+    // The guide notices your progress (all lines placeholder for Marc's
+    // story; the UI strips the mark into a tag). Story delivery was
+    // under-staged: one line forever (fun diagnosis, agent 3 MED).
+    const frags = w.fragments.filter((f) => f.collected).length;
+    w.npcLine = w.hasTideRelic
+      ? "(placeholder) The relic hums against your scales. The second ruin's mouth waits past the parted current."
+      : w.doorOpen
+        ? "(placeholder) You gave the door its song back. The first ruin lies east; its guardian forgot its own name."
+        : frags >= 2
+          ? "(placeholder) The verses gather around you. The stones by the door know their order; sing it to them."
+          : "Follow the fragments, little one. The songs remember the way.";
     w.log.push(`npc: ${w.npcLine}`);
     return true;
   }

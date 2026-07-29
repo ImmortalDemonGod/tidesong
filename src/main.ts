@@ -151,7 +151,11 @@ function drainLog(): void {
     // combat-only log ticker, so the narrative pillar never displayed)
     const verse = line.match(/^memory fragment: "(.+)"$/);
     if (verse) {
-      ui.storyCard = { text: verse[1], age: 0, kind: "story" };
+      // the placeholder mark stays in the DATA for Marc; the card shows
+      // the verse as a verse with a small tag instead (playtester: the
+      // "(placeholder)" prefix made every story moment read as scaffolding)
+      const clean = verse[1].replace(/^\(placeholder\) /, "");
+      ui.storyCard = { text: clean, age: 0, kind: "story", ph: clean !== verse[1] };
     }
     // the song-seal puzzle speaks on screen, not into a hidden log
     // (hunt, HIGH-1); the merfolk line ages out instead of living forever
@@ -161,7 +165,11 @@ function drainLog(): void {
     }
     const npc = line.match(/^npc: (.+)$/);
     if (npc) {
-      ui.storyCard = { text: `"${npc[1]}"`, age: 0, kind: "npc" };
+      const clean = npc[1].replace(/^\(placeholder\) /, "");
+      ui.storyCard = { text: `"${clean}"`, age: 0, kind: "npc", ph: clean !== npc[1] };
+    }
+    if (line.includes("the low dark bites")) {
+      ui.playerFlinch = 0.35; // the trench's red pulse in exploration
     }
     if (line.includes("(Heal Song restored)")) {
       ui.storyCard = { text: "the entrance current mends your song: Heal Song restored", age: 0, kind: "heal" };

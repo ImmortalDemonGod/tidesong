@@ -770,3 +770,20 @@ every evidence class before any PENDING becomes GREEN.
   cast FX, locked hand, and the MISS payoff landing visibly
   (/tmp/tidesong-gallery/wave1-filmstrip.png). One collision caught by
   render-and-look (intent line vs condition chip) and fixed pre-commit.
+- (git time of this commit) FUN PASS wave 3 (world texture + payoff):
+  sealed-alcove fragment now READS locked (dim + dashed seal ring +
+  "sealed: the door wants its song" label until doorOpen: the playtester's
+  trust-breaker); free fragments glow to pull the eye; per-ruin dressing
+  (choir hall arches + biolum votives in d1, ribcage gullet in d2);
+  ambient fish silhouettes drift the mid layer; swim bubbles trail the
+  moving fish; trench bites pulse a red vignette at the screen bottom;
+  elder squids wear deep-teal + a spine crown in combat AND the overworld
+  (stats-only ruling untouched, but no longer a visual rerun); bosses
+  staged bigger with a phase-2 blood tint + rage pulse; victory screen
+  pays off the loop by singing back the verses you collected; NPC lines
+  branch on progress (relic/door/fragments, placeholder-marked for Marc);
+  "(placeholder)" stripped from displayed verse text into a small
+  "placeholder · Marc" card tag (the mark stays in the data); story cards
+  wrap to two rows. All render/data-side; sim rules untouched; 86 tests
+  green; screenshots looked at: dungeon1, dungeon2, doorcard (sealed
+  ring proven), victory (verses listed), fragment.

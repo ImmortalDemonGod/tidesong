@@ -25,7 +25,7 @@ export interface UIState {
   enemyFlash: number; // seconds remaining on enemy hit flash
   zoomPulse: number; // seconds remaining on the combat-entry/phase zoom
   enemyBeat: number; // seconds until the enemy's answering beat lands
-  storyCard?: { text: string; age: number; kind: "story" | "song" | "npc" | "relic" | "heal" }; // explore cards
+  storyCard?: { text: string; age: number; kind: "story" | "song" | "npc" | "relic" | "heal"; ph?: boolean }; // explore cards; ph = placeholder text for Marc
   victoryHold?: { combat: CombatState; t: number }; // hold the win beat on screen
   floaters: Floater[];
   // fun pass: per-ability cast effects and bodies that move (diagnosis:
@@ -215,16 +215,31 @@ function merfolk(ctx: CanvasRenderingContext2D, x: number, y: number, t: number)
   ctx.restore();
 }
 
-function squidSprite(ctx: CanvasRenderingContext2D, x: number, y: number, scale: number, t: number): void {
+function squidSprite(ctx: CanvasRenderingContext2D, x: number, y: number, scale: number, t: number, elder = false): void {
   ctx.save();
   ctx.translate(x, y + Math.sin(t * 1.8) * 6);
   ctx.scale(scale, scale);
-  ctx.fillStyle = "#6E4A8C";
+  // elders wear the deep's colors and a crown of spines: a stats-only
+  // variant per the team ruling, but it must not LOOK like a rerun
+  const body = elder ? "#3F6E64" : "#6E4A8C";
+  const shade = elder ? "#2E544C" : "#5A3B75";
+  if (elder) {
+    ctx.fillStyle = shade;
+    for (let i = -2; i <= 2; i++) {
+      ctx.beginPath();
+      ctx.moveTo(i * 13 - 5, -42);
+      ctx.lineTo(i * 13, -60 - Math.abs(i) * -4);
+      ctx.lineTo(i * 13 + 5, -42);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+  ctx.fillStyle = body;
   ctx.beginPath();
   ctx.ellipse(0, -20, 34, 30, 0, Math.PI, 0);
   ctx.fill();
   // swept side-fins so the silhouette reads squid, not jellyfish
-  ctx.fillStyle = "#5A3B75";
+  ctx.fillStyle = shade;
   ctx.beginPath();
   ctx.moveTo(-30, -34);
   ctx.quadraticCurveTo(-58, -52, -44, -14);
@@ -235,7 +250,7 @@ function squidSprite(ctx: CanvasRenderingContext2D, x: number, y: number, scale:
   ctx.quadraticCurveTo(58, -52, 44, -14);
   ctx.closePath();
   ctx.fill();
-  ctx.strokeStyle = "#5A3B75";
+  ctx.strokeStyle = shade;
   ctx.lineWidth = 8;
   ctx.lineCap = "round";
   for (let i = 0; i < 5; i++) {
@@ -463,6 +478,27 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
     ctx.ellipse(x, 600, 130, 70 + (i % 3) * 24, 0, Math.PI, 0);
     ctx.fill();
   }
+  // ambient life: small fish silhouettes drifting through the mid layer
+  // (fun diagnosis: nothing on screen moved but the player)
+  ctx.fillStyle = "#0F3048";
+  for (let i = 0; i < 5; i++) {
+    const speed = 26 + (i % 3) * 14;
+    const range = worldW * 0.65 + 500;
+    const drift = ((t * speed + i * 460) % range) - 250;
+    const fy = 210 + (i % 4) * 70 + Math.sin(t * 0.9 + i * 2) * 16;
+    const flip = i % 2 === 0 ? 1 : -1;
+    const fx2 = flip === 1 ? drift : worldW * 0.65 - drift;
+    ctx.globalAlpha = 0.5;
+    ctx.beginPath();
+    ctx.ellipse(fx2, fy, 14, 5.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(fx2 - 13 * flip, fy);
+    ctx.lineTo(fx2 - 20 * flip, fy - 5);
+    ctx.lineTo(fx2 - 20 * flip, fy + 5);
+    ctx.closePath();
+    ctx.fill();
+  }
   ctx.restore();
 
   // L3 play plane
@@ -609,32 +645,112 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
       ctx.fillText("Talk [E]", px(HUB.npc.x), py(HUB.npc.y) - 60);
       ctx.textAlign = "left";
     }
-  } else {
-    // dungeon dressing: pillars and bones of the ruin
-    ctx.fillStyle = w.area === "dungeon2" ? "#123528" : "#0D2A40";
+  } else if (w.area === "dungeon1") {
+    // the first ruin, a drowned choir hall: pillars joined by arches,
+    // biolum votives still burning ("beauty with decay" was hub-only:
+    // fun diagnosis, agent 3 LOW)
+    ctx.fillStyle = "#0D2A40";
     for (let i = 2; i < 24; i += 5) {
-      ctx.fillRect(px(i) - 8, 150, 16, 60);
+      ctx.fillRect(px(i) - 8, 150, 16, 410);
     }
+    ctx.strokeStyle = "#12354E";
+    ctx.lineWidth = 9;
+    for (let i = 2; i < 19; i += 5) {
+      ctx.beginPath();
+      ctx.moveTo(px(i), 190);
+      ctx.quadraticCurveTo(px(i + 2.5), 96, px(i + 5), 190);
+      ctx.stroke();
+    }
+    for (let i = 0; i < 10; i++) {
+      const gx = px(2 + ((i * 2.4) % 20));
+      ctx.fillStyle = C.biolum;
+      ctx.globalAlpha = 0.25 + Math.sin(t * 1.4 + i * 1.9) * 0.15;
+      ctx.beginPath();
+      ctx.arc(gx + (i % 3) * 9, 240 + (i % 4) * 74, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
     ctx.fillStyle = C.muted;
     ctx.font = "12px system-ui";
-    ctx.fillText(w.area === "dungeon2" ? "the second ruin" : "the first ruin", px(2) - 20, 140);
+    ctx.fillText("the first ruin: the choir hall", px(2) - 20, 140);
+  } else {
+    // the second ruin, the drowned gullet: a ribcage swallows the path
+    ctx.strokeStyle = "#1C4A40";
+    ctx.lineWidth = 12;
+    for (let i = 2; i < 24; i += 4) {
+      ctx.beginPath();
+      ctx.moveTo(px(i) - 14, 560);
+      ctx.quadraticCurveTo(px(i) + 26, 140 + (i % 3) * 24, px(i) + 66, 560);
+      ctx.stroke();
+    }
+    ctx.fillStyle = "#123528";
+    for (let i = 3; i < 24; i += 6) {
+      ctx.beginPath();
+      ctx.ellipse(px(i), 556, 40, 12, 0, Math.PI, 0);
+      ctx.fill();
+    }
+    for (let i = 0; i < 8; i++) {
+      ctx.fillStyle = C.glow;
+      ctx.globalAlpha = 0.18 + Math.sin(t * 1.1 + i * 2.3) * 0.1;
+      ctx.beginPath();
+      ctx.arc(px(3 + ((i * 2.7) % 19)), 210 + (i % 5) * 66, 2.6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = C.muted;
+    ctx.font = "12px system-ui";
+    ctx.fillText("the second ruin: the drowned gullet", px(2) - 20, 140);
   }
 
   // fragments
   for (const f of w.fragments) {
     if (f.collected || f.area !== w.area) continue;
+    const sealed = w.area === "hub" && !w.doorOpen && f.x === HUB.alcove.x && f.y === HUB.alcove.y;
     const pulse = 0.6 + Math.sin(t * 3 + f.id) * 0.4;
     ctx.save();
     ctx.translate(px(f.x), py(f.y));
-    ctx.globalAlpha = 0.5 + pulse * 0.5;
-    ctx.fillStyle = C.sand;
-    ctx.beginPath();
-    ctx.moveTo(0, -10);
-    ctx.lineTo(7, 0);
-    ctx.lineTo(0, 10);
-    ctx.lineTo(-7, 0);
-    ctx.closePath();
-    ctx.fill();
+    if (sealed) {
+      // the alcove verse is LOCKED until the song opens the seal: it must
+      // read locked, not broken (the playtester's trust-breaker: it pulsed
+      // exactly like a free pickup)
+      ctx.globalAlpha = 0.35;
+      ctx.fillStyle = C.muted;
+      ctx.beginPath();
+      ctx.moveTo(0, -10);
+      ctx.lineTo(7, 0);
+      ctx.lineTo(0, 10);
+      ctx.lineTo(-7, 0);
+      ctx.closePath();
+      ctx.fill();
+      ctx.globalAlpha = 0.7;
+      ctx.strokeStyle = C.biolum;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath();
+      ctx.arc(0, 0, 17, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = C.muted;
+      ctx.font = "11px system-ui";
+      ctx.textAlign = "center";
+      ctx.fillText("sealed: the door wants its song", 0, 34);
+      ctx.textAlign = "left";
+    } else {
+      // a soft glow pulls the eye from a distance (collect ceremony)
+      ctx.globalAlpha = 0.16 * pulse;
+      ctx.fillStyle = C.sand;
+      ctx.beginPath();
+      ctx.arc(0, 0, 20 + pulse * 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 0.5 + pulse * 0.5;
+      ctx.beginPath();
+      ctx.moveTo(0, -10);
+      ctx.lineTo(7, 0);
+      ctx.lineTo(0, 10);
+      ctx.lineTo(-7, 0);
+      ctx.closePath();
+      ctx.fill();
+    }
     ctx.restore();
   }
 
@@ -646,7 +762,7 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
       squidSprite(ctx, px(e.x), py(e.y) - 10, 0.5, t + e.id);
       label = "vampire squid";
     } else if (e.kind === "elder") {
-      squidSprite(ctx, px(e.x), py(e.y) - 12, 0.62, t + e.id);
+      squidSprite(ctx, px(e.x), py(e.y) - 12, 0.62, t + e.id, true);
       label = "elder squid";
     } else if (e.kind === "boss") {
       sharkSprite(ctx, px(e.x), py(e.y) - 20, 0.42, t, new Set());
@@ -665,7 +781,33 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
   ctx.restore();
 
   // player drawn in screen space for smooth camera
-  fish(ctx, ui.animX * TILE + TILE / 2 - camX, 200 + ui.animY * TILE, 1, t, 1);
+  const fishX = ui.animX * TILE + TILE / 2 - camX;
+  const fishY = 200 + ui.animY * TILE;
+  // swimming stirs the water: a small bubble trail while moving
+  const swimming = Math.abs(ui.animX - w.pos.x) + Math.abs(ui.animY - w.pos.y) > 0.03;
+  if (swimming && !ui.reducedMotion) {
+    ctx.save();
+    ctx.strokeStyle = "#9CC8D8";
+    for (let i = 0; i < 4; i++) {
+      const bp = (t * 2 + i * 0.7) % 1;
+      ctx.globalAlpha = 0.4 * (1 - bp);
+      ctx.beginPath();
+      ctx.arc(fishX - 26 - i * 12, fishY - bp * 26 + Math.sin(t * 6 + i) * 3, 2 + (i % 2), 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  fish(ctx, fishX, fishY, 1, t, 1);
+  // the low dark bites back: a red pulse from the depths on each chip
+  if (ui.playerFlinch > 0) {
+    ctx.save();
+    const g2 = ctx.createLinearGradient(0, ch - 260, 0, ch);
+    g2.addColorStop(0, "rgba(140,30,30,0)");
+    g2.addColorStop(1, `rgba(140,30,30,${Math.min(0.5, ui.playerFlinch * 1.4)})`);
+    ctx.fillStyle = g2;
+    ctx.fillRect(0, ch - 260, cw, 260);
+    ctx.restore();
+  }
 
   // L4 foreground fronds (1.4x, dark)
   ctx.save();
@@ -741,20 +883,36 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
     const colors = { story: C.sand, song: C.biolum, npc: C.glow, relic: C.glow, heal: C.coral } as const;
     const accent = colors[ui.storyCard.kind];
     const alpha = Math.min(1, Math.max(0, 5.5 - ui.storyCard.age));
+    // wrap long lines onto a second row instead of running off the card
+    const words = ui.storyCard.text.split(" ");
+    const rows: string[] = [""];
+    for (const word of words) {
+      const probe = rows[rows.length - 1] === "" ? word : `${rows[rows.length - 1]} ${word}`;
+      if (probe.length > 78 && rows.length < 2) rows.push(word);
+      else rows[rows.length - 1] = probe;
+    }
+    const cardH = rows.length > 1 ? 76 : 56;
     ctx.save();
     ctx.globalAlpha = alpha;
     ctx.fillStyle = "rgba(6,18,28,0.92)";
     ctx.beginPath();
-    ctx.roundRect(cw / 2 - 320, 540, 640, 56, 10);
+    ctx.roundRect(cw / 2 - 320, 540, 640, cardH, 10);
     ctx.fill();
     ctx.strokeStyle = accent;
     ctx.stroke();
     ctx.fillStyle = accent;
     ctx.font = "600 12px ui-monospace, monospace";
     ctx.fillText(titles[ui.storyCard.kind], cw / 2 - 300, 562);
+    if (ui.storyCard.ph) {
+      // the mark Marc's story replaces, out of the verse and into a tag
+      ctx.fillStyle = C.muted;
+      ctx.textAlign = "right";
+      ctx.fillText("placeholder · Marc", cw / 2 + 300, 562);
+      ctx.textAlign = "left";
+    }
     ctx.fillStyle = C.ink;
     ctx.font = "15px system-ui";
-    ctx.fillText(ui.storyCard.text, cw / 2 - 300, 584);
+    rows.forEach((row, i) => ctx.fillText(row, cw / 2 - 300, 584 + i * 20));
     ctx.restore();
   }
 }
@@ -767,6 +925,12 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
   water(ctx, cw, ch, "#122036");
   lightRays(ctx, cw, ch, t * 0.5);
   particles(ctx, cw, ch, t, 0.5);
+  // phase 2 stains the water: the fight must LOOK escalated, not just
+  // deal bigger numbers (fun diagnosis, agent 3 MED)
+  if (c.boss?.phase === 2) {
+    ctx.fillStyle = "rgba(120,20,26,0.10)";
+    ctx.fillRect(0, 0, cw, ch);
+  }
 
   // screen shake while a hit lands on the player; zoom pulse on combat
   // entry and phase breaks (DESIGN 2.5D item 4: camera moments)
@@ -832,9 +996,10 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
   const drawEnemy = (x: number, y: number, alpha: number): void => {
     ctx.save();
     ctx.globalAlpha = alpha;
-    if (c.boss?.kind === "eel") eelSprite(ctx, x, y, 1.25 * eScale, t, broken);
-    else if (c.boss) sharkSprite(ctx, x, y, 1.25 * eScale, t, broken);
-    else squidSprite(ctx, x + 10, y, 2.1 * eScale, t);
+    const rage = c.boss?.phase === 2 ? 1 + Math.sin(t * 6) * 0.015 : 1;
+    if (c.boss?.kind === "eel") eelSprite(ctx, x, y, 1.32 * eScale * rage, t, broken);
+    else if (c.boss) sharkSprite(ctx, x, y, 1.32 * eScale * rage, t, broken);
+    else squidSprite(ctx, x + 10, y, 2.1 * eScale, t, c.enemy.name.includes("elder"));
     ctx.restore();
   };
   // slow afterimages: the enemy drags ghosts of itself
@@ -1284,13 +1449,21 @@ export function render(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
     ctx.fillRect(0, 0, cw, ch);
     centered(ctx, "the sea remembers its song", 230, "700 52px system-ui", C.glow, cw);
     centered(ctx, "both ruins stand quiet; the corruption recedes", 280, "17px system-ui", C.ink, cw);
-    const frags = w.fragments.filter((f) => f.collected).length;
-    centered(ctx, `memory fragments ${frags}/${w.fragments.length} · deaths ${w.deaths} · strokes ${w.steps}`, 340, "600 15px ui-monospace, monospace", C.muted, cw);
-    centered(ctx, "TIDESONG (vertical slice)", 470, "600 20px system-ui", C.ink, cw);
-    centered(ctx, "design and story · Marc", 505, "15px system-ui", C.muted, cw);
-    centered(ctx, "art (everything you saw is a placeholder skeleton) · Glass_Goat", 530, "15px system-ui", C.muted, cw);
-    centered(ctx, "code · ImmortalDemon", 555, "15px system-ui", C.muted, cw);
-    centered(ctx, "R: swim it again", 620, "14px system-ui", C.glow, cw);
+    const collected = w.fragments.filter((f) => f.collected);
+    centered(ctx, `memory fragments ${collected.length}/${w.fragments.length} · deaths ${w.deaths} · strokes ${w.steps}`, 320, "600 15px ui-monospace, monospace", C.muted, cw);
+    // the payoff the fragments promised: the verses you gathered,
+    // reassembled as the returned song (placeholder lines for Marc)
+    if (collected.length > 0) {
+      centered(ctx, "the song you returned:", 362, "600 13px ui-monospace, monospace", C.sand, cw);
+      collected.forEach((f, i) => {
+        centered(ctx, `"${f.verse.replace(/^\(placeholder\) /, "")}"`, 386 + i * 21, "italic 14px system-ui", C.sand, cw);
+      });
+    }
+    centered(ctx, "TIDESONG (vertical slice)", 512, "600 20px system-ui", C.ink, cw);
+    centered(ctx, "design and story (all verses placeholder) · Marc", 540, "15px system-ui", C.muted, cw);
+    centered(ctx, "art (everything you saw is a placeholder skeleton) · Glass_Goat", 563, "15px system-ui", C.muted, cw);
+    centered(ctx, "code · ImmortalDemon", 586, "15px system-ui", C.muted, cw);
+    centered(ctx, "R: swim it again", 634, "14px system-ui", C.glow, cw);
   }
 
   if (ui.muted) {
