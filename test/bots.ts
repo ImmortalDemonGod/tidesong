@@ -15,6 +15,7 @@ import {
   BASE,
   advanceTurn,
   bossDamage,
+  isFreeAction,
   createCombat,
   currentKeyPart,
   getCondition,
@@ -175,8 +176,15 @@ export function runFight(
   const s = create(seed);
   while (s.outcome === "ongoing" && s.turn <= maxTurns) {
     const action = bot(s);
-    if (action) useAbility(s, action.ability, action.part);
-    if (s.outcome === "ongoing") advanceTurn(s);
+    const freeBefore = action ? isFreeAction(s, action.ability) : false;
+    const landed = action ? useAbility(s, action.ability, action.part) : false;
+    // the judge must play the game the PLAYER plays: a free action
+    // (Analyze) does not hand the enemy its slot, exactly as world.ts
+    // and the UI do it. Before this the bands were measured through a
+    // path that ignored free actions, which is the "tests right, plays
+    // wrong" class this project keeps catching.
+    const wasFree = landed && action ? freeBefore : false;
+    if (s.outcome === "ongoing" && !wasFree) advanceTurn(s);
   }
   return {
     win: s.outcome === "victory",

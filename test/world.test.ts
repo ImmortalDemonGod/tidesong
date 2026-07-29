@@ -230,7 +230,7 @@ test("boss 1 grants the relic; the mouth opens dungeon 2; boss 2 is victory", ()
   expect(w.healSongUses).toBe(2);
   expect(w.checkpoint.area).toBe("dungeon2");
   walkTo(w, 8, 4);
-  expect(w.combat?.enemy.name).toBe("elder squid");
+  expect(w.combat?.enemy.name).toBe("ink squid"); // the gullet guard is enemy type 2 now
   winFight(w);
   walkTo(w, 14, 4);
   winFight(w);

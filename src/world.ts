@@ -19,6 +19,7 @@ import {
   createCombat,
   createElderCombat,
   createInkCombat,
+  isFreeAction,
   useAbility,
   type CombatState,
   type PartKey,
@@ -448,8 +449,10 @@ export function enemySlot(w: WorldState): boolean {
 
 // Bot/test composition: identical behavior to the original combatAction.
 export function combatAction(w: WorldState, ability: string, part?: PartKey): boolean {
+  const free = w.combat ? isFreeAction(w.combat, ability) : false;
   if (!playerAct(w, ability, part)) return false;
-  if (w.mode === "combat") enemySlot(w);
+  // a free action does not hand the enemy its slot
+  if (w.mode === "combat" && !free) enemySlot(w);
   return true;
 }
 

@@ -56,7 +56,7 @@ const ABILITY_EFFECT: Record<string, (c: CombatState) => string> = {
   siltBurst: () => `${ABILITIES.siltBurst.damage} dmg + blind: it misses`,
   finSlash: () => `${ABILITIES.finSlash.damage} dmg + slow: it skips turns`,
   healSong: () => `mend ${BASE.healSongAmount} of your own HP`,
-  analyze: () => "name its weakness",
+  analyze: () => "free: name its weakness",
   bubble: () => `brace: the next hit lands ${Math.round((1 - BASE.bubbleReduction) * 100)}%`,
 };
 

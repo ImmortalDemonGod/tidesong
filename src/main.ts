@@ -2,7 +2,7 @@ import { abilityCast, classifyLogLine } from "./events";
 import { Sound, type Mood } from "./audio";
 import { chooseEnding, combatAction, combatPass, createWorld, enemySlot, interact, playerAct, step, type Dir, type WorldState } from "./world";
 import { ABILITY_ORDER, CAST_TIME, render, type UIState } from "./render";
-import type { PartKey } from "./game";
+import { isFreeAction, type PartKey } from "./game";
 
 const canvas = document.getElementById("game") as HTMLCanvasElement;
 canvas.width = 1280;
@@ -413,10 +413,12 @@ function onKey(e: KeyboardEvent): void {
     const slot = Number.parseInt(k, 10);
     if (slot >= 1 && slot <= ABILITY_ORDER.length) {
       const before = world.combat;
+      const freeAct = world.combat ? isFreeAction(world.combat, ABILITY_ORDER[slot - 1]) : false;
       if (playerAct(world, ABILITY_ORDER[slot - 1], ui.selectedPart as PartKey | undefined)) {
         ui.buttonFlash[slot - 1] = 0.18;
         if (world.mode === "combat") {
-          ui.enemyBeat = 0.55;
+          // a free action (Analyze) returns the turn straight to you
+          if (!freeAct) ui.enemyBeat = 0.55;
         } else {
           // hold the winning frame: the kill must be watchable (HIGH-2)
           if (before) ui.victoryHold = { combat: before, t: 1.1 };
@@ -468,10 +470,11 @@ function combatClick(cx: number, cy: number): void {
           return;
         }
         const before = world.combat;
+        const freeClick = world.combat ? isFreeAction(world.combat, ABILITY_ORDER[i]) : false;
         if (playerAct(world, ABILITY_ORDER[i], ui.selectedPart as PartKey | undefined)) {
           ui.buttonFlash[i] = 0.18;
           if (world.mode === "combat") {
-            ui.enemyBeat = 0.55;
+            if (!freeClick) ui.enemyBeat = 0.55;
           } else {
             if (before) ui.victoryHold = { combat: before, t: 1.1 };
             ui.selectedPart = undefined;

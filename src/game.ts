@@ -94,6 +94,10 @@ export interface Combatant {
 export interface Ability {
   name: string;
   staCost: number;
+  // a free action resolves without giving the enemy its slot: scouting
+  // should not cost you the fight (measured: Analyze cost 5 to 12 HP a
+  // press, which is most of why the taught line lost to mashing)
+  free?: boolean;
   damage: number;
   inflicts?: ConditionKind;
   inflictTurns?: number;
@@ -107,7 +111,12 @@ export const ABILITIES: Record<string, Ability> = {
   siltBurst: { name: "Silt Burst", staCost: 3, damage: 2, inflicts: "blind", inflictTurns: 2 },
   finSlash: { name: "Fin Slash", staCost: 3, damage: 3, inflicts: "slow", inflictTurns: 2 },
   healSong: { name: "Heal Song", staCost: 4, damage: 0, heals: BASE.healSongAmount },
-  analyze: { name: "Analyze", staCost: 1, damage: 0, analyze: true },
+  // Analyze is a FREE action: it costs stamina but not your slot.
+  // Measured Jul 29: paying a whole turn for information cost 5 to 12 HP
+  // per press and was most of why the taught line lost to mashing. Free
+  // scouting turns "should I look?" into a real question instead of a
+  // punished one, and it is what makes the eel's wandering key usable.
+  analyze: { name: "Analyze", staCost: 1, damage: 0, analyze: true, free: true },
   bubble: { name: "Bubble", staCost: 2, damage: 0, bubble: true },
 };
 
@@ -346,6 +355,19 @@ export function currentKeyPart(state: CombatState): PartKey | undefined {
 // second slot instead of every third (pillar audit Jul 29: the heavy
 // cycle was identical in the first squid fight and the final boss, so a
 // phase break changed the number and not the feel).
+// Whether pressing this ability RIGHT NOW is a free action. Analyze is
+// free only while it still has something to tell you: the first look at
+// an enemy costs no slot, a second look costs a turn like anything else.
+// (Measured: an unconditionally free Analyze handed random play a free
+// turn one press in six and pushed casual win rate to 93 percent, well
+// over its band. Free scouting should reward looking, not spamming.)
+export function isFreeAction(state: CombatState, abilityKey: string): boolean {
+  const a = ABILITIES[abilityKey];
+  if (!a?.free) return false;
+  if (a.analyze) return !state.analyzed;
+  return true;
+}
+
 export function heavyEveryFor(state: CombatState): number {
   return state.boss && state.boss.phase === 2 ? BASE.heavyEveryPhase2 : BASE.heavyEvery;
 }

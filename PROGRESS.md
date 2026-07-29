@@ -1443,3 +1443,26 @@ every evidence class before any PENDING becomes GREEN.
   One process failure repeated: I moved a fragment without updating the
   nav waypoint and G2 went 0/50 until I traced it. World data and route
   data must move together.
+- (git time of this commit) ANALYZE IS A FREE ACTION, and finding the
+  right form of it exposed a measurement bug worse than the balance one.
+  The cold playtest measured Analyze costing 5 to 12 HP per press, which
+  was most of why the taught line lost to mashing. Made it free (costs
+  stamina, not your slot) and measured taught-vs-mash across 400 seeds
+  per enemy: the informed line gained 5 to 13 HP everywhere and flipped
+  squid, ink and shark from losses to clear wins.
+  THEN: making it free moved NO band, which was the tell. test/bots.ts
+  drove fights with useAbility + advanceTurn directly, so the judges
+  were playing a game where free actions did not exist while the player
+  played one where they did. Fixed the harness to honour free actions
+  exactly as world.ts and the UI do, and the honest numbers landed
+  immediately: casual squid jumped to 93.4 percent, over its band,
+  because random play was being handed a free turn one press in six.
+  FINAL FORM: Analyze is free only while it still has something to tell
+  you (the first look at an enemy); a second look costs a turn like
+  anything else. That rewards looking rather than spamming. All four
+  call paths agree (sim, world, keyboard, click) and share one reader,
+  isFreeAction(). Bands back in range (squid casual 78.2, boss 45.6,
+  elder 80.8), G2 improved again (casual deaths 941 to 695, worst 929
+  to 753 actions), 108 tests green.
+  Taught line now beats mashing on squid, ink and shark by 10 to 15 HP;
+  elder and eel still favour raw damage and are logged for the team.
