@@ -39,7 +39,7 @@ Slice target, in priority order:
    the morning report as "Enemy variety lab" for Marc's balance question.
    Hard rule: none of this appears in dist/index.html tonight.
 
-## State: RUN IN PROGRESS (priority 3: boss 1)
+## State: RUN IN PROGRESS (priority 7: playable layer landed, juice/audio/gates next)
 
 ## Exit gates
 
@@ -248,3 +248,32 @@ continue."
   actions, 1,168 total deaths; scripted optimal 50/50 clears, 0 deaths,
   max 100 actions, 3/3 fragments every run. G2 encoded in
   test/fullrun.test.ts. Evidence: `bun test` 53 pass / 0 fail.
+- 01:25 Fidelity review round 1 (adversarial agent) returned: 1 HIGH
+  (death un-spent Heal Song uses: defeat branch never synced the combat
+  copy back; fixed + regression test), 1 MED (failed combat input still
+  advanced the enemy turn; fixed + test), LOWs applied: untargeted boss
+  damage now drifts to a RANDOM unbroken part so aiming and Analyze carry
+  real decision value (judge bots unaffected, they aim explicitly),
+  Analyze log now includes enemy stats. Verdicts: coverage COMPLETE,
+  parking-lot CLEAN, fidelity deviations fixed. 56 pass / 0 fail.
+  Pre-dungeon deaths respawn at hub start (the only checkpoint that
+  exists before the first dungeon entry); logged here per review.
+- 01:30 P7 playable layer: full renderer (2.5D parallax: distant ruins
+  0.35x, mid reef 0.65x, play plane, foreground fronds 1.4x, depth fog,
+  light rays, drifting particles at 3 depths), exploration scene (door on
+  rock spire, entrance arch on pillars, trench, animated barrier strands,
+  fragments, merfolk, lurking enemy silhouettes), combat scene (staged
+  scale-by-depth, phase banner, boss part panel with reticle, condition
+  chips with levels, ability bar with costs and heal count), screens
+  (title with click audio unlock, pause, death flash, victory + credits),
+  input (WASD/arrows, E, 1-6, up/down part select, space, P, M, R),
+  audio: 7-event WebAudio synth wired through src/events.ts classifier
+  (pure, testable), pause-on-blur, prefers-reduced-motion respected.
+  ?demo= state hooks for screenshots. Render-and-look pass done on all 5
+  screens: caught title fish overlapping subtitle (fixed), floating door/
+  arch (fixed with rock backing), trench float (anchored; still reads
+  mound-ish, cosmetic note), and intermittently blank screenshots: NOT a
+  render bug, a first-paint race (--screenshot can capture before the
+  first rAF tick); fixed with a synchronous module-scope first paint,
+  verified 3/3 identical shots. Permanent on-canvas error overlay added
+  so future exceptions can never hide in a blank screenshot. dist 28.0 KB.

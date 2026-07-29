@@ -261,10 +261,15 @@ export function useAbility(state: CombatState, abilityKey: string, targetPart?: 
     if (dodge > 0 && nextRand(state) < dodge) {
       state.log.push(`${ability.name}: dodged`);
     } else if (state.boss) {
-      // Damage routes to a part; default target is the current key part.
+      // Damage routes to a part. UNTARGETED damage drifts to a random
+      // unbroken part: aiming (and Analyze's hint) must carry real decision
+      // value, so the key part is never free (fidelity review 01:20).
       let part = targetPart ? getPart(state, targetPart) : undefined;
-      if (!part || part.broken) part = getPart(state, currentKeyPart(state)!);
-      if (part && part.broken) part = state.boss.parts.find((p) => !p.broken);
+      if (part?.broken) part = undefined;
+      if (!part) {
+        const unbroken = state.boss.parts.filter((p) => !p.broken);
+        part = unbroken[Math.floor(nextRand(state) * unbroken.length)];
+      }
       if (part) {
         const dealt = Math.min(ability.damage, part.durability);
         part.durability -= dealt;
@@ -290,8 +295,8 @@ export function useAbility(state: CombatState, abilityKey: string, targetPart?: 
     state.analyzed = true;
     state.log.push(
       state.boss
-        ? `Analyze: target the ${currentKeyPart(state)} to end the ${state.boss.phaseName} phase`
-        : `Analyze: ${state.enemy.analyzeHint} is most effective`,
+        ? `Analyze: target the ${currentKeyPart(state)} to end the ${state.boss.phaseName} phase (${bossDamage(state)} dmg per hit)`
+        : `Analyze: ${state.enemy.analyzeHint} is most effective (${state.enemy.attackDamage} dmg, dodges ${Math.round(state.enemy.dodge * 100)}%)`,
     );
   }
   if (ability.inflicts) {

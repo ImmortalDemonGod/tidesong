@@ -21,7 +21,12 @@ const html = `<meta charset="utf-8">\n<meta name="viewport" content="width=devic
 <p class="sub">working title · the songs faded · follow the fragments</p>
 <canvas id="game"></canvas>
 <div class="chips">
-  <span class="chip"><b>scaffold</b> controls land with the overnight build</span>
+  <span class="chip"><b>WASD/arrows</b> swim</span>
+  <span class="chip"><b>E</b> talk and listen</span>
+  <span class="chip"><b>1-6</b> abilities in combat</span>
+  <span class="chip"><b>up/down</b> pick a boss part</span>
+  <span class="chip"><b>space</b> pass turn</span>
+  <span class="chip"><b>P</b> pause · <b>M</b> mute · <b>R</b> replay after victory</span>
 </div>
 <script>${js.replace(/<\/script>/g, "<\\/script>")}</script>
 `;

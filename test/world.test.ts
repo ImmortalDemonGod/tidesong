@@ -124,6 +124,33 @@ test("death: respawn at checkpoint with 60 percent HP, heals kept, encounter res
   expect(w.encounters.find((e) => e.id === 1)?.defeated).toBe(false);
 });
 
+test("heals spent in a fatal fight stay spent after respawn", () => {
+  const w = createWorld();
+  walkTo(w, HUB.dungeonEntrance.x, HUB.dungeonEntrance.y);
+  walkTo(w, 8, 4);
+  expect(w.mode).toBe("combat");
+  w.combat!.player.sta = 20;
+  combatAction(w, "healSong");
+  expect(w.combat!.healSongUses).toBe(1);
+  w.combat!.player.hp = 1;
+  let guard = 0;
+  while (w.mode === "combat" && guard++ < 100) combatPass(w);
+  expect(w.deaths).toBe(1);
+  expect(w.healSongUses).toBe(1);
+});
+
+test("a failed combat input does not cost a turn", () => {
+  const w = createWorld();
+  walkTo(w, HUB.dungeonEntrance.x, HUB.dungeonEntrance.y);
+  walkTo(w, 8, 4);
+  w.combat!.player.sta = 1;
+  const hp = w.combat!.player.hp;
+  const turn = w.combat!.turn;
+  expect(combatAction(w, "tailStrike")).toBe(false);
+  expect(w.combat!.player.hp).toBe(hp);
+  expect(w.combat!.turn).toBe(turn);
+});
+
 test("pity escalator: respawn HP climbs 60, 75, 90 and caps at 90", () => {
   const w = createWorld();
   walkTo(w, HUB.dungeonEntrance.x, HUB.dungeonEntrance.y);

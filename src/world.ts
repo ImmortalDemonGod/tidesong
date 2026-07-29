@@ -174,13 +174,19 @@ function endCombat(w: WorldState): void {
     w.combat = undefined;
     w.activeEncounter = undefined;
   } else if (c.outcome === "defeat") {
+    // Sync heals SPENT in the fatal fight before respawning; without this,
+    // death un-spends Heal Song, the exact refund the death rule forbids
+    // (found by fidelity review 01:20, HIGH).
+    w.healSongUses = c.healSongUses;
     applyDeath(w);
   }
 }
 
 export function combatAction(w: WorldState, ability: string, part?: PartKey): boolean {
   if (w.mode !== "combat" || !w.combat) return false;
-  useAbility(w.combat, ability, part);
+  // A failed input (not enough stamina, no heal uses) must NOT cost a turn;
+  // combatPass is the only explicit pass (fidelity review 01:20, MED).
+  if (!useAbility(w.combat, ability, part)) return false;
   if (w.combat.outcome === "ongoing") advanceTurn(w.combat);
   if (w.combat.outcome !== "ongoing") endCombat(w);
   return true;

@@ -27,11 +27,19 @@ test("boss creation: 4 parts, phase 1 CRUSH, key part jaw, hp mirrors durability
   expect(s.enemy.hp).toBe(26 + 22 + 12 + 12);
 });
 
-test("damage with no target routes to the current key part", () => {
-  const s = createBossCombat();
+test("damage with no target drifts to a random unbroken part", () => {
+  const s = createBossCombat(11);
   useAbility(s, "tailStrike");
-  expect(getPart(s, "jaw")!.durability).toBe(26 - 8);
   expect(s.enemy.hp).toBe(72 - 8);
+  const damaged = s.boss!.parts.filter((p) => p.durability < p.maxDurability);
+  expect(damaged.length).toBe(1);
+});
+
+test("aimed damage hits exactly the chosen part", () => {
+  const s = createBossCombat();
+  useAbility(s, "tailStrike", "tail");
+  expect(getPart(s, "tail")!.durability).toBe(12 - 8);
+  expect(getPart(s, "jaw")!.durability).toBe(26);
 });
 
 test("breaking a utility part reduces boss damage, never ends a phase", () => {
