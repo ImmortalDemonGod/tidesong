@@ -138,6 +138,12 @@ exist because an agent under a deadline will claim done when it is not.
   (user's Firefox is open; -no-remote + temp profile required)
 - Every feature round: implement, bun test, screenshot and LOOK at it,
   commit. Republish playable artifact periodically.
+- Commit cadence is binding: never more than 45 minutes of uncommitted
+  work (the realignment loop enforces the ceiling), and small commits are
+  the norm (TRUNK! shipped ~19 in one night). Each new mechanic and its
+  bot test land in the SAME commit; a mechanic without its test does not
+  get committed. Tests run before every commit and must be green; a red
+  suite blocks everything until fixed.
 
 ## Launch sequence (first actions when the run starts)
 1. Start `caffeinate -dims` in the background; verify it is running.
