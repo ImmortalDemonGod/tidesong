@@ -23,6 +23,7 @@ export interface UIState {
   lastLines: string[];
   shake: number; // seconds remaining on screen shake
   enemyFlash: number; // seconds remaining on enemy hit flash
+  zoomPulse: number; // seconds remaining on the combat-entry/phase zoom
   floaters: Floater[];
 }
 
@@ -652,8 +653,15 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
   lightRays(ctx, cw, ch, t * 0.5);
   particles(ctx, cw, ch, t, 0.5);
 
-  // screen shake while a hit lands on the player
+  // screen shake while a hit lands on the player; zoom pulse on combat
+  // entry and phase breaks (DESIGN 2.5D item 4: camera moments)
   ctx.save();
+  if (ui.zoomPulse > 0) {
+    const z = 1 + 0.07 * ui.zoomPulse;
+    ctx.translate(cw / 2, ch / 2);
+    ctx.scale(z, z);
+    ctx.translate(-cw / 2, -ch / 2);
+  }
   if (ui.shake > 0) {
     ctx.translate((Math.random() - 0.5) * 14 * ui.shake, (Math.random() - 0.5) * 10 * ui.shake);
   }

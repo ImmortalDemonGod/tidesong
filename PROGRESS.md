@@ -39,7 +39,7 @@ Slice target, in priority order:
    the morning report as "Enemy variety lab" for Marc's balance question.
    Hard rule: none of this appears in dist/index.html tonight.
 
-## State: RUN IN PROGRESS (priority 7: playable layer landed, juice/audio/gates next)
+## State: RUN IN PROGRESS (improvement loop; all slice priorities, stretch items, and reviewer rounds closed)
 
 ## Exit gates
 

@@ -25,6 +25,7 @@ const ui: UIState = {
   lastLines: [],
   shake: 0,
   enemyFlash: 0,
+  zoomPulse: 0,
   floaters: [],
 };
 
@@ -62,6 +63,10 @@ function drainLog(): void {
     }
     if (line.includes("BREAKS")) {
       ui.shake = 0.8;
+      ui.zoomPulse = 0.9;
+    }
+    if (line.startsWith("combat:")) {
+      ui.zoomPulse = 1.0;
     }
     if (line.includes("missed")) {
       ui.floaters.push({ text: "miss", color: "#7FA0AC", age: 0, side: "enemy" });
@@ -255,6 +260,7 @@ function frame(now: number): void {
   ui.time += reducedMotion ? dt * 0.25 : dt;
   if (ui.deathFlash > 0) ui.deathFlash = Math.max(0, ui.deathFlash - dt * 0.7);
   if (ui.shake > 0) ui.shake = Math.max(0, ui.shake - dt * (reducedMotion ? 8 : 2.2));
+  if (ui.zoomPulse > 0) ui.zoomPulse = Math.max(0, ui.zoomPulse - dt * (reducedMotion ? 10 : 1.8));
   if (ui.enemyFlash > 0) ui.enemyFlash = Math.max(0, ui.enemyFlash - dt * 2.5);
   for (const f of ui.floaters) f.age += dt;
   ui.floaters = ui.floaters.filter((f) => f.age < 1.3);
