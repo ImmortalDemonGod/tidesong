@@ -75,6 +75,8 @@ function resetRun(): void {
 function drainLog(): void {
   let soundSlot = 0;
   let lastEv: string | null = null;
+  let sawRestore = false;
+  let sawMend = false;
   // same-drain floats spawn on separate lanes so a chorded moment (a
   // payoff plus a damage number) never overprints (panel 2 seat C HIGH)
   const lanes = { player: 0, enemy: 0 };
@@ -163,6 +165,7 @@ function drainLog(): void {
     }
     if (line.startsWith("combat:")) {
       ui.zoomPulse = 1.0;
+      ui.bossIntro = undefined; // an arrival banner never outranks a fight
       if (!ui.bossIntro && !firstFightShown && !line.includes("corrupted")) {
         firstFightShown = true;
         const name = line.replace("combat: ", "").toUpperCase();
@@ -211,10 +214,15 @@ function drainLog(): void {
       ui.playerFlinch = 0.35; // the trench's red pulse in exploration
     }
     if (line.includes("(Heal Song restored)")) {
+      sawRestore = true;
       ui.storyCard = { text: "the entrance current mends your song: Heal Song restored", age: 0, kind: "heal" };
     }
+    if (line.includes("mends your wounds")) sawMend = true;
+    if (line.includes("takes pity")) {
+      ui.storyCard = { text: "the current takes pity: one Heal Song returns", age: 0, kind: "heal" };
+    }
     if (line.includes("Tide Relic is yours")) {
-      ui.storyCard = { text: `${line} · carry it west, the wall waits`, age: 0, kind: "relic" };
+      ui.storyCard = { text: `${line} · the wall to the east will part for you`, age: 0, kind: "relic" };
     }
   }
   if (world.deaths > lastDeaths) {
@@ -242,8 +250,18 @@ function drainLog(): void {
       dungeon1: { title: "THE FIRST RUIN", sub: "the choir hall" },
       dungeon2: { title: "THE SECOND RUIN", sub: "the drowned gullet" },
     };
-    const b = banners[world.area];
-    ui.bossIntro = { title: b.title, sub: b.sub, t: 1.6, dur: 1.6 };
+    const b = { ...banners[world.area] };
+    // the first relic-bearing arrival at the second ruin IS the parting
+    // moment (the separate banner lived 70ms before this one ate it)
+    if (world.area === "dungeon2" && world.hasTideRelic && !barrierBannerShown) {
+      barrierBannerShown = true;
+      b.title = "THE CURRENT PARTS";
+      b.sub = "the second ruin: the drowned gullet";
+    }
+    // the mend news rides the arrival banner instead of dying under it
+    if (sawMend) b.sub += " · the current mends you";
+    else if (sawRestore) b.sub += " · Heal Song restored";
+    ui.bossIntro = { title: b.title, sub: b.sub, t: sawMend || sawRestore ? 2.2 : 1.6, dur: sawMend || sawRestore ? 2.2 : 1.6 };
   }
 }
 
@@ -317,7 +335,10 @@ function onKey(e: KeyboardEvent): void {
   if (ui.screen === "pause") return;
   if (world.mode === "victory") {
     // R waits out the final SPENT hold: the climax must render (seat 1 MED-2)
-    if (k === "r" && !ui.victoryHold) resetRun();
+    if (k === "r" && !ui.victoryHold) {
+      resetRun();
+      ui.screen = "title";
+    }
     return;
   }
   if (world.mode === "combat") {
@@ -358,7 +379,12 @@ function onKey(e: KeyboardEvent): void {
   // explore; the death veil and the victory hold suppress action
   if (ui.deathFlash > 0.8 || ui.victoryHold) return;
   const dir = MOVE_KEYS[k] ?? EXPLORE_VERTICAL[k];
-  if (dir) heldDirs.add(dir, k);
+  if (dir) {
+    heldDirs.add(dir, k);
+    // a deliberate fresh press is intent; only auto-repeat momentum
+    // waits out the transition grace (round-2: taps died silently)
+    if (!e.repeat) areaGraceUntil = 0;
+  }
   if (k === "e") interact(world);
 }
 
@@ -623,20 +649,9 @@ function frame(now: number): void {
   // a victory can land while paused (blur mid-beat): normalize here, in
   // the state-owning loop, never in the renderer
   if (ui.screen === "pause" && world.mode === "victory") ui.screen = "play";
-  // crossing the parted current wall is a story beat, not a tile change
-  if (
-    !barrierBannerShown &&
-    world.area === "hub" &&
-    world.hasTideRelic &&
-    world.pos.x >= 20 &&
-    ui.screen === "play"
-  ) {
-    barrierBannerShown = true;
-    ui.bossIntro = { title: "THE CURRENT PARTS", sub: "the relic sings the wall open", t: 1.8, dur: 1.8 };
-  }
   // the payoff the fragments promised, HEARD: on the victory screen the
   // collected verses play back in order as one reassembled song
-  if (world.mode === "victory" && !ui.victoryHold && !victorySung) {
+  if (world.mode === "victory" && !ui.victoryHold && !victorySung && sound.unlocked) {
     victorySung = true;
     const count = world.fragments.filter((f) => f.collected).length;
     for (let i = 1; i <= count; i++) sound.versePhrase(i, 0.8 + (i - 1) * 1.1);

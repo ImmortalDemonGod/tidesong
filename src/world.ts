@@ -206,6 +206,16 @@ function applyDeath(w: WorldState, cause: "combat" | "hazard" = "combat"): void 
     w.pityDeaths += 1;
     const frac = Math.min(0.6 + 0.15 * (w.pityDeaths - 1), 0.9);
     w.hp = Math.round(w.maxHp * frac);
+    // the mercy rung (Jul 29, deepsoak x5000 found seed 1932: a
+    // 147-death eel treadmill; the ladder converges HP but heals stayed
+    // spent forever, so the floor experience diverged under heavies).
+    // From the third pity death the current returns ONE charge if the
+    // song is empty: winners and 1-2-death runs never see it, and death
+    // is still never a net gain over the entrance mend.
+    if (w.pityDeaths >= 3 && w.healSongUses === 0) {
+      w.healSongUses = 1;
+      w.log.push("the current takes pity: one Heal Song returns");
+    }
   } else {
     // hazard deaths are fight-free: respawn HP is capped at what you
     // carried into the trench THIS excursion, so suicide can never be
@@ -273,6 +283,15 @@ function endCombat(w: WorldState): void {
     // death un-spends Heal Song, the exact refund the death rule forbids
     // (found by fidelity review round 1, HIGH).
     w.healSongUses = c.healSongUses;
+    // a lost BOSS attempt returns one charge if the song is empty: both
+    // round-2 playtests and the x5000 soak measured the retry economy as
+    // a wall (casual retry wins 0/0.6/17.3 percent at 60/75/90 with no
+    // heals). The boss loop is deliberately one-more-try; trash deaths
+    // still wait for the pity>=3 mercy rung.
+    if (c.boss && w.healSongUses === 0) {
+      w.healSongUses = 1;
+      w.log.push("the current takes pity: one Heal Song returns");
+    }
     // one teaching line for the veil, chosen from what the fatal fight
     // never used (masher playtest: the pity ladder escalates HP; this
     // escalates knowledge with it)

@@ -333,3 +333,51 @@ test("pity ladder climbs on combat deaths only", () => {
   expect(w.pityDeaths).toBe(1);
   expect(w.hp).toBe(60);
 });
+
+test("mercy rung: from the third pity death an empty Heal Song regains one charge, never before, never when charged", () => {
+  const w = createWorld();
+  walkTo(w, HUB.dungeonEntrance.x, HUB.dungeonEntrance.y);
+  w.healSongUses = 0;
+  for (let d = 1; d <= 5; d++) {
+    walkTo(w, 8, 4);
+    if (w.mode !== "combat") {
+      // first squid may already be dead from a prior win; force the fight
+      w.encounters[0].defeated = false;
+      walkTo(w, 8, 4);
+    }
+    w.combat!.player.hp = 1;
+    w.healSongUses = 0;
+    w.combat!.healSongUses = 0;
+    let g = 0;
+    while (w.mode === "combat" && g++ < 200) combatPass(w);
+    expect(w.pityDeaths).toBe(d);
+    expect(w.healSongUses).toBe(d >= 3 ? 1 : 0);
+  }
+  // charged players get nothing from the rung
+  w.healSongUses = 2;
+  w.encounters[0].defeated = false;
+  walkTo(w, 8, 4);
+  w.combat!.player.hp = 1;
+  let g2 = 0;
+  while (w.mode === "combat" && g2++ < 200) combatPass(w);
+  expect(w.healSongUses).toBe(2);
+});
+
+test("boss death returns one Heal Song charge when empty; trash deaths wait for the pity rung", () => {
+  const w = createWorld();
+  walkTo(w, HUB.dungeonEntrance.x, HUB.dungeonEntrance.y);
+  walkTo(w, 8, 4);
+  winFight(w);
+  walkTo(w, 12, 6);
+  if (w.mode === "combat") winFight(w);
+  walkTo(w, 21, 4); // the shark
+  expect(w.mode).toBe("combat");
+  w.healSongUses = 0;
+  w.combat!.healSongUses = 0;
+  w.combat!.player.hp = 1;
+  let g = 0;
+  while (w.mode === "combat" && g++ < 300) combatPass(w);
+  expect(w.deaths).toBe(1);
+  expect(w.healSongUses).toBe(1); // the boss loop is one-more-try
+  expect(w.log.some((l) => l.includes("takes pity"))).toBe(true);
+});

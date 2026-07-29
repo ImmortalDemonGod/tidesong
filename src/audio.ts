@@ -31,6 +31,10 @@ export class Sound {
   private fragments = 0; // collected verses add harmony voices to the pad
   muted = false;
 
+  get unlocked(): boolean {
+    return this.ctx !== null;
+  }
+
   unlock(): void {
     if (!this.ctx) {
       const AC = (window.AudioContext || (window as any).webkitAudioContext) as typeof AudioContext;

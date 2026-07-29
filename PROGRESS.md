@@ -917,3 +917,33 @@ every evidence class before any PENDING becomes GREEN.
   line, the single unmarked dialogue line, now carries the placeholder
   mark like every other line of Marc's domain. The panel-2 round is
   closed at zero high-severity across all seats plus confirmation.
+- (git time of this commit) PLAYTEST ROUND 2 CLOSED + response. The
+  three replays graded EVERY round-1 complaint IMPROVED (first-timer:
+  23.6s cold / 4.9s beeline to the first fight vs 146s; "this build now
+  holds a cold player through the opening beautifully"; heavy cycle
+  "teaches itself"; II-decay "visible and generous"). Their converging
+  new HIGH, confirmed independently by the x5000 soak (seed 1932: a
+  147-death eel treadmill at the 5000-action cap): the retry economy.
+  Heals never returned, so bosses became luck-gated walls (measured
+  casual retry: 0/0.6/17.3 percent at 60/75/90 with an empty song).
+  FIXED with two mercy rules, both diegetic: a lost BOSS attempt
+  returns one charge if the song is empty; from the third pity death
+  any combat death does. Seed 1932: 907 actions / 22 deaths (was cap
+  fail); G2 casual worst case fell 2679 to 1614 actions, deaths 1871
+  to 1609; scripted 50/50. DESIGN death rule amended with the honest
+  ruling (boss-door sacrifice is now openly the anti-frustration
+  tradeoff, flagged for the team). Also fixed from round 2: the
+  TELEGRAPH KEPT ITS PROMISE THROUGH PHASE BREAKS (announced 12 landed
+  15 when the player's own hit broke the phase, 106/2000 fights; the
+  intent line now warns "N if it breaks" when the aimed key part is
+  within breaking range, via a pure phase-override read); first-fight
+  intro no longer suppressed by the area banner (combat clears arrival
+  banners); THE CURRENT PARTS moment folded into the first relic-bearing
+  d2 arrival (it lived 70ms as a separate banner); the mend/restore news
+  rides the arrival banner sub-line (the old card was wiped by the very
+  transition that produced it); eel aim line names the part the player
+  read (Lure, not EYE); fresh taps cancel the transition grace
+  (e.repeat distinguishes momentum); relic card compass corrected
+  (east); victory R returns to the TITLE for the shared 11am keyboard;
+  demo victory sessions no longer consume the reassembled-song one-shot
+  before audio unlock. 92 tests green.

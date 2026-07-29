@@ -301,13 +301,13 @@ export function currentKeyPart(state: CombatState): PartKey | undefined {
   return state.boss?.keyPartByPhase[state.boss.phase];
 }
 
-export function bossDamage(state: CombatState): number {
+export function bossDamage(state: CombatState, phase?: 1 | 2): number {
   const boss = state.boss;
   if (!boss) return state.enemy.attackDamage;
   const utilityBroken = boss.parts.filter(
     (p) => p.broken && p.key !== boss.keyPartByPhase[1] && p.key !== boss.keyPartByPhase[2],
   ).length;
-  return Math.max(1, boss.baseDamageByPhase[boss.phase] - utilityBroken * boss.utilityBreakDamageReduction);
+  return Math.max(1, boss.baseDamageByPhase[phase ?? boss.phase] - utilityBroken * boss.utilityBreakDamageReduction);
 }
 
 function breakPart(state: CombatState, part: BossPart): void {
@@ -462,12 +462,12 @@ export interface EnemyIntent {
   heavy: boolean;
 }
 
-export function enemyIntent(state: CombatState): EnemyIntent {
+export function enemyIntent(state: CombatState, phase?: 1 | 2): EnemyIntent {
   const slow = getCondition(state.enemy, "slow");
   const skip = !!slow && (state.slowSlots + 1) % 2 === 1;
   const heavy = !skip && (state.actSlots + 1) % BASE.heavyEvery === 0;
   const blind = getCondition(state.enemy, "blind");
-  let dmg = bossDamage(state);
+  let dmg = bossDamage(state, phase);
   if (heavy) dmg = Math.round(dmg * BASE.heavyMult);
   if (slow?.level === 2) dmg = Math.round(dmg * BASE.slowDamageMult);
   if (state.bubbleCharge) dmg = Math.round(dmg * (1 - BASE.bubbleReduction));

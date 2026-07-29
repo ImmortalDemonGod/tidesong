@@ -100,8 +100,16 @@ the build is placeholder for Marc's story and must be marked as such.
   death-looped 20 percent of casual bot runs, the same compounding
   punishment spiral this design cut from the exhaustion system). Heal Song
   uses are NOT restored, defeated encounters stay defeated, and the
-  encounter that killed you resets to full. Dying always costs the fight,
-  so it is never the efficient heal.
+  encounter that killed you resets to full. AMENDED Jul 29 (round-2
+  playtests + the x5000 soak measured the no-heal boss retry at 0 to
+  17.3 percent win): a lost BOSS attempt returns one Heal Song charge
+  if the song is empty, and from the third pity death the current
+  returns one charge after any combat death. The boss loop is
+  deliberately one-more-try; a death still costs the fight, the walk,
+  and the escalator's ceiling, but the RULING is now honest: at a boss
+  door with an empty song, sacrifice can be the practical heal, and the
+  design accepts that as the anti-frustration tradeoff (logged for the
+  team's morning review).
 - NOT in the jam build: stamina-death, threshold skill tiers (100/60/20
   percent versions), desperation moves, party members, inventory, equipment.
 

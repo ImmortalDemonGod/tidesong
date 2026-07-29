@@ -1240,6 +1240,12 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
       color = C.biolum;
     } else {
       text = intent.heavy ? `NEXT: WINDS UP · heavy blow for ${intent.dmg}` : `NEXT: strikes for ${intent.dmg}`;
+      if (c.boss && c.boss.phase === 1 && ui.selectedPart === c.boss.keyPartByPhase[1]) {
+        const aimedPart = c.boss.parts.find((p2) => p2.key === ui.selectedPart);
+        if (aimedPart && !aimedPart.broken && aimedPart.durability <= (c.relicEcho ? BASE.relicTailStrike : 8)) {
+          text += ` · ${enemyIntent(c, 2).dmg} if it breaks`;
+        }
+      }
       if (intent.missChance > 0) text += ` · ${Math.round(intent.missChance * 100)}% miss (blinded)`;
       if (intent.bubbled) text += " · your bubble holds";
       if (c.enemy.ink) text += " · ink in the water";
@@ -1346,7 +1352,7 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
     ctx.textAlign = "center";
     ctx.fillText(
       ui.selectedPart
-        ? `aiming at the ${ui.selectedPart.toUpperCase()}`
+        ? `aiming at the ${(c.boss.parts.find((p2) => p2.key === ui.selectedPart)?.name ?? ui.selectedPart).toUpperCase()}`
         : "no aim: hits drift (up/down to aim)",
       cw / 2,
       ch - 128,
