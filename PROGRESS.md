@@ -595,3 +595,25 @@ optimal 14.4 HP lost):
   the WORLD log. 80 tests green. Commit verdicts from the skeptic
   recorded honestly: c007ee6 REFUTED on four headline items before this
   batch repaired them; the mechanics commits HOLD.
+- 02:15 Fidelity round 2 (G8): coverage COMPLETE (all slice priorities
+  reachable in the built page, 15 screenshots), parking-lot CLEAN (lab
+  code verified absent from the bundle; elder squid confirmed a
+  stats-only variant, not a type against the ceiling), 4 deviations ALL
+  fixed: combat is now CLICKABLE per DESIGN (ability cards and boss part
+  rows hit-tested through the same beat-locked path as hotkeys; a
+  mouse-first player previously could not act at all, HIGH), the false
+  "weakens" line on pre-broken future key parts replaced with an honest
+  one, the boss-panel analyze hint names the on-screen part (second
+  surface of the round-2 fix), and the death-screen rule amended in
+  DESIGN with reasoning (auto-respawn under the veil is what every G2 bot
+  verifies). Also: stale judge-file comment about the reverted 55-runner
+  corrected, explore HUD stamina reads BASE, the second ruin's mouth got
+  its landmark arch (it was invisible until stepped on), and DESIGN.md's
+  three internal inconsistencies reconciled (Mhanna -> Marc in credits
+  line, slice-end amended for the shipped stretch, relic echo reconciled
+  against the deferred list). PROGRESS annotation: the 01:00 entry's "eel
+  jaw 22/eye 18" refers to pre-trim numbers; HEAD is Maw 22 / Lure 16 /
+  Coil 16 / Tail 12 after the later durability trim. Click path is
+  geometry-reviewed and keyboard-equivalent by construction; headless
+  click-drive verification noted as an open instrument gap for the final
+  panel. 80 tests green.

@@ -289,8 +289,12 @@ function breakPart(state: CombatState, part: BossPart): void {
       state.outcome = "victory";
       state.log.push(`the ${state.enemy.name} is spent: victory`);
     }
-  } else {
+  } else if (part.key !== boss.keyPartByPhase[1] && part.key !== boss.keyPartByPhase[2]) {
     state.log.push(`the ${state.enemy.name} weakens: damage down ${boss.utilityBreakDamageReduction}`);
+  } else {
+    // a pre-broken future key part: its payoff is the victory cascade at
+    // the phase break, not a damage cut; say so instead of lying (G8-2 F3)
+    state.log.push(`the ${part.name} hangs broken: its moment will come`);
   }
 }
 

@@ -118,11 +118,10 @@ function bestBossPart(state: CombatState, abilityDamage: number): { part: PartKe
 // fight, and an unweighted greedy turtles on Bubble forever once enemy damage
 // exceeds its own expected damage (found during squid tuning; the fix
 // strengthens the judge, the allowed direction).
-// healThreshold defaults to the PINNED 40 (the heal-averse floor-measuring
-// judge). The G2 runner passes 55: across a five-fight gauntlet, heal
-// aversion is a measurement device turned suicide pact. Raising the
-// threshold cannot shrink damage-taken floors (healing does not reduce
-// damage absorbed), so G3/G4 evidence is unaffected; logged in PROGRESS.
+// healThreshold defaults to the PINNED 40, and every gate uses the
+// default. (A threshold-55 G2 runner existed briefly; correctness round 2
+// refuted its justification and it was reverted. The parameter remains
+// for probes only; changing any gate's bot requires a logged reason.)
 export function optimalBot(keys: string[] = ABILITY_KEYS, healThreshold = 40): Bot {
   return (state) => {
     const options = affordable(state, keys);

@@ -224,11 +224,54 @@ function onKeyUp(e: KeyboardEvent): void {
 
 window.addEventListener("keydown", onKey);
 window.addEventListener("keyup", onKeyUp);
-canvas.addEventListener("pointerdown", () => {
+// Combat is clickable per DESIGN ("clickable ability buttons plus 1 to 6
+// hotkeys"; G8 round 2 F1: a mouse-first player could not act at all).
+// Clicks route through the exact same beat-locked path as the hotkeys.
+function combatClick(cx: number, cy: number): void {
+  if (ui.screen !== "play" || world.mode !== "combat" || !world.combat) return;
+  const ch = canvas.height;
+  // ability cards: x = 330 + i*152, y = ch-92, 140x64 (matches render.ts)
+  if (cy >= ch - 92 && cy <= ch - 28) {
+    for (let i = 0; i < ABILITY_ORDER.length; i++) {
+      const x = 330 + i * 152;
+      if (cx >= x && cx <= x + 140) {
+        if (ui.enemyBeat > 0 || ui.victoryHold) return;
+        const before = world.combat;
+        if (playerAct(world, ABILITY_ORDER[i], ui.selectedPart as PartKey | undefined)) {
+          if (world.mode === "combat") {
+            ui.enemyBeat = 0.55;
+          } else {
+            if (before) ui.victoryHold = { combat: before, t: 1.1 };
+            ui.selectedPart = undefined;
+          }
+        } else {
+          sound.play("jar");
+        }
+        return;
+      }
+    }
+  }
+  // boss part panel rows: x 16..206, rows at y = 120 + i*54 (height 44)
+  if (world.combat.boss && cx >= 16 && cx <= 206) {
+    world.combat.boss.parts.forEach((part, i) => {
+      const rowY = 120 + i * 54 - 4;
+      if (cy >= rowY && cy <= rowY + 44 && !part.broken) {
+        ui.selectedPart = part.key;
+      }
+    });
+  }
+}
+
+canvas.addEventListener("pointerdown", (e) => {
   if (ui.screen === "title") {
     sound.unlock();
     ui.screen = "play";
+    return;
   }
+  const rect = canvas.getBoundingClientRect();
+  const cx = ((e.clientX - rect.left) / rect.width) * canvas.width;
+  const cy = ((e.clientY - rect.top) / rect.height) * canvas.height;
+  combatClick(cx, cy);
 });
 window.addEventListener("blur", () => {
   // stale held keys auto-walked the fish after alt-tab (hunt, HIGH-3)

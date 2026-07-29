@@ -2,7 +2,7 @@
 // layers, underwater aerial perspective (far = bluer, dimmer), scale-by-depth
 // combat staging, all presentation-only. Palette follows the greybox sketch.
 
-import { ABILITIES, getCondition, type CombatState, type PartKey } from "./game";
+import { ABILITIES, BASE, getCondition, type CombatState, type PartKey } from "./game";
 import { AREAS, D1, HUB, type WorldState } from "./world";
 
 export interface Floater {
@@ -490,6 +490,21 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
       ctx.textAlign = "left";
     }
 
+    // the mouth of the second ruin: the slice's second gate gets a landmark
+    ctx.fillStyle = "#0D2A40";
+    ctx.fillRect(px(HUB.mouth.x) - 30, py(HUB.mouth.y) + 20, 12, groundY - py(HUB.mouth.y) + 20);
+    ctx.strokeStyle = w.hasTideRelic ? C.biolum : "#1E4560";
+    ctx.lineWidth = 8;
+    ctx.beginPath();
+    ctx.moveTo(px(HUB.mouth.x) - 24, py(HUB.mouth.y) + 36);
+    ctx.quadraticCurveTo(px(HUB.mouth.x) + 4, py(HUB.mouth.y) - 40, px(HUB.mouth.x) + 30, py(HUB.mouth.y) + 36);
+    ctx.stroke();
+    ctx.fillStyle = C.muted;
+    ctx.font = "12px system-ui";
+    ctx.textAlign = "center";
+    ctx.fillText("second ruin", px(HUB.mouth.x), py(HUB.mouth.y) - 52);
+    ctx.textAlign = "left";
+
     merfolk(ctx, px(HUB.npc.x), py(HUB.npc.y), t);
     ctx.fillStyle = C.muted;
     ctx.font = "11px system-ui";
@@ -615,7 +630,7 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
   ctx.fillText("STA", 32, 66);
   bar(ctx, 62, 56, 150, 12, 1, C.glow);
   ctx.fillStyle = C.muted;
-  ctx.fillText("20/20", 220, 66);
+  ctx.fillText(`${BASE.playerSta}/${BASE.playerSta}`, 220, 66);
   ctx.fillText("SONG", 32, 90);
   ctx.fillStyle = C.ink;
   ctx.fillText(`${"~".repeat(w.healSongUses) || "-"}`, 76, 90);
@@ -816,7 +831,8 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
     if (c.analyzed) {
       ctx.fillStyle = C.biolum;
       ctx.font = "12px system-ui";
-      ctx.fillText(`analyze: break the ${c.boss.keyPartByPhase[c.boss.phase]} to end this phase`, panelX, py2 + 4);
+      const keyName = c.boss.parts.find((p) => p.key === c.boss!.keyPartByPhase[c.boss!.phase])?.name ?? "";
+      ctx.fillText(`analyze: break the ${keyName} to end this phase`, panelX, py2 + 4);
     }
   } else if (c.analyzed) {
     ctx.fillStyle = C.biolum;

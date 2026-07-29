@@ -68,7 +68,7 @@ the build is placeholder for Marc's story and must be marked as such.
   turn (full between fights).
 - Death: at 0 HP the player respawns at the dungeon-entrance checkpoint.
   Respawn HP escalates with deaths: 60 percent, then 75, then capped at 90
-  (pity escalator, amended 00:18 Jul 29: the flat 60 percent rule
+  (pity escalator, amended after softlock data: the flat 60 percent rule
   death-looped 20 percent of casual bot runs, the same compounding
   punishment spiral this design cut from the exhaustion system). Heal Song
   uses are NOT restored, defeated encounters stay defeated, and the
@@ -136,7 +136,11 @@ The parts every game needs that no design doc remembered to write down:
   read closer to the team's 3D target (Glass_Goat's Wind Waker direction)
   while staying an overnight-sized canvas build.
 - Controls: WASD or arrows to swim, E to interact, combat via clickable
-  ability buttons plus 1 to 6 hotkeys, P pauses, M mutes, R on death screen.
+  ability buttons plus 1 to 6 hotkeys, P pauses, M mutes. AMENDED (G8
+  round 2 F2): death auto-respawns under a transient veil instead of an
+  R-gated death screen; the pity flow made a modal death screen redundant
+  and the sim's respawn is what every G2 bot verifies. R replays after
+  victory.
 - Combat entry: touching a corrupted enemy in exploration opens the combat
   scene; winning returns to exploration with that enemy gone (per the death
   rule, defeated encounters stay defeated).
@@ -145,9 +149,11 @@ The parts every game needs that no design doc remembered to write down:
 - Screens: title card (click to start; this is also the audio unlock, the
   TRUNK! lesson), pause overlay, death screen (respawn per DESIGN death
   rule), and a slice-end victory screen with placeholder team credits
-  (Mhanna, Glass_Goat, ImmortalDemon).
-- Slice end condition: defeat boss 1, receive the Tide Relic, part the
-  current barrier; victory screen plays at the mouth of dungeon 2.
+  (Marc, Glass_Goat, ImmortalDemon).
+- Slice end condition, AMENDED when stretch item 8 shipped: the mouth of
+  dungeon 2 opens on the relic, and victory plays at the defeat of boss 2
+  (the corrupted eel). The original mouth-victory applied only while
+  dungeon 2 was unbuilt.
 - Accessibility minimum: prefers-reduced-motion respected, pause on tab
   blur, mute toggle.
 - Persistence: in-session checkpoints only tonight; progress does not
@@ -160,6 +166,11 @@ reaches them), third regular enemy type, localStorage saves, flee/escape
 from combat (economy decision that belongs to the team), relic combat echo,
 settings beyond pause/mute, difficulty modes, speedrun timer, touch/mobile
 controls, input remapping, localization.
+
+RECONCILIATION (G8 round 2 F10c): the relic combat echo below was listed
+as deferred but shipped with logged justification (the extended slice was
+unsurvivable without power growth; see PROGRESS). The deferral stands for
+everything else in this section.
 
 Also deferred (team discussion Jul 28, Marc's proposal, Glass_Goat's
 timing): enemy-applied conditions on the player, and per-enemy immunities
