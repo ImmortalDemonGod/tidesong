@@ -1466,8 +1466,11 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
     const lane = f.lane ?? 0;
     // wider lanes: a long payoff ("turn lost · slowed") and a damage
     // number spawned in the same drain were still overlapping on the body
-    const x = (f.side === "enemy" ? 800 + f.age * 20 : 250) + (lane % 2 === 0 ? -34 : 34) * Math.min(1, lane);
-    const y = (f.side === "enemy" ? 285 : 370) + lane * 34 - f.age * 46;
+    // lanes cycle so a long run of floats fans out instead of climbing
+    // off the top of the sprite
+    const slot = lane % 3;
+    const x = (f.side === "enemy" ? 800 + f.age * 20 : 250) + (slot - 1) * 46;
+    const y = (f.side === "enemy" ? 285 : 370) + slot * 26 - f.age * 46;
     ctx.save();
     let alpha = Math.max(0, 1 - f.age / 1.3);
     if (f.side === "enemy" && y < 195) alpha *= Math.max(0, (y - 165) / 30);

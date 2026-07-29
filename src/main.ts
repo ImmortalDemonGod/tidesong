@@ -100,7 +100,10 @@ function drainLog(): void {
   // payoff plus a damage number) never overprints (panel 2 seat C HIGH)
   const lanes = { player: 0, enemy: 0 };
   const addFloater = (text: string, color: string, side: "player" | "enemy"): void => {
-    ui.floaters.push({ text, color, age: 0, side, lane: lanes[side]++ });
+    // stagger against everything still on screen, not just this drain:
+    // consecutive turns were stacking two floats on the same spot
+    const stillUp = ui.floaters.filter((f) => f.side === side && f.age < 0.75).length;
+    ui.floaters.push({ text, color, age: 0, side, lane: lanes[side]++ + stillUp });
   };
   while (logCursor < world.log.length) {
     const line = world.log[logCursor++];

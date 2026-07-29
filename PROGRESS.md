@@ -1488,3 +1488,9 @@ every evidence class before any PENDING becomes GREEN.
   the Analyze sentence itself was shortened. Same class, also fixed:
   floater lanes widened so a long payoff and a damage number spawned in
   one drain no longer overlap on the body. 108 tests green.
+- (git time of this commit) Follow-up on the same report: the first
+  floater fix only separated floats spawned in the SAME drain, and the
+  ones actually overlapping came from consecutive turns. They now
+  stagger against every float still on screen and cycle through three
+  fanned lanes, so a run of hits reads as a column instead of a pile.
+  Caught by re-shooting rather than by trusting the first fix.
