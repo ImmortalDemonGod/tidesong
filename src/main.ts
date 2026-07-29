@@ -191,6 +191,10 @@ function drainLog(): void {
         ui.bossIntro = { title: "THE CORRUPTED SHARK", sub: "guardian of the first ruin", t: 2.6, dur: 2.6 };
       } else if (line.includes("corrupted eel") && !ui.bossIntro) {
         ui.bossIntro = { title: "THE CORRUPTED EEL", sub: "the one that drank the sea's name", t: 2.6, dur: 2.6 };
+      } else if (line.includes("ink squid") && !ui.bossIntro) {
+        // the validation playtest's one pre-11am ask: enemy type 2's
+        // debut deserves more than a 12px intent token
+        ui.bossIntro = { title: "AN INK SQUID", sub: "the water itself turns against you", t: 2.2, dur: 2.2 };
       }
     }
     if (line.includes("missed") && !line.includes("missed (blind)")) {

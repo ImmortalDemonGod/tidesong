@@ -1081,3 +1081,21 @@ every evidence class before any PENDING becomes GREEN.
   final panel, fixes, confirmation, refutations, fixes, re-confirmation
   at zero high-severity. VERDICTS STAMPED BELOW at the git time of
   this commit.
+- (git time of this commit) GREENLIGHT VALIDATION PLAYTEST (skeptical
+  teammate, stamped build, real bundle, human pacing): "Yes, I would
+  greenlight it, and I walked in skeptical." ZERO high defects; zero
+  crashes across ~15 minutes of play; every intent number verified live
+  for ~120 turns without one lie (incl. the 24-under-WINDS-UP interplay
+  case); full run 5m12s with 3 deaths, no dead stretch over 20 seconds;
+  the three strongest moments named: the boss telegraph loop ("the
+  screen that sells the full game"), the legible hub adventure with the
+  verse payoff, and coached survivable failure. Its three weaknesses
+  are the team's morning design questions (death-as-healing rhythm,
+  trash variety beyond the ink squid, coaching depth for correct-play
+  deaths), already in the 11am briefing. Its one pre-11am ask SHIPPED
+  in this commit: the ink squid now announces itself (AN INK SQUID:
+  the water itself turns against you), the same proven banner pattern
+  as the bosses, presentation-only. Backlog LOWs logged for post-jam:
+  boss banner overdraws the sprite during its moment; floaters can
+  cross the analyze hint for a beat; condition level II paths rarely
+  exercised in natural play.
