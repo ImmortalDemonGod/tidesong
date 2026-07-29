@@ -155,6 +155,17 @@ from combat (economy decision that belongs to the team), relic combat echo,
 settings beyond pause/mute, difficulty modes, speedrun timer, touch/mobile
 controls, input remapping, localization.
 
+Also deferred (team discussion Jul 28, Marc's proposal, Glass_Goat's
+timing): enemy-applied conditions on the player, and per-enemy immunities
+or resistances (from Glass_Goat's original doc). These are the intended
+design axis for enemy types 2 and 3 in jam scope: each new enemy gets one
+defining twist (applies a condition, resists one, or buffs) per Marc's
+one-mechanic-per-enemy principle. Not tonight: with one regular enemy and
+two conditions, immunities only delete player options, and player-side
+conditions double the UI surface. When they land, balance them with the
+same bot harness (G3/G4 bands) built tonight; the harness is the reusable
+answer to "which mixes are fair."
+
 ## Verification requirements (non-negotiable)
 - `src/game.ts` stays a pure simulation: no DOM, no canvas, no timers.
   Rendering reads state; it never owns it. This is what makes bot playtests
