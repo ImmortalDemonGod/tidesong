@@ -809,3 +809,15 @@ every evidence class before any PENDING becomes GREEN.
   edge-darkening vignette while you are blinded, intent line warns "ink
   in the water", demo=ink hook; screenshot verified. DESIGN amended:
   type 2 recorded, deferred list reconciled (immunities stay type 3).
+- (git time of this commit) STORY FILL + BOSS INTROS (playtest mandate:
+  fill the placeholders if it makes it fun): the five fragment verses now
+  carry a real draft arc (the choir that named the tides, the dark that
+  swallowed the brave, the guardian who outlived his music, the keepers'
+  hidden verse, the eel that drank the sea's name), still
+  placeholder-marked in data for Marc with the on-card tag; boss fights
+  open on a title card (THE CORRUPTED SHARK guardian of the first ruin /
+  THE CORRUPTED EEL the one that drank the sea's name) fading over the
+  first beats, reduced-motion aware, demo=bossintro hook added and
+  screenshot-verified after two instrument fixes caught by looking
+  (drainLog overwrote the demo's card; fade-in math pinned to a fixed
+  2.6s and invisible at other durations). 90 tests green.

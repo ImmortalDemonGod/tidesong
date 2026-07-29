@@ -37,6 +37,7 @@ export interface UIState {
   buttonFlash: number[]; // pressed flash per ability card
   hitStop: number; // brief presentation freeze on impact
   reducedMotion: boolean; // positional offsets collapse to flashes
+  bossIntro?: { title: string; sub: string; t: number; dur: number }; // set-piece title card
 }
 
 export const ABILITY_ORDER = ["tailStrike", "siltBurst", "finSlash", "healSong", "analyze", "bubble"];
@@ -1170,6 +1171,34 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
       ctx.arc(ex - 120 + (i * 37) % 240, eyBase - sink * (90 + (i % 6) * 30) + 20, 2.8, 0, Math.PI * 2);
       ctx.fill();
     }
+    ctx.restore();
+  }
+
+  // the set-piece announces itself: a title card over the first beats
+  // of every boss fight (fun diagnosis: bosses arrived like menu rows)
+  if (ui.bossIntro && !ui.victoryHold) {
+    const bi = ui.bossIntro;
+    const fade = Math.min(1, Math.min((bi.dur - bi.t) / 0.35 + 0.001, bi.t / 0.6));
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, fade) * 0.92;
+    ctx.fillStyle = "rgba(4,10,18,0.85)";
+    ctx.fillRect(0, 208, cw, 132);
+    ctx.strokeStyle = C.danger;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cw / 2 - 260, 214);
+    ctx.lineTo(cw / 2 + 260, 214);
+    ctx.moveTo(cw / 2 - 260, 334);
+    ctx.lineTo(cw / 2 + 260, 334);
+    ctx.stroke();
+    ctx.textAlign = "center";
+    ctx.fillStyle = C.danger;
+    ctx.font = "700 44px system-ui";
+    ctx.fillText(bi.title, cw / 2, 276);
+    ctx.fillStyle = C.muted;
+    ctx.font = "600 16px ui-monospace, monospace";
+    ctx.fillText(bi.sub, cw / 2, 314);
+    ctx.textAlign = "left";
     ctx.restore();
   }
 

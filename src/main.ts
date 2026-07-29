@@ -61,6 +61,7 @@ function resetRun(): void {
   ui.playerFlinch = 0;
   ui.buttonFlash = [0, 0, 0, 0, 0, 0];
   ui.hitStop = 0;
+  ui.bossIntro = undefined;
   ui.screen = "play";
 }
 
@@ -145,6 +146,11 @@ function drainLog(): void {
     }
     if (line.startsWith("combat:")) {
       ui.zoomPulse = 1.0;
+      if (line.includes("corrupted shark") && !ui.bossIntro) {
+        ui.bossIntro = { title: "THE CORRUPTED SHARK", sub: "guardian of the first ruin", t: 2.6, dur: 2.6 };
+      } else if (line.includes("corrupted eel") && !ui.bossIntro) {
+        ui.bossIntro = { title: "THE CORRUPTED EEL", sub: "the one that drank the sea's name", t: 2.6, dur: 2.6 };
+      }
     }
     if (line.includes("missed")) {
       ui.floaters.push({ text: "miss", color: "#7FA0AC", age: 0, side: "enemy" });
@@ -401,6 +407,13 @@ if (demo) {
       combatAction(world, "finSlash");
       ui.selectedPart = "jaw";
     }
+  } else if (demo === "bossintro") {
+    world.area = "dungeon1";
+    for (const e of world.encounters) if (e.kind === "squid") e.defeated = true;
+    world.pos = { x: 20, y: 4 };
+    world.checkpoint = { area: "dungeon1", pos: { x: 1, y: 4 } };
+    step(world, "right");
+    ui.bossIntro = { title: "THE CORRUPTED SHARK", sub: "guardian of the first ruin", t: 299, dur: 300 };
   } else if (demo === "ink") {
     world.hasTideRelic = true;
     world.area = "dungeon2";
@@ -548,6 +561,10 @@ function frame(now: number): void {
       if (ui.attackAnim.t <= 0) ui.attackAnim = undefined;
     }
     if (ui.enemyStrike > 0) ui.enemyStrike = Math.max(0, ui.enemyStrike - dt);
+    if (ui.bossIntro) {
+      ui.bossIntro.t -= dt * (reducedMotion ? 3 : 1);
+      if (ui.bossIntro.t <= 0) ui.bossIntro = undefined;
+    }
     if (ui.playerFlinch > 0) ui.playerFlinch = Math.max(0, ui.playerFlinch - dt);
     for (let i = 0; i < ui.buttonFlash.length; i++) {
       if (ui.buttonFlash[i] > 0) ui.buttonFlash[i] = Math.max(0, ui.buttonFlash[i] - dt);

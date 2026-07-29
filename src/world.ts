@@ -130,12 +130,15 @@ export function createWorld(seed = 1): WorldState {
     healRestored: { dungeon1: false, dungeon2: false },
     hasTideRelic: false,
     fragments: [
-      // Verses are placeholder for Marc's story.
-      { id: 1, area: "hub", x: 7, y: 5, collected: false, verse: "(placeholder) when the choir hall still sang" },
-      { id: 2, area: "hub", x: 14, y: 7, collected: false, verse: "(placeholder) the low dark took the bravest first" },
-      { id: 3, area: "dungeon1", x: 11, y: 6, collected: false, verse: "(placeholder) the shark was a guardian once" },
-      { id: 4, area: "hub", x: HUB.alcove.x, y: HUB.alcove.y, collected: false, verse: "(placeholder) the seal keepers sang in threes" },
-      { id: 5, area: "dungeon2", x: 11, y: 2, collected: false, verse: "(placeholder) the eel swallowed the last verse whole" },
+      // Draft verses (placeholder-marked for Marc: an arc he can keep,
+      // rewrite, or discard). The five lines tell the fall and the
+      // return: the choir, the dark, the guardian, the keepers, the
+      // swallowed name. Filled in Jul 29 under the playtest mandate.
+      { id: 1, area: "hub", x: 7, y: 5, collected: false, verse: "(placeholder) we sang the tides their names, and the tides came when we called" },
+      { id: 2, area: "hub", x: 14, y: 7, collected: false, verse: "(placeholder) when the songs thinned, the low dark learned to swallow the brave" },
+      { id: 3, area: "dungeon1", x: 11, y: 6, collected: false, verse: "(placeholder) the guardian kept his post long after the music left his mind" },
+      { id: 4, area: "hub", x: HUB.alcove.x, y: HUB.alcove.y, collected: false, verse: "(placeholder) the keepers hid their brightest verse for the one who would come singing" },
+      { id: 5, area: "dungeon2", x: 11, y: 2, collected: false, verse: "(placeholder) last of all the eel drank down the name of the sea itself" },
     ],
     encounters: [
       { id: 1, area: "dungeon1", x: 8, y: 4, kind: "squid", defeated: false },
