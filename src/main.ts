@@ -184,7 +184,8 @@ function drainLog(): void {
       if (!ui.bossIntro && !firstFightShown && !line.includes("corrupted")) {
         firstFightShown = true;
         const name = line.replace("combat: ", "").toUpperCase();
-        ui.bossIntro = { title: `A ${name}`, sub: "the corruption notices you", t: 1.8, dur: 1.8 };
+        const article = /^[AEIOU]/.test(name) ? "AN" : "A";
+        ui.bossIntro = { title: `${article} ${name}`, sub: "the corruption notices you", t: 1.8, dur: 1.8 };
       }
       if (line.startsWith("combat:")) firstFightShown = true;
       if (line.includes("corrupted shark") && !ui.bossIntro) {

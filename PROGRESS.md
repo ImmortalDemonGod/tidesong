@@ -1116,3 +1116,14 @@ every evidence class before any PENDING becomes GREEN.
   organized for the team with evidence pointers (design questions,
   presentation polish, deferred scope, the engine decision). Zero
   build risk; the slice is untouched.
+- (git time of this commit) Ink banner VERIFIED AS PLAYED (the
+  validator's requested re-run): a real drive from the second ruin's
+  entrance through a genuine elder fight into the ink encounter painted
+  AN INK SQUID plus its sub-line for 11 frames at fight start (probe in
+  scratchpad/inkbanner; the first two probe attempts failed for
+  harness reasons worth recording: demo hooks skip drainLog by design
+  so demo=ink cannot show entry banners, and instant synthetic taps
+  slip between frames of the held-key movement gate, needing
+  human-length holds). One nit the probe caught, fixed: the generic
+  first-fight banner now picks A or AN by vowel (A ELDER SQUID read
+  wrong in demo sessions). 93 tests green.
