@@ -81,9 +81,11 @@ export interface BossPart {
 // lesser, never-trap payoff: each broken utility part permanently reduces
 // boss damage. All parts are targetable in any phase; pre-breaking the
 // phase-2 key part means the phase break cascades immediately. For the
-// shark the total durability to victory is order-independent; for the eel
-// a tail-key seed needs 34 vs 38 for lure/coil seeds: mild per-seed
-// variance, accepted and logged (correctness round 2, LOW-12).
+// shark the total durability to victory is order-independent. For the eel
+// a tail-key seed needs 34 vs 38 durability, but MEASURED fairness runs
+// the other way: tail-key cohorts are ~5 points harder for casual play
+// because the fast tail break means longer under phase-2 damage (see
+// tools/keyfairness.ts; all cohorts in band, wander is fair).
 export interface BossData {
   kind: "shark" | "eel";
   parts: BossPart[];
