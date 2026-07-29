@@ -279,7 +279,8 @@ function frame(now: number): void {
   if (ui.deathFlash > 0) ui.deathFlash = Math.max(0, ui.deathFlash - dt * 0.7);
   if (ui.shake > 0) ui.shake = Math.max(0, ui.shake - dt * (reducedMotion ? 8 : 2.2));
   if (ui.zoomPulse > 0) ui.zoomPulse = Math.max(0, ui.zoomPulse - dt * (reducedMotion ? 10 : 1.8));
-  if (ui.enemyBeat > 0) {
+  // the exchange freezes with the game: no enemy beat while paused
+  if (ui.enemyBeat > 0 && ui.screen === "play") {
     ui.enemyBeat = Math.max(0, ui.enemyBeat - dt * (reducedMotion ? 3 : 1));
     if (ui.enemyBeat === 0 && world.mode === "combat") {
       enemySlot(world);
