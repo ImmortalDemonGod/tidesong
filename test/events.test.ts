@@ -6,7 +6,7 @@
 import { expect, test } from "bun:test";
 import { classifyLogLine } from "../src/events";
 import { createBossCombat, createCombat, useAbility } from "../src/game";
-import { HUB, combatAction, combatPass, createWorld, step } from "../src/world";
+import { HUB, combatAction, combatPass, createWorld, interact, step } from "../src/world";
 import { walk } from "./helpers";
 
 test("G7 hit: a landed attack log line classifies as hit", () => {
@@ -79,4 +79,22 @@ test("G7 victory: the eel's fall classifies as victory (extended slice ending)",
   }
   expect(w.mode).toBe("victory");
   expect(w.log.some((l) => classifyLogLine(l) === "victory")).toBe(true);
+});
+
+test("G7 victory: a plain combat win classifies as victory (win-edge fix)", () => {
+  const s = createCombat(3);
+  s.enemy.dodge = 0;
+  s.enemy.hp = 5;
+  useAbility(s, "tailStrike");
+  expect(s.outcome).toBe("victory");
+  expect(s.log.some((l) => classifyLogLine(l) === "victory")).toBe(true);
+});
+
+test("G7 note and jar: song-seal stones ring and jar audibly", () => {
+  const w = createWorld(9);
+  walk(w, HUB.stones[w.melody[0]].x, HUB.stones[w.melody[0]].y);
+  interact(w);
+  expect(w.log.some((l) => classifyLogLine(l) === "note")).toBe(true);
+  interact(w); // same stone again: wrong continuation, seal jars
+  expect(w.log.some((l) => classifyLogLine(l) === "jar")).toBe(true);
 });

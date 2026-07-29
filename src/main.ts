@@ -39,21 +39,38 @@ function resetRun(): void {
   ui.animX = world.pos.x;
   ui.animY = world.pos.y;
   ui.selectedPart = undefined;
+  ui.lastLines = [];
+  ui.floaters = [];
+  ui.storyCard = undefined;
+  ui.victoryHold = undefined;
+  ui.shake = 0;
+  ui.enemyFlash = 0;
+  ui.zoomPulse = 0;
+  ui.enemyBeat = 0;
+  ui.deathFlash = 0;
   ui.screen = "play";
 }
 
 // Drain new sim log lines: drive audio and the on-screen ticker from the
 // same classifier G7's tests verify.
 function drainLog(): void {
+  let soundSlot = 0;
+  let lastEv: string | null = null;
   while (logCursor < world.log.length) {
     const line = world.log[logCursor++];
+    if (line.startsWith("combat:")) ui.lastLines.length = 0; // fresh fight, fresh ticker
     ui.lastLines.push(line);
     if (ui.lastLines.length > 6) ui.lastLines.shift();
     const ev = classifyLogLine(line);
-    if (ev) sound.play(ev);
+    // stagger chorded drains; dedupe immediate repeats (hunt, MED-8)
+    if (ev && ev !== lastEv) {
+      sound.play(ev, soundSlot * 0.12);
+      soundSlot += 1;
+    }
+    lastEv = ev ?? lastEv;
 
     // juice: floaters, shake, hit flash, parsed from the same lines
-    const enemyHit = line.match(/hits (?:the \w+: |for )?(\d+)/);
+    const enemyHit = line.match(/hits (?:the \w+: |for )?(\d+)/) ?? line.match(/: (\d+) dmg/);
     if (line.includes("enemy hits for")) {
       ui.shake = 0.5;
       ui.floaters.push({ text: `-${line.match(/for (\d+)/)?.[1] ?? ""}`, color: "#FF6B5D", age: 0, side: "player" });
@@ -61,10 +78,13 @@ function drainLog(): void {
       ui.enemyFlash = 0.3;
       ui.floaters.push({ text: `-${enemyHit[1]}`, color: "#D8E9EE", age: 0, side: "enemy" });
     }
+    if (line.includes(": dodged")) {
+      ui.floaters.push({ text: "dodged", color: "#7FA0AC", age: 0, side: "enemy" });
+    }
     if (line.includes("+2 STA") || line.includes("disable landed")) {
       ui.floaters.push({ text: "+2 STA", color: "#7FE8A9", age: 0, side: "player" });
     }
-    if (line.includes("BREAKS")) {
+    if (line.includes("BREAKS") && world.mode === "combat") {
       ui.shake = 0.8;
       ui.zoomPulse = 0.9;
     }
@@ -82,7 +102,20 @@ function drainLog(): void {
     // combat-only log ticker, so the narrative pillar never displayed)
     const verse = line.match(/^memory fragment: "(.+)"$/);
     if (verse) {
-      ui.storyCard = { text: verse[1], age: 0 };
+      ui.storyCard = { text: verse[1], age: 0, kind: "story" };
+    }
+    // the song-seal puzzle speaks on screen, not into a hidden log
+    // (hunt, HIGH-1); the merfolk line ages out instead of living forever
+    // (hunt, MED-5); the relic award is announced (hunt, HIGH-2)
+    if (line.includes("song-seal") || line.includes("rings true") || line.includes("jars against") || line.includes("seal holds")) {
+      ui.storyCard = { text: line, age: 0, kind: "song" };
+    }
+    const npc = line.match(/^npc: (.+)$/);
+    if (npc) {
+      ui.storyCard = { text: `"${npc[1]}"`, age: 0, kind: "npc" };
+    }
+    if (line.includes("Tide Relic is yours")) {
+      ui.storyCard = { text: line, age: 0, kind: "story" };
     }
   }
   if (world.deaths > lastDeaths) {
@@ -134,6 +167,8 @@ function onKey(e: KeyboardEvent): void {
     return;
   }
   if (k === "p") {
+    // pause may never erase the victory screen (hunt, MED-4)
+    if (world.mode === "victory") return;
     if (ui.screen === "play") ui.screen = "pause";
     else if (ui.screen === "pause") ui.screen = "play";
     return;
@@ -150,18 +185,28 @@ function onKey(e: KeyboardEvent): void {
       return;
     }
     // input locks while the sea answers: the exchange must be watchable
-    if (ui.enemyBeat > 0) return;
+    if (ui.enemyBeat > 0 || ui.victoryHold) return;
     const slot = Number.parseInt(k, 10);
     if (slot >= 1 && slot <= ABILITY_ORDER.length) {
+      const before = world.combat;
       if (playerAct(world, ABILITY_ORDER[slot - 1], ui.selectedPart as PartKey | undefined)) {
-        if (world.mode === "combat") ui.enemyBeat = 0.55;
-        else ui.selectedPart = undefined;
+        if (world.mode === "combat") {
+          ui.enemyBeat = 0.55;
+        } else {
+          // hold the winning frame: the kill must be watchable (HIGH-2)
+          if (before) ui.victoryHold = { combat: before, t: 1.1 };
+          ui.selectedPart = undefined;
+        }
+      } else {
+        // a refused input answers audibly instead of doing nothing (MED-7)
+        sound.play("jar");
       }
     }
     if (k === " " && world.mode === "combat") ui.enemyBeat = 0.3;
     return;
   }
-  // explore
+  // explore; the death veil suppresses action so the respawn reads (LOW-10)
+  if (ui.deathFlash > 0.8) return;
   const dir = MOVE_KEYS[k] ?? EXPLORE_VERTICAL[k];
   if (dir) heldDirs.add(dir);
   if (k === "e") interact(world);
@@ -182,7 +227,9 @@ canvas.addEventListener("pointerdown", () => {
   }
 });
 window.addEventListener("blur", () => {
-  if (ui.screen === "play") ui.screen = "pause";
+  // stale held keys auto-walked the fish after alt-tab (hunt, HIGH-3)
+  heldDirs.clear();
+  if (ui.screen === "play" && world.mode !== "victory") ui.screen = "pause";
 });
 
 // ?demo=<state> jumps to a state for screenshots and reviews (TRUNK! recipe).
@@ -251,6 +298,11 @@ if (demo) {
     world.area = "dungeon2";
     world.pos = { x: 4, y: 4 };
     world.checkpoint = { area: "dungeon2", pos: { x: 1, y: 4 } };
+  } else if (demo === "doorcard") {
+    world.pos = { x: 10, y: 3 };
+    interact(world);
+    const hum = world.log.find((l) => l.includes("song-seal door hums"));
+    if (hum) ui.storyCard = { text: hum, age: 0, kind: "song" };
   } else if (demo === "fragment") {
     world.pos = { x: 6, y: 5 };
     step(world, "right");
@@ -289,9 +341,15 @@ function frame(now: number): void {
   const dt = Math.min(0.1, (now - last) / 1000);
   last = now;
   ui.time += reducedMotion ? dt * 0.25 : dt;
-  if (ui.deathFlash > 0) ui.deathFlash = Math.max(0, ui.deathFlash - dt * 0.7);
-  if (ui.shake > 0) ui.shake = Math.max(0, ui.shake - dt * (reducedMotion ? 8 : 2.2));
-  if (ui.zoomPulse > 0) ui.zoomPulse = Math.max(0, ui.zoomPulse - dt * (reducedMotion ? 10 : 1.8));
+  // presentation freezes with the game: nothing decays while paused (MED-9)
+  const live = ui.screen === "play";
+  if (live && ui.deathFlash > 0) ui.deathFlash = Math.max(0, ui.deathFlash - dt * 0.7);
+  if (live && ui.shake > 0) ui.shake = Math.max(0, ui.shake - dt * (reducedMotion ? 8 : 2.2));
+  if (live && ui.zoomPulse > 0) ui.zoomPulse = Math.max(0, ui.zoomPulse - dt * (reducedMotion ? 10 : 1.8));
+  if (live && ui.victoryHold) {
+    ui.victoryHold.t -= dt * (reducedMotion ? 3 : 1);
+    if (ui.victoryHold.t <= 0) ui.victoryHold = undefined;
+  }
   // the exchange freezes with the game: no enemy beat while paused
   if (ui.enemyBeat > 0 && ui.screen === "play") {
     ui.enemyBeat = Math.max(0, ui.enemyBeat - dt * (reducedMotion ? 3 : 1));
@@ -301,11 +359,13 @@ function frame(now: number): void {
     }
   }
   if (ui.enemyFlash > 0) ui.enemyFlash = Math.max(0, ui.enemyFlash - dt * 2.5);
-  for (const f of ui.floaters) f.age += dt;
-  ui.floaters = ui.floaters.filter((f) => f.age < 1.3);
-  if (ui.storyCard) {
-    ui.storyCard.age += dt;
-    if (ui.storyCard.age > 6) ui.storyCard = undefined;
+  if (live) {
+    for (const f of ui.floaters) f.age += dt;
+    ui.floaters = ui.floaters.filter((f) => f.age < 1.3);
+    if (ui.storyCard) {
+      ui.storyCard.age += dt;
+      if (ui.storyCard.age > 6) ui.storyCard = undefined;
+    }
   }
 
   if (ui.screen === "play" && world.mode === "explore" && heldDirs.size > 0 && now - lastMoveAt > 130) {
@@ -334,7 +394,61 @@ function frame(now: number): void {
 // composing the strip synchronously so a load-time screenshot captures
 // proof that the exchange is visible and sequential, not instant.
 const filmstrip = new URLSearchParams(location.search).get("filmstrip");
-if (filmstrip === "combat") {
+if (filmstrip === "kill") {
+  // the win edge as played: the kill must hold on screen (HIGH-2 proof)
+  virtualClock = true;
+  last = 0;
+  world = createWorld(7);
+  ui.screen = "play";
+  world.area = "dungeon1";
+  world.pos = { x: 7, y: 4 };
+  world.checkpoint = { area: "dungeon1", pos: { x: 1, y: 4 } };
+  step(world, "right");
+  if (world.combat) {
+    world.combat.enemy.hp = 8;
+    world.combat.enemy.dodge = 0; // deterministic kill: the first strip run rolled a dodge
+  }
+  logCursor = world.log.length;
+  const snaps2: { label: string; img: HTMLCanvasElement }[] = [];
+  const snap2 = (label: string) => {
+    const c = document.createElement("canvas");
+    c.width = canvas.width;
+    c.height = canvas.height;
+    c.getContext("2d")!.drawImage(canvas, 0, 0);
+    // labels MEASURE state instead of asserting it: the first strip run
+    // claimed a hold that a dodge roll had prevented
+    const measured = `mode=${world.mode} hold=${ui.victoryHold ? "yes" : "no"}`;
+    snaps2.push({ label: `${label}  [${measured}]`, img: c });
+  };
+  let vt2 = 0;
+  const adv2 = (target: number) => {
+    while (vt2 < target) {
+      vt2 = Math.min(target, vt2 + 80);
+      frame(vt2);
+    }
+  };
+  frame(0);
+  window.dispatchEvent(new KeyboardEvent("keydown", { key: "1" }));
+  adv2(16);
+  snap2("t=16ms killing blow lands: SPENT banner holds the combat frame");
+  adv2(600);
+  snap2("t=600ms still held: the kill is watchable");
+  adv2(1400);
+  snap2("t=1400ms the hold releases: back to exploration");
+  ctx.fillStyle = "#06121C";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  snaps2.forEach((sn, i) => {
+    const y = i * (canvas.height / 3);
+    ctx.drawImage(sn.img, canvas.width * 0.17, y + 2, canvas.width * 0.66, canvas.height / 3 - 4);
+    ctx.strokeStyle = "#35C8D6";
+    ctx.strokeRect(canvas.width * 0.17, y + 2, canvas.width * 0.66, canvas.height / 3 - 4);
+    ctx.fillStyle = "#0B1D2A";
+    ctx.fillRect(canvas.width * 0.17 + 4, y + 6, 620, 22);
+    ctx.fillStyle = "#D8E9EE";
+    ctx.font = "600 12px ui-monospace, monospace";
+    ctx.fillText(sn.label, canvas.width * 0.17 + 10, y + 22);
+  });
+} else if (filmstrip === "combat") {
   virtualClock = true;
   last = 0;
   world = createWorld(7);

@@ -25,7 +25,8 @@ export interface UIState {
   enemyFlash: number; // seconds remaining on enemy hit flash
   zoomPulse: number; // seconds remaining on the combat-entry/phase zoom
   enemyBeat: number; // seconds until the enemy's answering beat lands
-  storyCard?: { text: string; age: number }; // fragment verses, shown in explore
+  storyCard?: { text: string; age: number; kind: "story" | "song" | "npc" }; // explore cards
+  victoryHold?: { combat: CombatState; t: number }; // hold the win beat on screen
   floaters: Floater[];
 }
 
@@ -634,6 +635,9 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
   ctx.fillText(hint, 20, 700);
 
   if (ui.storyCard) {
+    const titles = { story: "MEMORY FRAGMENT", song: "THE SONG-SEAL", npc: "MERFOLK" } as const;
+    const colors = { story: C.sand, song: C.biolum, npc: C.glow } as const;
+    const accent = colors[ui.storyCard.kind];
     const alpha = Math.min(1, Math.max(0, 5.5 - ui.storyCard.age));
     ctx.save();
     ctx.globalAlpha = alpha;
@@ -641,27 +645,15 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
     ctx.beginPath();
     ctx.roundRect(cw / 2 - 320, 540, 640, 56, 10);
     ctx.fill();
-    ctx.strokeStyle = C.sand;
+    ctx.strokeStyle = accent;
     ctx.stroke();
-    ctx.fillStyle = C.sand;
+    ctx.fillStyle = accent;
     ctx.font = "600 12px ui-monospace, monospace";
-    ctx.fillText("MEMORY FRAGMENT", cw / 2 - 300, 562);
+    ctx.fillText(titles[ui.storyCard.kind], cw / 2 - 300, 562);
     ctx.fillStyle = C.ink;
     ctx.font = "15px system-ui";
     ctx.fillText(ui.storyCard.text, cw / 2 - 300, 584);
     ctx.restore();
-  }
-
-  if (w.npcLine) {
-    ctx.fillStyle = "rgba(6,18,28,0.9)";
-    ctx.beginPath();
-    ctx.roundRect(cw / 2 - 280, 620, 560, 40, 10);
-    ctx.fill();
-    ctx.fillStyle = C.ink;
-    ctx.font = "15px system-ui";
-    ctx.textAlign = "center";
-    ctx.fillText(`"${w.npcLine}"`, cw / 2, 645);
-    ctx.textAlign = "left";
   }
 }
 
@@ -893,7 +885,9 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
   ABILITY_ORDER.forEach((key, i) => {
     const a = ABILITIES[key];
     const x = 330 + i * 152;
-    const canAfford = c.player.sta >= a.staCost && !(a.heals !== undefined && c.healSongUses <= 0);
+    const canAfford =
+      c.player.sta >= a.staCost &&
+      !(a.heals !== undefined && (c.healSongUses <= 0 || c.player.hp >= c.player.maxHp));
     ctx.strokeStyle = canAfford ? C.line : "#152836";
     ctx.fillStyle = C.panel;
     ctx.beginPath();
@@ -924,6 +918,30 @@ export function render(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
   const cw = ctx.canvas.width;
   const ch = ctx.canvas.height;
 
+  // the win beat: hold the final combat frame with a banner so the kill
+  // is watchable (played-experience hunt, HIGH-2)
+  if (ui.victoryHold && ui.screen === "play") {
+    const held = { ...w, mode: "combat" as const, combat: ui.victoryHold.combat };
+    renderCombat(ctx, held as WorldState, ui, cw, ch);
+    ctx.fillStyle = C.panel;
+    ctx.strokeStyle = C.biolum;
+    ctx.beginPath();
+    ctx.roundRect(cw / 2 - 110, ch / 2 - 60, 220, 44, 22);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = C.biolum;
+    ctx.font = "700 18px ui-monospace, monospace";
+    ctx.textAlign = "center";
+    ctx.fillText("SPENT", cw / 2, ch / 2 - 31);
+    ctx.textAlign = "left";
+    if (ui.muted) {
+      ctx.fillStyle = C.muted;
+      ctx.font = "600 12px ui-monospace, monospace";
+      ctx.fillText("MUTED (M)", cw - 96, 30);
+    }
+    return;
+  }
+
   if (ui.screen === "title") {
     water(ctx, cw, ch, C.mid);
     lightRays(ctx, cw, ch, ui.time);
@@ -946,7 +964,14 @@ export function render(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
     centered(ctx, "waking at the last checkpoint...", ch / 2 + 24, "15px system-ui", C.muted, cw);
   }
 
-  if (ui.screen === "pause") {
+  // victory outranks pause: the win screen may never be erased by a blur
+  // auto-pause (played-experience hunt, MED-4)
+  if ((ui.screen === "victory" || w.mode === "victory") && ui.screen !== "pause") {
+    // fallthrough to the victory block below
+  } else if (ui.screen === "pause" && w.mode === "victory") {
+    ui.screen = "play";
+  }
+  if (ui.screen === "pause" && w.mode !== "victory") {
     ctx.fillStyle = "rgba(6,18,28,0.82)";
     ctx.fillRect(0, 0, cw, ch);
     centered(ctx, "PAUSED", 250, "700 46px system-ui", C.ink, cw);

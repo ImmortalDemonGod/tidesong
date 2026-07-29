@@ -549,3 +549,20 @@ optimal 14.4 HP lost):
   demo-state ReferenceError from a dropped import (one commit, played
   game unaffected); all string replaces now asserted. Played-experience
   hunter agent in flight for more of the class.
+- 01:45 Played-experience hunt returned 13 findings (3 HIGH), ALL fixed:
+  the song-seal puzzle was UNPLAYABLE (all feedback log-only and the log
+  renders only in combat; now on-screen cards plus note/jar stone tones,
+  screenshot-proven); combat wins were still instant on the kill edge
+  (now a held SPENT beat, filmstrip-proven with MEASURED labels after the
+  first strip run asserted a hold that a dodge roll had prevented:
+  instrument labels must measure, never assert); stale held keys
+  auto-walked the fish after alt-tab (cleared on blur). Also: pause can
+  no longer erase the victory screen, merfolk dialogue ages out instead
+  of living forever, non-boss hits got their damage floaters and flash
+  plus dodge feedback, Heal Song's card dims at full HP and refused
+  inputs answer audibly, chorded kill sounds stagger into a phrase and
+  phase breaks no longer double-fire, ALL presentation freezes with
+  pause, the death veil suppresses input, door juice scoped, ticker and
+  effects reset between fights and runs, mute silences already-scheduled
+  pad tones via a master gain. Two new real-log G7 tests (plain-win
+  victory, note/jar). 79 tests green.
