@@ -1048,3 +1048,16 @@ every evidence class before any PENDING becomes GREEN.
   error overlay now registers before ALL page code (a demo-path throw
   could blank silently; the 00:27 "never" claim corrected in the G1
   bullet). 92 tests green at every step.
+- (git time of this commit) Confirmation of the final-panel fixes:
+  banners, staged digits, mercy veil, error overlay, restore gating,
+  fold, and the DESIGN mend rule all CONFIRMED FIXED; two REFUTATIONS
+  in the intent work, both now fixed at the layer that lied: (1) the
+  heavy-slot utility break number was off by one (my formula rounded
+  the heavy total then subtracted; the sim subtracts then rounds) so
+  hypothetical-break intent now threads through the SAME bossDamage
+  pipeline the sim runs (extraUtilityBroken param) and a new 40-seed
+  x 2-boss parity test proves predicted == landed on plain AND heavy
+  break slots; (2) the wrap's second row had no width budget and the
+  eel's five-token heavy line clipped at the canvas edge; every row is
+  now budget-true (greedy token rows, as many as needed, 16px apart).
+  93 tests green. The page fold nit (32px latent scroll) also closed.

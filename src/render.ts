@@ -1252,10 +1252,7 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
           const isKey = c.boss.phase === 1 && ui.selectedPart === c.boss.keyPartByPhase[1];
           const isUtility = ui.selectedPart !== c.boss.keyPartByPhase[1] && ui.selectedPart !== c.boss.keyPartByPhase[2];
           if (isKey) text += ` · ${enemyIntent(c, 2).dmg} if it breaks`;
-          else if (isUtility) {
-            const reduced = Math.max(1, intent.dmg - c.boss.utilityBreakDamageReduction * (intent.heavy ? Math.round(BASE.heavyMult) : 1));
-            text += ` · ${reduced} if it breaks`;
-          }
+          else if (isUtility) text += ` · ${enemyIntent(c, undefined, 1).dmg} if it breaks`;
         }
       }
       if (intent.missChance > 0) text += ` · ${Math.round(intent.missChance * 100)}% miss (blinded)`;
@@ -1266,19 +1263,18 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
     ctx.fillStyle = color;
     const intentY = c.enemy.conditions.length > 0 ? 152 : 116;
     const budget = cw - headX - 16;
-    if (ctx.measureText(text).width <= budget) {
-      ctx.fillText(text, headX, intentY);
-    } else {
-      // wrap at token boundaries; every token survives (final panel
-      // seat 1 HIGH: compaction dropped the break warning at decision
-      // time in 32 percent of player-caused breaks)
-      const tokens = text.split(" · ");
+    // wrap at token boundaries; EVERY row respects the budget and every
+    // token survives (final panel: compaction dropped the break warning;
+    // confirmation: an unbudgeted second row clipped at the canvas edge)
+    const tokens = text.split(" · ");
+    let rowIdx = 0;
+    while (tokens.length > 0) {
       let row = tokens.shift() ?? "";
       while (tokens.length > 0 && ctx.measureText(`${row} · ${tokens[0]}`).width <= budget) {
         row += ` · ${tokens.shift()}`;
       }
-      ctx.fillText(row, headX, intentY);
-      if (tokens.length > 0) ctx.fillText(tokens.join(" · "), headX, intentY + 16);
+      ctx.fillText(row, headX, intentY + rowIdx * 16);
+      rowIdx += 1;
     }
   }
 

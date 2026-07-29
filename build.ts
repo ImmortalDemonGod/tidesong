@@ -9,7 +9,7 @@ const html = `<meta charset="utf-8">\n<meta name="viewport" content="width=devic
 <title>TIDESONG</title>
 <style>
   :root{--deep:#06121C;--mid:#0E3450;--glow:#35C8D6;--biolum:#7FE8A9;--ink:#D8E9EE;--muted:#7FA0AC}
-  html,body{margin:0;min-height:100%;background:linear-gradient(180deg,var(--mid),var(--deep) 70%);display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:system-ui,sans-serif;gap:8px;padding:8px 0}
+  html,body{margin:0;min-height:100%;background:linear-gradient(180deg,var(--mid),var(--deep) 70%);display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:system-ui,sans-serif;gap:6px;padding:4px 0}
   h1{margin:0;font-size:clamp(28px,4vw,44px);font-weight:900;letter-spacing:.12em;color:var(--glow);text-shadow:0 3px 0 rgba(0,0,0,.35)}
   .sub{margin:-8px 0 0;color:var(--muted);font-size:13px;letter-spacing:.14em;text-transform:uppercase}
   canvas{max-width:min(96vw,1240px);max-height:84vh;aspect-ratio:16/9;border-radius:10px;box-shadow:0 16px 70px rgba(0,0,0,.6),0 0 0 1px rgba(53,200,214,.18)}

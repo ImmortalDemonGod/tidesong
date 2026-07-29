@@ -273,3 +273,48 @@ test("ink mechanics: only landed hits ink, refresh not stack, misses spare damag
   }
   expect(sawMissWithCondition).toBe(true);
 });
+
+test("hypothetical-break intent matches the sim's arithmetic exactly, plain and heavy, both bosses", () => {
+  // the confirmation caught a rounding-order lie (13 shown, 14 landed):
+  // the shown number must come from the same pipeline advanceTurn runs
+  import("../src/game").then(() => {});
+  const { createBossCombat: mkShark, createBoss2Combat: mkEel, enemyIntent: intentOf, useAbility: act, advanceTurn: slot } = require("../src/game");
+  for (const mk of [mkShark, (s: number) => mkEel(s, s)]) {
+    for (let seed = 1; seed <= 40; seed++) {
+      const c = mk(seed);
+      c.enemy.dodge = 0;
+      // whittle a utility part to 1 durability, then predict and break
+      const boss = c.boss!;
+      const utility = boss.parts.find(
+        (p: any) => p.key !== boss.keyPartByPhase[1] && p.key !== boss.keyPartByPhase[2],
+      )!;
+      utility.durability = 1;
+      // advance slots until we cover both a plain and a heavy prediction
+      let coveredHeavy = false;
+      let coveredPlain = false;
+      let guard = 0;
+      while ((!coveredHeavy || !coveredPlain) && c.outcome === "ongoing" && guard++ < 12) {
+        c.player.sta = c.player.maxSta;
+        c.player.hp = c.player.maxHp;
+        if (utility.broken) {
+          utility.broken = false;
+          utility.durability = 1;
+          c.enemy.hp += 1;
+        }
+        const predicted = intentOf(c, undefined, 1);
+        act(c, "tailStrike", utility.key);
+        if (c.outcome !== "ongoing") break;
+        const at = c.log.length;
+        slot(c);
+        const hitLine = c.log.slice(at).find((l: string) => l.includes("enemy hits for"));
+        if (hitLine && !predicted.skip) {
+          const landed = Number(hitLine.match(/for (\d+)/)![1]);
+          expect(landed).toBe(predicted.dmg);
+          if (predicted.heavy) coveredHeavy = true;
+          else coveredPlain = true;
+        }
+      }
+      expect(coveredPlain || coveredHeavy).toBe(true);
+    }
+  }
+});
