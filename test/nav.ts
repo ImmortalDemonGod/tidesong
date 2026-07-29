@@ -25,7 +25,10 @@ export function fullRoute(): Objective[] {
     { area: "dungeon1", target: { x: 21, y: 4 }, done: (w) => w.encounters[2].defeated },
     { area: "hub", target: { x: HUB.mouth.x, y: HUB.mouth.y }, done: (w) => w.area === "dungeon2" || w.mode === "victory" },
     { area: "dungeon2", target: { x: 8, y: 4 }, done: (w) => w.encounters[3].defeated },
-    { area: "dungeon2", target: { x: 11, y: 2 }, done: (w) => w.fragments[4].collected },
+    // the gullet's verse now sits behind its own song-seal (pillar
+    // audit), so the axis-greedy route skips it exactly as it already
+    // skips the hub's sealed verse: bots do not solve puzzles
+
     { area: "dungeon2", target: { x: 14, y: 4 }, done: (w) => w.encounters[4].defeated },
     { area: "dungeon2", target: { x: 21, y: 4 }, done: (w) => w.mode === "victory" },
   ];

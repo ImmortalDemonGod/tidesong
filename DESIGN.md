@@ -180,6 +180,29 @@ the build is placeholder for Marc's story and must be marked as such.
   dungeon 2. Numbers are the overnight lab's tested recommendation;
   full G3/G4 batteries encoded in test/bands.test.ts.
 
+### The pillar check (Jul 29): every mechanic recurs, and escalates
+
+Marc's proposal: "every mechanic should appear throughout the game in
+increasingly interesting ways." Audited in PILLAR-AUDIT.md after a
+played question. Three violations found and fixed:
+- THE LOW DARK is a world rule now, not a hub gimmick: a bounded trench
+  that teaches it, the collapsed floor of the first ruin, and in the
+  drowned gullet it has RISEN a row so the swimmable band narrows.
+- THE HEAVY CYCLE escalates: a boss in phase 2 winds up every SECOND
+  slot instead of every third, so a phase break changes the rhythm of
+  the fight and not only its damage number. (The shark's phase-2 damage
+  was swept back to 15 to hold its spam margins after the change; the
+  shark's Analyze hint flipped to blind because that is now measurably
+  its better answer.)
+- THE SONG-SEAL recurs: the gullet has its own, and it is harder in the
+  way the pillar asks for, by COMBINING with an earlier mechanic rather
+  than adding a note. Four stones instead of three, and two of them sit
+  inside the low dark, so answering it costs HP and the order you choose
+  decides how much.
+Still once-only and logged for the team: ink (enemy type 2's twist
+appears in a single fight; the natural escalation is the eel using it in
+phase 2) and the relic (the slice has one).
+
 ### Exploration: hub reef + dungeons
 - Structure: 1 hub reef + 2 dungeons, each dungeon ends in a boss.
 - Zelda loop: hub has a locked song-seal puzzle door, a relic-gated current

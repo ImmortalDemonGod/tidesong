@@ -96,6 +96,20 @@ export const D1 = {
 export const D2 = {
   entrance: { x: 1, y: 4 },
   exitX: 0,
+  // The gullet's seal: the same puzzle the reef taught, COMBINED with
+  // the low dark instead of merely lengthened (pillar audit: the
+  // song-seal appeared exactly once and it is the slice's only puzzle
+  // type). Two of its four stones sit inside the dark, so answering it
+  // costs HP and the order decides how much: the cheap route is to
+  // take the deep notes last, when you know you will not have to
+  // repeat them.
+  seal: { x: 17, y: 2 },
+  stones: [
+    { name: "keel", x: 10, y: 4 },
+    { name: "hollow", x: 13, y: 3 },
+    { name: "drift", x: 12, y: 6 }, // in the dark
+    { name: "gale", x: 16, y: 7 }, // deeper in the dark
+  ],
 };
 
 export interface WorldState {
@@ -131,6 +145,10 @@ export interface WorldState {
   melody: number[];
   attempt: number[];
   doorOpen: boolean;
+  // the second seal, in the gullet: four notes, two of them in the dark
+  melody2: number[];
+  attempt2: number[];
+  seal2Open: boolean;
   // Marc's central question, made playable: with the eel dead the sea's
   // name is loose. Sing it back and the sea can be called again, by
   // anyone. Let it go and the sea stays safe, and smaller. Undefined
@@ -198,8 +216,8 @@ export function createWorld(seed = 1): WorldState {
       {
         id: 5,
         area: "dungeon2",
-        x: 11,
-        y: 2,
+        x: 17,
+        y: 0,
         collected: false,
         title: "THE THEFT",
         verse: "(placeholder) last of all the eel drank down the name of the sea itself",
@@ -226,6 +244,9 @@ export function createWorld(seed = 1): WorldState {
     melody: shuffledMelody(seed | 0),
     attempt: [],
     doorOpen: false,
+    melody2: shuffledMelody((seed | 0) ^ 0x2c7, 4),
+    attempt2: [],
+    seal2Open: false,
     seed: seed | 0,
     log: [],
   };
@@ -233,8 +254,8 @@ export function createWorld(seed = 1): WorldState {
 
 // Seeded Fisher-Yates over [0,1,2]: the note order differs per run but is
 // deterministic per seed (bots and tests stay reproducible).
-function shuffledMelody(seed: number): number[] {
-  const order = [0, 1, 2];
+function shuffledMelody(seed: number, n = 3): number[] {
+  const order = Array.from({ length: n }, (_, i) => i);
   let s = (seed ^ 0x5019) | 0;
   for (let i = order.length - 1; i > 0; i--) {
     let t = (s = (s + 0x6d2b79f5) | 0);
@@ -246,14 +267,25 @@ function shuffledMelody(seed: number): number[] {
   return order;
 }
 
+// The low dark is a WORLD rule, not a hub gimmick (played report: "the
+// low dark hurts but only on the first screen?"). Marc's pillar: every
+// mechanic should recur in increasingly interesting ways. So it is
+// introduced as a bounded trench you can walk around, then it is the
+// collapsed floor of the first ruin, then in the drowned gullet it has
+// risen a row and the swimmable band is narrower.
+export const DARK_FLOOR: Record<AreaKey, number> = {
+  hub: 99, // the hub's dark is the bounded trench below, not a floor band
+  dungeon1: 7,
+  dungeon2: 6,
+};
+
 function inTrench(area: AreaKey, p: Vec): boolean {
-  return (
-    area === "hub" &&
-    p.x >= HUB.trench.x0 &&
-    p.x <= HUB.trench.x1 &&
-    p.y >= HUB.trench.y0 &&
-    p.y <= HUB.trench.y1
-  );
+  if (area === "hub") {
+    return (
+      p.x >= HUB.trench.x0 && p.x <= HUB.trench.x1 && p.y >= HUB.trench.y0 && p.y <= HUB.trench.y1
+    );
+  }
+  return p.y >= DARK_FLOOR[area];
 }
 
 // Pity escalator (added after softlock data: flat 60 percent respawn
@@ -456,6 +488,10 @@ export function step(w: WorldState, dir: Dir): boolean {
     w.log.push("the seal holds: the door wants its song");
     return true;
   }
+  if (w.area === "dungeon2" && !w.seal2Open && next.x === D2.seal.x && next.y < D2.seal.y) {
+    w.log.push("the seal holds: the gullet wants its song");
+    return true;
+  }
 
   const moved = next.x !== w.pos.x || next.y !== w.pos.y;
   const wasInTrench = inTrench(w.area, w.pos);
@@ -651,6 +687,35 @@ export function interact(w: WorldState): boolean {
       w.log.push(`the song-seal door hums: ${names}`);
     }
     return true;
+  }
+  // the gullet's seal: same rules, four notes, two stones in the dark
+  if (w.area === "dungeon2" && near(D2.seal)) {
+    if (w.seal2Open) {
+      w.log.push("the gullet's seal stands open, its song spent");
+    } else {
+      const names = w.melody2.map((i) => D2.stones[i].name).join(", ");
+      w.log.push(`the gullet's seal hums: ${names}`);
+    }
+    return true;
+  }
+  if (w.area === "dungeon2" && !w.seal2Open) {
+    const idx = D2.stones.findIndex((st) => near(st));
+    if (idx >= 0) {
+      w.attempt2.push(idx);
+      const upTo = w.attempt2.length;
+      const matches = w.melody2.slice(0, upTo).every((n, i) => n === w.attempt2[i]);
+      if (!matches) {
+        w.attempt2 = [];
+        w.log.push(`the ${D2.stones[idx].name} stone jars against the song: the seal resets`);
+      } else if (upTo === w.melody2.length) {
+        w.seal2Open = true;
+        w.attempt2 = [];
+        w.log.push("four notes align: the gullet's seal BREAKS open");
+      } else {
+        w.log.push(`the ${D2.stones[idx].name} stone rings true (${upTo}/${w.melody2.length})`);
+      }
+      return true;
+    }
   }
   if (w.area === "hub" && !w.doorOpen) {
     const idx = HUB.stones.findIndex((st) => near(st));

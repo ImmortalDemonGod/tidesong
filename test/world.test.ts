@@ -557,3 +557,58 @@ test("either ending is reachable by choice alone, and answering is final", () =>
     expect(w.ending).toBe(pick);
   }
 });
+
+test("pillar: the low dark is a world rule that rises, not a hub gimmick", () => {
+  // hub: a bounded trench you can walk around
+  const w = createWorld();
+  walkTo(w, 13, 5);
+  const hpBefore = w.hp;
+  step(w, "down");
+  expect(w.hp).toBe(hpBefore - HUB.trenchChip);
+
+  // first ruin: the collapsed floor, bottom row only
+  const w2 = createWorld();
+  walkTo(w2, HUB.dungeonEntrance.x, HUB.dungeonEntrance.y);
+  expect(w2.area).toBe("dungeon1");
+  walkTo(w2, 3, 6);
+  const safe = w2.hp;
+  step(w2, "up"); // y=5, still safe
+  expect(w2.hp).toBe(safe);
+  walkTo(w2, 3, 6);
+  step(w2, "down"); // y=7, the dark
+  expect(w2.hp).toBeLessThan(safe);
+
+  // gullet: it has RISEN a row, so the band is narrower
+  const w3 = createWorld();
+  w3.area = "dungeon2";
+  w3.pos = { x: 3, y: 5 };
+  const clear = w3.hp;
+  step(w3, "down"); // y=6 is dark here but was safe in ruin 1
+  expect(w3.hp).toBeLessThan(clear);
+});
+
+test("pillar: the song-seal recurs in the gullet, harder, and combines with the dark", () => {
+  const w = createWorld(4);
+  w.area = "dungeon2";
+  w.pos = { ...D2.entrance };
+  expect(w.melody2.length).toBe(4); // four notes, not three
+  // two of its stones sit inside the low dark
+  const deep = D2.stones.filter((st) => st.y >= 6);
+  expect(deep.length).toBe(2);
+  // the seal blocks its alcove until answered
+  w.pos = { x: D2.seal.x, y: D2.seal.y };
+  step(w, "up");
+  expect(w.pos.y).toBe(D2.seal.y);
+  expect(w.log.some((l) => l.includes("the gullet wants its song"))).toBe(true);
+  // answering it in order opens the way to the verse
+  for (const idx of w.melody2) {
+    const st = D2.stones[idx];
+    w.pos = { x: st.x, y: st.y };
+    interact(w);
+  }
+  expect(w.seal2Open).toBe(true);
+  w.pos = { x: D2.seal.x, y: D2.seal.y };
+  step(w, "up");
+  step(w, "up");
+  expect(w.fragments.find((f) => f.id === 5)!.collected).toBe(true);
+});

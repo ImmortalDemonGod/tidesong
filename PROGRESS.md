@@ -1365,3 +1365,29 @@ every evidence class before any PENDING becomes GREEN.
   bundle: ArrowRight moved the marker to "> 2 LET IT GO", A moved it
   back to "> 1 SING IT BACK", ENTER produced "the sea half remembers",
   and D then SPACE produced "the sea keeps its silence". 105 tests.
+- (git time of this commit) Played questions: "the low dark hurts but
+  only on the first screen?" and "is this actually maintained throughout
+  the game, did you audit everything: every mechanic should appear
+  throughout the game in increasingly interesting ways". No, I had never
+  audited that pillar; I caught the low dark only because it was pointed
+  at. Ran the audit properly (PILLAR-AUDIT.md: every mechanic against
+  every beat, with an escalates column) and found FOUR violations.
+  FIXED: (1) the low dark was hub-only, now a world rule that rises
+  (trench, then the first ruin's collapsed floor, then a row higher in
+  the gullet), drawn with a ragged lip in each beat and warned by the
+  same rule the damage uses; (2) the heavy cycle was IDENTICAL in the
+  first squid fight and the final boss, now phase 2 winds up every
+  second slot (shark phase 2 swept 14 to 15 to hold spam margins; the
+  hint test then caught that blind had become the shark's better answer
+  and the data was wrong in the code); (3) the song-seal existed exactly
+  once and it is the slice's only puzzle TYPE, so the gullet now has its
+  own: four notes, and two stones down inside the low dark, which is
+  the pillar's actual ask (combine an earlier mechanic, do not just
+  lengthen this one). The gullet verse moved behind it, so the scripted
+  route now collects 3 of 5 (bots do not solve songs; the reason is
+  written into the assertion).
+  LOGGED NOT FIXED, with reasons: ink appears in one fight (escalation
+  would be the eel inking you in phase 2, a boss rebalance for the
+  team) and the relic appears once (the slice has one relic).
+  107 tests green, all bands in range, G2 holds: scripted 50/50 with 17
+  deaths max 191, casual 100/100 worst 924, x5000 zero fail seeds.

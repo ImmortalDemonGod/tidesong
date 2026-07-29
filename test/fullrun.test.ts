@@ -27,7 +27,10 @@ test("G2: scripted runner clears all 50 seeds of the full two-dungeon slice", ()
     expect(r.victory).toBe(true);
     expect(r.deaths).toBeLessThanOrEqual(3);
     totalDeaths += r.deaths;
-    expect(r.fragmentsCollected).toBe(4);
+    // 3 of 5: the axis-greedy route reaches every OPEN verse and skips
+    // both sealed ones (the reef alcove and, since the pillar audit, the
+    // gullet). Bots do not solve song puzzles; a human who does gets 5.
+    expect(r.fragmentsCollected).toBe(3);
   }
   expect(totalDeaths).toBeLessThanOrEqual(30);
 });

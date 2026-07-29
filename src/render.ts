@@ -3,7 +3,7 @@
 // combat staging, all presentation-only. Palette follows the greybox sketch.
 
 import { ABILITIES, BASE, CONDITION_INFO, enemyIntent, getCondition, type CombatState, type PartKey } from "./game";
-import { AREAS, D1, HUB, nextObjective, optionalHere, type WorldState } from "./world";
+import { AREAS, D1, D2, DARK_FLOOR, HUB, nextObjective, optionalHere, type WorldState } from "./world";
 
 export interface Floater {
   text: string;
@@ -731,6 +731,83 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
     ctx.fillStyle = C.muted;
     ctx.font = "12px system-ui";
     ctx.fillText("the second ruin: the drowned gullet", px(2) - 20, 140);
+
+    // the gullet's song-seal and its four stones, two of them down in
+    // the low dark: the puzzle the reef taught, now combined with the
+    // hazard the reef taught (pillar audit)
+    ctx.fillStyle = "#123528";
+    ctx.beginPath();
+    ctx.moveTo(px(D2.seal.x) - 46, py(D2.seal.y) + 40);
+    ctx.quadraticCurveTo(px(D2.seal.x) - 54, py(D2.seal.y) - 58, px(D2.seal.x), py(D2.seal.y) - 70);
+    ctx.quadraticCurveTo(px(D2.seal.x) + 54, py(D2.seal.y) - 58, px(D2.seal.x) + 46, py(D2.seal.y) + 40);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = w.seal2Open ? "#0A2233" : "#16413A";
+    ctx.strokeStyle = w.seal2Open ? C.biolum : C.glow;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.roundRect(px(D2.seal.x) - 24, py(D2.seal.y) - 36, 48, 74, 8);
+    ctx.fill();
+    ctx.stroke();
+    for (let i = 0; i < 4; i++) {
+      ctx.beginPath();
+      ctx.arc(px(D2.seal.x) - 15 + i * 10, py(D2.seal.y) - 12, 4, 0, Math.PI * 2);
+      if (w.seal2Open || i < w.attempt2.length) {
+        ctx.fillStyle = C.biolum;
+        ctx.fill();
+      } else {
+        ctx.strokeStyle = C.muted;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+    }
+    ctx.fillStyle = C.muted;
+    ctx.font = "11px system-ui";
+    ctx.textAlign = "center";
+    ctx.fillText(w.seal2Open ? "gullet seal (open)" : "gullet seal (four notes)", px(D2.seal.x), py(D2.seal.y) + 58);
+    ctx.textAlign = "left";
+    for (const st of D2.stones) {
+      const deep = st.y >= DARK_FLOOR.dungeon2;
+      ctx.fillStyle = "#1C4A40";
+      ctx.beginPath();
+      ctx.ellipse(px(st.x), py(st.y) + 10, 14, 18, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = deep ? C.danger : C.biolum;
+      ctx.globalAlpha = 0.95;
+      ctx.beginPath();
+      ctx.arc(px(st.x), py(st.y), 4.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = deep ? C.danger : C.muted;
+      ctx.font = "11px system-ui";
+      ctx.textAlign = "center";
+      ctx.fillText(deep ? `${st.name} (in the dark)` : st.name, px(st.x), py(st.y) + 36);
+      ctx.textAlign = "left";
+    }
+  }
+
+  // the low dark in the ruins: the same danger the hub taught, risen
+  // (dungeon 2 sits a row higher, so the swimmable band narrows)
+  if (w.area !== "hub") {
+    const darkTop = py(DARK_FLOOR[w.area]) - 24;
+    const g = ctx.createLinearGradient(0, darkTop, 0, ch);
+    g.addColorStop(0, "rgba(3,8,14,0)");
+    g.addColorStop(0.35, "rgba(3,8,14,0.85)");
+    g.addColorStop(1, "rgba(2,5,10,0.98)");
+    ctx.fillStyle = g;
+    ctx.fillRect(-200, darkTop, worldW + 400, ch - darkTop + 100);
+    // a ragged lip so the edge is legible, not a soft gradient guess
+    ctx.strokeStyle = "#0B1A26";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    for (let x = -100; x < worldW + 100; x += 34) {
+      ctx.lineTo(x, darkTop + 10 + Math.sin(x * 0.09 + t * 0.6) * 7);
+    }
+    ctx.stroke();
+    ctx.fillStyle = C.muted;
+    ctx.font = "12px system-ui";
+    ctx.fillText("the low dark", px(3), darkTop + 34);
+    ctx.fillText("the low dark", px(15), darkTop + 34);
   }
 
   // once the ruin is cleared, the current visibly runs west: the way out
@@ -901,11 +978,12 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
   particles(ctx, cw, ch, t, 1.2);
 
   // trench danger treatment: darkness closes in inside the low dark
+  // the same rule the sim uses, so the warning can never disagree with
+  // the damage (hub: the bounded trench; ruins: the risen floor)
   const inLowDark =
-    w.area === "hub" &&
-    w.pos.x >= HUB.trench.x0 &&
-    w.pos.x <= HUB.trench.x1 &&
-    w.pos.y >= HUB.trench.y0;
+    w.area === "hub"
+      ? w.pos.x >= HUB.trench.x0 && w.pos.x <= HUB.trench.x1 && w.pos.y >= HUB.trench.y0
+      : w.pos.y >= DARK_FLOOR[w.area];
   if (inLowDark) {
     const g = ctx.createRadialGradient(cw / 2, ch / 2, 200, cw / 2, ch / 2, 700);
     g.addColorStop(0, "rgba(2,6,10,0)");

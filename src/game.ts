@@ -49,6 +49,7 @@ export const BASE = {
   // One rule redeems three systems: Bubble becomes a real decision, Slow
   // visibly steals the big turns, and the intent line gains drama.
   heavyEvery: 3,
+  heavyEveryPhase2: 2,
   heavyMult: 1.6,
 } as const;
 
@@ -242,7 +243,9 @@ export function createBossCombat(seed = 1): CombatState {
     conditions: [],
     attackDamage: 12,
     dodge: 0,
-    analyzeHint: "slow",
+    // measured: with phase 2 winding up every second slot, blinding the
+    // shark now beats slowing it (the hint test pins hint to data)
+    analyzeHint: "blind",
   };
   state.boss = {
     kind: "shark",
@@ -250,7 +253,7 @@ export function createBossCombat(seed = 1): CombatState {
     phase: 1,
     phaseName: "CRUSH",
     keyPartByPhase: { 1: "jaw", 2: "eye" },
-    baseDamageByPhase: { 1: 11, 2: 14 },
+    baseDamageByPhase: { 1: 11, 2: 15 },
     utilityBreakDamageReduction: 3,
   };
   return state;
@@ -337,6 +340,14 @@ export function getPart(state: CombatState, key: PartKey): BossPart | undefined 
 
 export function currentKeyPart(state: CombatState): PartKey | undefined {
   return state.boss?.keyPartByPhase[state.boss.phase];
+}
+
+// The windup rhythm ESCALATES: a boss in its second phase winds up every
+// second slot instead of every third (pillar audit Jul 29: the heavy
+// cycle was identical in the first squid fight and the final boss, so a
+// phase break changed the number and not the feel).
+export function heavyEveryFor(state: CombatState): number {
+  return state.boss && state.boss.phase === 2 ? BASE.heavyEveryPhase2 : BASE.heavyEvery;
 }
 
 export function bossDamage(state: CombatState, phase?: 1 | 2, extraUtilityBroken = 0): number {
@@ -508,7 +519,7 @@ export interface EnemyIntent {
 export function enemyIntent(state: CombatState, phase?: 1 | 2, extraUtilityBroken = 0): EnemyIntent {
   const slow = getCondition(state.enemy, "slow");
   const skip = !!slow && (state.slowSlots + 1) % 2 === 1;
-  const heavy = !skip && (state.actSlots + 1) % BASE.heavyEvery === 0;
+  const heavy = !skip && (state.actSlots + 1) % heavyEveryFor(state) === 0;
   // (a skipped slot still advances the schedule, so a skip can eat a heavy)
   const blind = getCondition(state.enemy, "blind");
   let dmg = bossDamage(state, phase, extraUtilityBroken);
@@ -545,7 +556,7 @@ export function advanceTurn(state: CombatState): void {
   if (skipped) {
     state.log.push("enemy slowed: skips its action");
   } else {
-    const heavy = state.actSlots % BASE.heavyEvery === 0;
+    const heavy = state.actSlots % heavyEveryFor(state) === 0;
     const blind = getCondition(enemy, "blind");
     const miss = blind ? BASE.blindMiss[blind.level] : 0;
     if (miss > 0 && nextRand(state) < miss) {
