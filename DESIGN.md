@@ -102,6 +102,38 @@ the build is placeholder for Marc's story and must be marked as such.
 | Collectibles | memory fragments only |
 | Saving | checkpoint autosave at dungeon entrances |
 
+## Standard game shell (decided for the slice; tune freely, log changes)
+
+The parts every game needs that no design doc remembered to write down:
+
+- Perspective: 2D side-view underwater, matching the visual sketch, for both
+  exploration (free swim) and combat (framed scene like sketch screens 2/3).
+- Controls: WASD or arrows to swim, E to interact, combat via clickable
+  ability buttons plus 1 to 6 hotkeys, P pauses, M mutes, R on death screen.
+- Combat entry: touching a corrupted enemy in exploration opens the combat
+  scene; winning returns to exploration with that enemy gone (per the death
+  rule, defeated encounters stay defeated).
+- Ability availability: all 6 abilities from the first fight. Relic-based
+  ability upgrades stay optional stretch.
+- Screens: title card (click to start; this is also the audio unlock, the
+  TRUNK! lesson), pause overlay, death screen (respawn per DESIGN death
+  rule), and a slice-end victory screen with placeholder team credits
+  (Mhanna, Glass_Goat, ImmortalDemon).
+- Slice end condition: defeat boss 1, receive the Tide Relic, part the
+  current barrier; victory screen plays at the mouth of dungeon 2.
+- Accessibility minimum: prefers-reduced-motion respected, pause on tab
+  blur, mute toggle.
+- Persistence: in-session checkpoints only tonight; progress does not
+  survive a page reload (localStorage saves are jam scope, deferred).
+
+## Explicitly deferred (jam scope, NOT tonight, NOT parking lot)
+
+Dungeon 2 + boss 2 and the song-seal puzzle door (stretch only if the loop
+reaches them), third regular enemy type, localStorage saves, flee/escape
+from combat (economy decision that belongs to the team), relic combat echo,
+settings beyond pause/mute, difficulty modes, speedrun timer, touch/mobile
+controls, input remapping, localization.
+
 ## Verification requirements (non-negotiable)
 - `src/game.ts` stays a pure simulation: no DOM, no canvas, no timers.
   Rendering reads state; it never owns it. This is what makes bot playtests

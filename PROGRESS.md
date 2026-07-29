@@ -6,8 +6,20 @@ TRUNK! overnight rebuild. Capture the merged design faithfully, iterate on
 design, problem-finding, visuals, and bot playtests. Above all make it FUN
 (loop + decisions + uncertainty + curve + juice).
 
-Hard deadline: 11:00 AM Jul 29. At 10:15 AM all feature work stops; the final
-adversarial panel and the honest morning report run regardless of state.
+Timebox (binding): the run lasts until 11:00 AM Jul 29, no longer and NO
+SHORTER. At 10:15 AM all feature work stops; the final adversarial panel and
+the honest morning report run regardless of state.
+
+Early done-claims are expected and wrong. An hour-2 "done" is a smell, not a
+milestone. If every gate is green before 10:15 AM, the run does NOT stop; it
+enters the improvement loop, in this order, repeating until the freeze:
+1. Fix ALL open reviewer findings, every severity, not just high
+2. Deepen playtests: more sims, hostile seeds, longer soaks, new probe bots
+3. Juice pass: feedback, animation, screen feel, audio polish
+4. Content toward the budget ceilings: stretch items in slice order
+5. Re-run the adversarial panel; its findings restart this loop
+The run may never idle and may never declare itself finished before the
+freeze. SHIPPED is a state of the build, not a stopping condition.
 
 Slice target, in priority order:
 1. Turn-based combat core: stamina economy, conditions, disable refund
