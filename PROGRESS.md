@@ -746,3 +746,27 @@ every evidence class before any PENDING becomes GREEN.
   hostile events through the real handlers, zero throws, zero error
   paints. G2 re-measured: scripted 50/50, 16 deaths, max 189; casual
   100/100, max 2679 (identical: bot routes never hazard-die). 83 tests.
+- (git time of this commit) FUN PASS wave 1+2, from the user's live
+  playtest verdict ("doesn't feel fun; abilities not distinct; why no
+  boss music; do abilities make sense at key moments") plus a 3-agent
+  diagnosis fan-out (28 findings, three agents converged on the same
+  HIGHs). Shipped: ENEMY INTENT TELEGRAPH (pure enemyIntent() reader in
+  game.ts, RNG untouched; the NEXT line shows the incoming strike, slow
+  skips, blind miss chance, bubble hold, so conditions become visible
+  counterplay); per-ability identity (accent + painted glyph per card,
+  distinct cast FX: impact star, silt cloud, cyan crescent, heal motes,
+  scanline, shield ring; per-ability synth voices incl. Heal Song as an
+  actual 3-note song); bodies that move (player lunge, enemy windup/
+  strike snap/recoil, player flinch, hit-stop, all reduced-motion aware);
+  payoff moments celebrated (blind miss / slow skip / bubble absorb now
+  classify as a new payoff event with triumphant tones and floaters);
+  MOOD MUSIC (explore calm, combat drive, boss menace, phase-2 tightening,
+  victory resolve; each collected fragment adds a harmony voice: the song
+  literally returns); fragment verse phrases; kill ceremony (enemy sinks
+  under rising motes, banner reads THE SONG QUIETS); pressed/locked card
+  states. Evidence: 86 tests incl. intent-honesty property test (300+
+  hostile slots: announced = done), payoff classification from real sim
+  lines, abilityCast mapping; as-played filmstrip re-captured showing
+  cast FX, locked hand, and the MISS payoff landing visibly
+  (/tmp/tidesong-gallery/wave1-filmstrip.png). One collision caught by
+  render-and-look (intent line vs condition chip) and fixed pre-commit.

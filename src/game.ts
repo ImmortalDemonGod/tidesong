@@ -397,6 +397,34 @@ export function useAbility(state: CombatState, abilityKey: string, targetPart?: 
   return true;
 }
 
+// Pure reader for presentation: what the enemy's NEXT slot will attempt,
+// computed without consuming RNG. Slow parity is deterministic; a blind
+// miss stays a chance and is reported as one. Telegraphing intent is what
+// turns conditions into visible counterplay on screen (the playtester's
+// "abilities make sense during key moments"); bots read raw state and
+// never use this.
+export interface EnemyIntent {
+  skip: boolean;
+  dmg: number;
+  missChance: number;
+  bubbled: boolean;
+}
+
+export function enemyIntent(state: CombatState): EnemyIntent {
+  const slow = getCondition(state.enemy, "slow");
+  const skip = !!slow && (state.slowSlots + 1) % 2 === 1;
+  const blind = getCondition(state.enemy, "blind");
+  let dmg = bossDamage(state);
+  if (slow?.level === 2) dmg = Math.round(dmg * BASE.slowDamageMult);
+  if (state.bubbleCharge) dmg = Math.round(dmg * (1 - BASE.bubbleReduction));
+  return {
+    skip,
+    dmg,
+    missChance: blind ? BASE.blindMiss[blind.level] : 0,
+    bubbled: state.bubbleCharge,
+  };
+}
+
 // One enemy action slot, then durations tick (a skipped slot still counts as
 // an affected action), then stamina regen. "N turns = N enemy actions."
 export function advanceTurn(state: CombatState): void {

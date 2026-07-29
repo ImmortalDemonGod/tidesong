@@ -1,5 +1,5 @@
-import { classifyLogLine } from "./events";
-import { Sound } from "./audio";
+import { abilityCast, classifyLogLine } from "./events";
+import { Sound, type Mood } from "./audio";
 import { combatAction, combatPass, createWorld, enemySlot, interact, playerAct, step, type Dir, type WorldState } from "./world";
 import { ABILITY_ORDER, render, type UIState } from "./render";
 import type { PartKey } from "./game";
@@ -29,6 +29,13 @@ const ui: UIState = {
   zoomPulse: 0,
   enemyBeat: 0,
   floaters: [],
+  castFx: [],
+  attackAnim: undefined,
+  enemyStrike: 0,
+  playerFlinch: 0,
+  buttonFlash: [0, 0, 0, 0, 0, 0],
+  hitStop: 0,
+  reducedMotion: false,
 };
 
 function resetRun(): void {
@@ -48,6 +55,12 @@ function resetRun(): void {
   ui.zoomPulse = 0;
   ui.enemyBeat = 0;
   ui.deathFlash = 0;
+  ui.castFx = [];
+  ui.attackAnim = undefined;
+  ui.enemyStrike = 0;
+  ui.playerFlinch = 0;
+  ui.buttonFlash = [0, 0, 0, 0, 0, 0];
+  ui.hitStop = 0;
   ui.screen = "play";
 }
 
@@ -65,24 +78,56 @@ function drainLog(): void {
     ui.lastLines.push(line);
     if (ui.lastLines.length > 6) ui.lastLines.shift();
     const ev = classifyLogLine(line);
+    // per-ability identity: the cast line drives its own voice and effect
+    // (the generic event tone yields for the same line so casts never
+    // double-thunk); world-mode lines get no combat FX
+    const cast = world.mode === "combat" || ui.victoryHold ? abilityCast(line) : null;
+    if (cast) {
+      sound.castVoice(cast, soundSlot * 0.12);
+      soundSlot += 1;
+      ui.castFx.push({ kind: cast, age: 0 });
+      if (cast === "tailStrike" || cast === "finSlash" || cast === "siltBurst") {
+        ui.attackAnim = { kind: cast, t: 0.3 };
+      }
+    }
     // stagger chorded drains; dedupe immediate repeats (hunt, MED-8)
-    if (ev && ev !== lastEv) {
+    if (ev && ev !== lastEv && !(cast && (ev === "hit" || ev === "note"))) {
       sound.play(ev, soundSlot * 0.12);
       soundSlot += 1;
     }
     lastEv = ev ?? lastEv;
+    // a verse returns to the song: each fragment sings its phrase after
+    // the pickup chime
+    if (line.includes("memory fragment")) {
+      sound.versePhrase(world.fragments.filter((f) => f.collected).length, 0.3);
+    }
 
     // juice: floaters, shake, hit flash, parsed from the same lines
     const enemyHit = line.match(/hits (?:the \w+: |for )?(\d+)/) ?? line.match(/: (\d+) dmg/);
     if (line.includes("enemy hits for")) {
       ui.shake = 0.5;
+      ui.playerFlinch = 0.35;
+      ui.hitStop = reducedMotion ? 0 : 0.06;
       ui.floaters.push({ text: `-${line.match(/for (\d+)/)?.[1] ?? ""}`, color: "#FF6B5D", age: 0, side: "player" });
     } else if (enemyHit && !line.startsWith("enemy")) {
       ui.enemyFlash = 0.3;
+      if (!reducedMotion) ui.hitStop = Math.max(ui.hitStop, 0.04);
       ui.floaters.push({ text: `-${enemyHit[1]}`, color: "#D8E9EE", age: 0, side: "enemy" });
     }
     if (line.includes(": dodged")) {
       ui.floaters.push({ text: "dodged", color: "#7FA0AC", age: 0, side: "enemy" });
+    }
+    // the pillar's payoff moments celebrate on screen, not just in a log
+    // line: your blind made it miss, your slow made it skip, your bubble
+    // held (fun diagnosis, agent 3 HIGH)
+    if (line.includes("missed (blind)")) {
+      ui.floaters.push({ text: "MISS · blinded", color: "#7FE8A9", age: 0, side: "enemy" });
+    }
+    if (line.includes("skips its action")) {
+      ui.floaters.push({ text: "turn lost · slowed", color: "#7FE8A9", age: 0, side: "enemy" });
+    }
+    if (line.includes("Bubble absorbed")) {
+      ui.floaters.push({ text: "absorbed", color: "#7FB8E8", age: 0, side: "player" });
     }
     if (line.includes("+2 STA") || line.includes("disable landed")) {
       ui.floaters.push({ text: "+2 STA", color: "#7FE8A9", age: 0, side: "player" });
@@ -220,6 +265,7 @@ function onKey(e: KeyboardEvent): void {
     if (slot >= 1 && slot <= ABILITY_ORDER.length) {
       const before = world.combat;
       if (playerAct(world, ABILITY_ORDER[slot - 1], ui.selectedPart as PartKey | undefined)) {
+        ui.buttonFlash[slot - 1] = 0.18;
         if (world.mode === "combat") {
           ui.enemyBeat = 0.55;
         } else {
@@ -263,6 +309,7 @@ function combatClick(cx: number, cy: number): void {
         if (ui.enemyBeat > 0 || ui.victoryHold) return;
         const before = world.combat;
         if (playerAct(world, ABILITY_ORDER[i], ui.selectedPart as PartKey | undefined)) {
+          ui.buttonFlash[i] = 0.18;
           if (world.mode === "combat") {
             ui.enemyBeat = 0.55;
           } else {
@@ -421,9 +468,30 @@ window.addEventListener("error", (e) => {
 let last = performance.now();
 let virtualClock = false; // filmstrip mode: no self-rescheduling
 function frame(now: number): void {
-  const dt = Math.min(0.1, (now - last) / 1000);
+  let dt = Math.min(0.1, (now - last) / 1000);
   last = now;
+  ui.reducedMotion = reducedMotion;
+  // hit-stop: impacts freeze the presentation for a few frames so they
+  // carry weight; the world clock is untouched (fun diagnosis)
+  if (ui.hitStop > 0) {
+    ui.hitStop = Math.max(0, ui.hitStop - dt);
+    dt = 0;
+  }
   ui.time += reducedMotion ? dt * 0.25 : dt;
+  // the pad follows the state of play: explore calm, combat driving, boss
+  // menace (tighter in phase 2), victory resolve; collected fragments add
+  // harmony voices (the song returns). Held wins keep their fight's mood.
+  if (!ui.victoryHold) {
+    const mood: Mood =
+      world.mode === "victory" || ui.screen === "victory"
+        ? "victory"
+        : world.mode === "combat"
+          ? world.combat?.boss
+            ? "boss"
+            : "combat"
+          : "explore";
+    sound.setMood(mood, world.fragments.filter((f) => f.collected).length, world.combat?.boss?.phase === 2 ? 1 : 0);
+  }
   // a victory can land while paused (blur mid-beat): normalize here, in
   // the state-owning loop, never in the renderer
   if (ui.screen === "pause" && world.mode === "victory") ui.screen = "play";
@@ -440,12 +508,24 @@ function frame(now: number): void {
   if (ui.enemyBeat > 0 && ui.screen === "play") {
     ui.enemyBeat = Math.max(0, ui.enemyBeat - dt * (reducedMotion ? 3 : 1));
     if (ui.enemyBeat === 0 && world.mode === "combat") {
+      ui.enemyStrike = 0.22; // the lunge snap lands with the resolution
       enemySlot(world);
       if (world.mode !== "combat") ui.selectedPart = undefined;
     }
   }
   if (ui.enemyFlash > 0) ui.enemyFlash = Math.max(0, ui.enemyFlash - dt * 2.5);
   if (live) {
+    if (ui.attackAnim) {
+      ui.attackAnim.t -= dt;
+      if (ui.attackAnim.t <= 0) ui.attackAnim = undefined;
+    }
+    if (ui.enemyStrike > 0) ui.enemyStrike = Math.max(0, ui.enemyStrike - dt);
+    if (ui.playerFlinch > 0) ui.playerFlinch = Math.max(0, ui.playerFlinch - dt);
+    for (let i = 0; i < ui.buttonFlash.length; i++) {
+      if (ui.buttonFlash[i] > 0) ui.buttonFlash[i] = Math.max(0, ui.buttonFlash[i] - dt);
+    }
+    for (const fx of ui.castFx) fx.age += dt;
+    ui.castFx = ui.castFx.filter((fx) => fx.age < 0.5);
     for (const f of ui.floaters) f.age += dt;
     ui.floaters = ui.floaters.filter((f) => f.age < 1.3);
     if (ui.storyCard && world.mode === "explore" && !ui.victoryHold) {

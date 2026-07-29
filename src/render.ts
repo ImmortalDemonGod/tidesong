@@ -2,7 +2,7 @@
 // layers, underwater aerial perspective (far = bluer, dimmer), scale-by-depth
 // combat staging, all presentation-only. Palette follows the greybox sketch.
 
-import { ABILITIES, BASE, getCondition, type CombatState, type PartKey } from "./game";
+import { ABILITIES, BASE, enemyIntent, getCondition, type CombatState, type PartKey } from "./game";
 import { AREAS, D1, HUB, type WorldState } from "./world";
 
 export interface Floater {
@@ -28,9 +28,96 @@ export interface UIState {
   storyCard?: { text: string; age: number; kind: "story" | "song" | "npc" | "relic" | "heal" }; // explore cards
   victoryHold?: { combat: CombatState; t: number }; // hold the win beat on screen
   floaters: Floater[];
+  // fun pass: per-ability cast effects and bodies that move (diagnosis:
+  // "neither combatant ever moves; every ability is the same white flash")
+  castFx: { kind: string; age: number }[];
+  attackAnim?: { kind: string; t: number }; // player lunge, counts down from 0.3
+  enemyStrike: number; // enemy lunge snap when its beat resolves
+  playerFlinch: number; // player recoil + red tint on taking a hit
+  buttonFlash: number[]; // pressed flash per ability card
+  hitStop: number; // brief presentation freeze on impact
+  reducedMotion: boolean; // positional offsets collapse to flashes
 }
 
 export const ABILITY_ORDER = ["tailStrike", "siltBurst", "finSlash", "healSong", "analyze", "bubble"];
+
+// Per-ability identity: an accent color and a small painted glyph, matched
+// by the cast effect and the synth voice so each ability reads as itself in
+// the menu, in motion, and in sound (fun diagnosis, all three agents HIGH).
+export const ABILITY_META: Record<string, { accent: string; glyph: (ctx: CanvasRenderingContext2D, x: number, y: number) => void }> = {
+  tailStrike: {
+    accent: "#D8E9EE",
+    glyph: (ctx, x, y) => {
+      ctx.lineWidth = 2.5;
+      for (let i = 0; i < 3; i++) {
+        ctx.beginPath();
+        ctx.moveTo(x - 8 + i * 7, y + 7);
+        ctx.lineTo(x + 2 + i * 7, y - 7);
+        ctx.stroke();
+      }
+    },
+  },
+  siltBurst: {
+    accent: "#E8C98A",
+    glyph: (ctx, x, y) => {
+      for (let i = 0; i < 7; i++) {
+        ctx.beginPath();
+        ctx.arc(x + Math.cos(i * 2.4) * (4 + i * 1.3), y + Math.sin(i * 2.4) * (3 + i), 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    },
+  },
+  finSlash: {
+    accent: "#35C8D6",
+    glyph: (ctx, x, y) => {
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(x, y + 4, 12, Math.PI * 1.15, Math.PI * 1.95);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(x, y + 8, 12, Math.PI * 1.2, Math.PI * 1.85);
+      ctx.stroke();
+    },
+  },
+  healSong: {
+    accent: "#7FE8A9",
+    glyph: (ctx, x, y) => {
+      ctx.beginPath();
+      ctx.ellipse(x - 4, y + 6, 4, 3, -0.4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x, y + 5);
+      ctx.lineTo(x, y - 8);
+      ctx.lineTo(x + 7, y - 10);
+      ctx.stroke();
+    },
+  },
+  analyze: {
+    accent: "#B99CFF",
+    glyph: (ctx, x, y) => {
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.ellipse(x, y, 11, 7, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(x, y, 3, 0, Math.PI * 2);
+      ctx.fill();
+    },
+  },
+  bubble: {
+    accent: "#7FB8E8",
+    glyph: (ctx, x, y) => {
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(x, y, 9, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(x + 3, y - 3, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+    },
+  },
+};
 
 const C = {
   deep: "#06121C",
@@ -698,17 +785,69 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
   ctx.ellipse(cw / 2, 640, 700, 90, 0, 0, Math.PI * 2);
   ctx.fill();
 
+  // bodies that move (fun diagnosis: both combatants were frozen at fixed
+  // coordinates through the whole exchange). All offsets are presentation
+  // reading ui timers; reduced motion collapses them to flashes.
+  const rm = ui.reducedMotion;
+  const beatP = ui.enemyBeat > 0 ? 1 - ui.enemyBeat / 0.55 : 0; // windup progress
+  const strikeP = ui.enemyStrike > 0 ? Math.sin(Math.PI * (1 - ui.enemyStrike / 0.22)) : 0;
+  const attackP = ui.attackAnim ? Math.sin(Math.PI * (1 - ui.attackAnim.t / 0.3)) : 0;
+  const meleeCast = ui.attackAnim && (ui.attackAnim.kind === "tailStrike" || ui.attackAnim.kind === "finSlash");
+  const lunge = rm ? 0 : attackP * (meleeCast ? 210 : 26);
+  const flinch = rm ? 0 : Math.min(1, ui.playerFlinch / 0.35) * 16;
+  const recoil = rm ? 0 : Math.min(1, ui.enemyFlash / 0.3);
+  const sink = ui.victoryHold ? 1 - Math.max(0, ui.victoryHold.t) / 1.1 : 0;
+
   // player, small and near (left); enemy staged big (right): scale-by-depth
-  fish(ctx, 250, 430, 1.7, t, 1);
+  fish(ctx, 250 + lunge - flinch, 430, 1.7, t, 1);
+  if (ui.playerFlinch > 0) {
+    ctx.save();
+    ctx.globalAlpha = Math.min(0.3, ui.playerFlinch);
+    ctx.fillStyle = C.danger;
+    ctx.beginPath();
+    ctx.ellipse(250 - flinch, 430, 90, 70, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+  // bubble guard: a visible shield ring while the charge holds
+  if (c.bubbleCharge && !ui.victoryHold) {
+    ctx.save();
+    ctx.strokeStyle = ABILITY_META.bubble.accent;
+    ctx.globalAlpha = 0.5 + Math.sin(t * 5) * 0.2;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(250 + lunge - flinch, 430, 84 + Math.sin(t * 3) * 4, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
 
   const broken = new Set<PartKey>((c.boss?.parts ?? []).filter((p) => p.broken).map((p) => p.key));
-  if (c.boss?.kind === "eel") eelSprite(ctx, 800, 300, 1.25, t, broken);
-  else if (c.boss) sharkSprite(ctx, 800, 300, 1.25, t, broken);
-  else squidSprite(ctx, 810, 300, 2.1, t);
+  const slowed = getCondition(c.enemy, "slow");
+  const blinded = getCondition(c.enemy, "blind");
+  // enemy body offset: windup pulls back and swells, strike snaps toward
+  // the player, hits recoil away, the kill sinks it into the dark
+  const ex = 800 + (rm ? 0 : beatP * 14 - strikeP * 120 + recoil * 16);
+  const eyBase = 300 + (rm ? 0 : beatP * -8) + sink * (rm ? 40 : 150);
+  const eScale = (1 + (rm ? 0 : beatP * 0.08 + recoil * 0.1 - strikeP * 0.02)) * (1 - sink * 0.12);
+  const drawEnemy = (x: number, y: number, alpha: number): void => {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    if (c.boss?.kind === "eel") eelSprite(ctx, x, y, 1.25 * eScale, t, broken);
+    else if (c.boss) sharkSprite(ctx, x, y, 1.25 * eScale, t, broken);
+    else squidSprite(ctx, x + 10, y, 2.1 * eScale, t);
+    ctx.restore();
+  };
+  // slow afterimages: the enemy drags ghosts of itself
+  if (slowed && !ui.victoryHold && !rm) {
+    drawEnemy(ex - 22, eyBase, 0.14);
+    if (slowed.level === 2) drawEnemy(ex - 40, eyBase, 0.07);
+  }
+  drawEnemy(ex, eyBase, 1 - sink * 0.65);
 
   // On-body part anchors: labels always, dashed reticle on the aimed part
-  // (G6 HIGH fix: the panel-to-body mapping must be unambiguous).
-  if (c.boss) {
+  // (G6 HIGH fix: the panel-to-body mapping must be unambiguous). Hidden
+  // once the fight is decided (the body is sinking).
+  if (c.boss && !ui.victoryHold) {
     const sharkAnchors: Record<PartKey, { x: number; y: number }> = {
       jaw: { x: 800 - 110 * 1.25, y: 300 + 38 * 1.25 },
       eye: { x: 800 - 96 * 1.25, y: 300 - 18 * 1.25 },
@@ -746,19 +885,111 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
     ctx.globalAlpha = Math.min(0.5, ui.enemyFlash * 1.8);
     ctx.fillStyle = "#FFFFFF";
     ctx.beginPath();
-    ctx.ellipse(800, 300, c.boss ? 210 : 110, c.boss ? 120 : 110, 0, 0, Math.PI * 2);
+    ctx.ellipse(ex, eyBase, c.boss ? 210 : 110, c.boss ? 120 : 110, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
   }
 
-  // condition tint: blinded enemies dim, slowed enemies trail
-  if (getCondition(c.enemy, "blind")) {
+  // condition states, readable on the body: blinded enemies dim under a
+  // lingering silt haze with dark bars over the eye line; slowed enemies
+  // drag the afterimages drawn above
+  if (blinded) {
     ctx.save();
     ctx.globalAlpha = 0.25;
     ctx.fillStyle = "#0A0614";
     ctx.beginPath();
-    ctx.ellipse(800, 300, c.boss ? 220 : 120, c.boss ? 130 : 120, 0, 0, Math.PI * 2);
+    ctx.ellipse(ex, eyBase, c.boss ? 220 : 120, c.boss ? 130 : 120, 0, 0, Math.PI * 2);
     ctx.fill();
+    // drifting silt motes while the blind holds
+    ctx.globalAlpha = 0.55;
+    ctx.fillStyle = C.sand;
+    for (let i = 0; i < 12; i++) {
+      const a = t * (0.6 + (i % 4) * 0.2) + i * 2.1;
+      ctx.beginPath();
+      ctx.arc(ex - 60 + Math.cos(a) * (60 + i * 6), eyBase - 60 + Math.sin(a * 1.3) * 34, 2.4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    // eye bars, heavier at level II
+    ctx.globalAlpha = blinded.level === 2 ? 0.9 : 0.6;
+    ctx.fillStyle = "#0A0614";
+    const eyeY = eyBase - (c.boss ? 40 : 20);
+    ctx.fillRect(ex - (c.boss ? 190 : 70), eyeY - 8, c.boss ? 150 : 110, 16);
+    ctx.restore();
+  }
+
+  // per-ability cast effects, colored like their cards (fun diagnosis:
+  // every cast was one shared white ellipse)
+  for (const fx of ui.castFx) {
+    const p = Math.min(1, fx.age / 0.45);
+    const fade = 1 - p;
+    const accent = ABILITY_META[fx.kind]?.accent ?? C.ink;
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, fade);
+    if (fx.kind === "tailStrike") {
+      // impact star at the enemy
+      ctx.strokeStyle = accent;
+      ctx.lineWidth = 3;
+      for (let i = 0; i < 6; i++) {
+        const a = i * (Math.PI / 3) + 0.3;
+        ctx.beginPath();
+        ctx.moveTo(ex + Math.cos(a) * 26, eyBase + Math.sin(a) * 26);
+        ctx.lineTo(ex + Math.cos(a) * (26 + 34 * p), eyBase + Math.sin(a) * (26 + 34 * p));
+        ctx.stroke();
+      }
+    } else if (fx.kind === "siltBurst") {
+      // sand cloud billowing over the enemy's eyes
+      ctx.fillStyle = accent;
+      for (let i = 0; i < 16; i++) {
+        const a = i * 2.4;
+        ctx.beginPath();
+        ctx.arc(ex - 50 + Math.cos(a) * 90 * p, eyBase - 40 + Math.sin(a) * 55 * p, 3.5 + p * 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    } else if (fx.kind === "finSlash") {
+      // cyan crescent swipe across the body
+      ctx.strokeStyle = accent;
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.arc(ex - 20, eyBase, 90 + p * 40, Math.PI * (1.1 + p * 0.3), Math.PI * (1.7 + p * 0.3));
+      ctx.stroke();
+    } else if (fx.kind === "healSong") {
+      // green motes rising off the fish
+      ctx.fillStyle = accent;
+      for (let i = 0; i < 8; i++) {
+        ctx.beginPath();
+        ctx.arc(230 + (i % 4) * 18, 440 - p * 120 - i * 9, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    } else if (fx.kind === "analyze") {
+      // scanline sweeping the enemy
+      ctx.strokeStyle = accent;
+      ctx.lineWidth = 2;
+      const sy = eyBase - 120 + p * 240;
+      ctx.beginPath();
+      ctx.moveTo(ex - 200, sy);
+      ctx.lineTo(ex + 200, sy);
+      ctx.stroke();
+    } else if (fx.kind === "bubble") {
+      // the shield ring forming
+      ctx.strokeStyle = accent;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(250, 430, 30 + p * 54, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // kill ceremony: sand motes rise off the sinking body
+  if (sink > 0 && !rm) {
+    ctx.save();
+    ctx.fillStyle = C.sand;
+    for (let i = 0; i < 14; i++) {
+      ctx.globalAlpha = Math.max(0, 0.7 - sink * 0.6 - (i % 5) * 0.08);
+      ctx.beginPath();
+      ctx.arc(ex - 120 + (i * 37) % 240, eyBase - sink * (90 + (i % 6) * 30) + 20, 2.8, 0, Math.PI * 2);
+      ctx.fill();
+    }
     ctx.restore();
   }
 
@@ -787,6 +1018,27 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
   let chipX = headX;
   for (const cond of c.enemy.conditions) {
     chipX += chip(ctx, chipX, 108, `${cond.kind.toUpperCase()} ${cond.level === 2 ? "II" : "I"} · ${cond.turns}`, C.glow) + 8;
+  }
+
+  // intent telegraph: what the sea will do next, so abilities become
+  // answers to visible threats (the playtester's "make sense to use
+  // during key moments"; enemyIntent is a pure reader, RNG untouched)
+  if (c.outcome === "ongoing" && !ui.victoryHold) {
+    const intent = enemyIntent(c);
+    let text: string;
+    let color: string;
+    if (intent.skip) {
+      text = "NEXT: held by the slow current, it will skip";
+      color = C.biolum;
+    } else {
+      text = `NEXT: strikes for ${intent.dmg}`;
+      if (intent.missChance > 0) text += ` · ${Math.round(intent.missChance * 100)}% miss (blinded)`;
+      if (intent.bubbled) text += " · your bubble holds";
+      color = intent.missChance > 0 || intent.bubbled ? C.glow : C.danger;
+    }
+    ctx.fillStyle = color;
+    ctx.font = "600 13px ui-monospace, monospace";
+    ctx.fillText(text, headX, c.enemy.conditions.length > 0 ? 152 : 116);
   }
 
   // phase banner (not over the SPENT hold: the fight is decided)
@@ -913,23 +1165,39 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
   if (ui.victoryHold) return;
   ABILITY_ORDER.forEach((key, i) => {
     const a = ABILITIES[key];
+    const meta = ABILITY_META[key];
     const x = 330 + i * 152;
     const canAfford =
       c.player.sta >= a.staCost &&
       !(a.heals !== undefined && (c.healSongUses <= 0 || c.player.hp >= c.player.maxHp));
-    ctx.strokeStyle = canAfford ? C.line : "#152836";
-    ctx.fillStyle = C.panel;
+    const locked = ui.enemyBeat > 0; // the sea is answering; the hand waits
+    const pressed = ui.buttonFlash[i] > 0;
+    ctx.strokeStyle = pressed ? meta.accent : canAfford && !locked ? C.line : "#152836";
+    ctx.lineWidth = pressed ? 2.5 : 1;
+    ctx.fillStyle = pressed ? "#12293A" : C.panel;
     ctx.beginPath();
     ctx.roundRect(x, ch - 92, 140, 64, 9);
     ctx.fill();
     ctx.stroke();
-    ctx.fillStyle = canAfford ? C.ink : "#4a5c66";
+    ctx.lineWidth = 1;
+    // identity: accent edge + glyph, dimmed when unusable
+    const on = canAfford && !locked;
+    ctx.save();
+    ctx.globalAlpha = on ? 1 : 0.35;
+    ctx.fillStyle = meta.accent;
+    ctx.beginPath();
+    ctx.roundRect(x, ch - 92, 5, 64, 2);
+    ctx.fill();
+    ctx.strokeStyle = meta.accent;
+    meta.glyph(ctx, x + 118, ch - 60);
+    ctx.restore();
+    ctx.fillStyle = on ? C.ink : "#4a5c66";
     ctx.font = "600 13px system-ui";
-    ctx.fillText(`${i + 1} ${a.name}`, x + 10, ch - 68);
-    ctx.fillStyle = canAfford ? C.muted : "#3a4c56";
+    ctx.fillText(`${i + 1} ${a.name}`, x + 12, ch - 68);
+    ctx.fillStyle = on ? C.muted : "#3a4c56";
     ctx.font = "12px ui-monospace, monospace";
     const extra = a.heals !== undefined ? ` · ${c.healSongUses} left` : "";
-    ctx.fillText(`${a.staCost} STA${extra}`, x + 10, ch - 46);
+    ctx.fillText(`${a.staCost} STA${extra}`, x + 12, ch - 46);
   });
 }
 
@@ -955,13 +1223,14 @@ export function render(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
     ctx.fillStyle = C.panel;
     ctx.strokeStyle = C.biolum;
     ctx.beginPath();
-    ctx.roundRect(cw / 2 - 110, ch / 2 - 60, 220, 44, 22);
+    ctx.roundRect(cw / 2 - 150, ch / 2 - 60, 300, 44, 22);
     ctx.fill();
     ctx.stroke();
     ctx.fillStyle = C.biolum;
     ctx.font = "700 18px ui-monospace, monospace";
     ctx.textAlign = "center";
-    ctx.fillText("SPENT", cw / 2, ch / 2 - 31);
+    // "SPENT" read as stamina, not a kill (fun diagnosis)
+    ctx.fillText("THE SONG QUIETS", cw / 2, ch / 2 - 31);
     ctx.textAlign = "left";
     if (ui.screen === "pause") {
       // pause draws OVER the held frame instead of leaking the world
