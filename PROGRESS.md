@@ -1475,3 +1475,16 @@ every evidence class before any PENDING becomes GREEN.
   the cards cannot (SPACE passes, up/down aims, Analyze is free the
   first look) rather than repeating the ability effects that are now
   printed on the buttons themselves. 108 tests green.
+- (git time of this commit) Played report: "the combat text bunches up
+  at the bottom". Three separate things were being drawn into the same
+  60px band with no layout: the log ticker at x=380, the analyze hint at
+  x=640 on effectively the same line, and the teach line just under
+  both, with the Analyze log line long enough to run through all of it.
+  Given a real layout: the analyze verdict now sits WITH the enemy it
+  describes (under the intent line, in the nameplate column, where all
+  the other enemy information already lives), the ticker has its own
+  left-aligned band and clamps any long line with an ellipsis instead of
+  running under its neighbours, the aim and teach lines moved clear, and
+  the Analyze sentence itself was shortened. Same class, also fixed:
+  floater lanes widened so a long payoff and a damage number spawned in
+  one drain no longer overlap on the body. 108 tests green.

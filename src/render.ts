@@ -1464,8 +1464,10 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
   // lanes keep chorded floats apart
   for (const f of ui.floaters) {
     const lane = f.lane ?? 0;
-    const x = (f.side === "enemy" ? 800 + f.age * 20 : 250) + lane * 12;
-    const y = (f.side === "enemy" ? 285 : 370) + lane * 24 - f.age * 46;
+    // wider lanes: a long payoff ("turn lost · slowed") and a damage
+    // number spawned in the same drain were still overlapping on the body
+    const x = (f.side === "enemy" ? 800 + f.age * 20 : 250) + (lane % 2 === 0 ? -34 : 34) * Math.min(1, lane);
+    const y = (f.side === "enemy" ? 285 : 370) + lane * 34 - f.age * 46;
     ctx.save();
     let alpha = Math.max(0, 1 - f.age / 1.3);
     if (f.side === "enemy" && y < 195) alpha *= Math.max(0, (y - 165) / 30);
@@ -1566,6 +1568,18 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
       ctx.fillText(row, headX, intentY + rowIdx * 16);
       rowIdx += 1;
     }
+    // what Analyze bought you sits WITH the enemy it describes, instead
+    // of down in the log band where it collided with the ticker
+    // (played report: "the combat text bunches up at the bottom")
+    if (c.analyzed && !c.boss) {
+      ctx.fillStyle = C.biolum;
+      ctx.font = "12px system-ui";
+      ctx.fillText(
+        `analyze: ${CONDITION_INFO[c.enemy.analyzeHint].ability} (${CONDITION_INFO[c.enemy.analyzeHint].key}) is its best answer`,
+        headX,
+        intentY + rowIdx * 16 + 4,
+      );
+    }
   }
 
   // phase banner (not over the SPENT hold: the fight is decided)
@@ -1621,14 +1635,6 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
       const keyName = c.boss.parts.find((p) => p.key === c.boss!.keyPartByPhase[c.boss!.phase])?.name ?? "";
       ctx.fillText(`analyze: break the ${keyName} to end this phase`, panelX, py2 + 4);
     }
-  } else if (c.analyzed) {
-    ctx.fillStyle = C.biolum;
-    ctx.font = "13px system-ui";
-    ctx.fillText(
-      `analyze: ${CONDITION_INFO[c.enemy.analyzeHint].ability} (${CONDITION_INFO[c.enemy.analyzeHint].key}) works best: ${CONDITION_INFO[c.enemy.analyzeHint].effect(1)}`,
-      640,
-      ch - 150,
-    );
   }
 
   // turn pill: input is always the player's to give in this turn flow
@@ -1664,7 +1670,7 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
         ? `aiming at the ${(c.boss.parts.find((p2) => p2.key === ui.selectedPart)?.name ?? ui.selectedPart).toUpperCase()}`
         : "no aim: hits drift (up/down to aim)",
       cw / 2,
-      ch - 128,
+      ch - 146,
     );
     ctx.textAlign = "left";
   }
@@ -1676,16 +1682,24 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
   ctx.fillText(
     "1-6 act · up/down aim a boss part · SPACE passes the turn · Analyze is free the first look",
     cw / 2,
-    ch - 110,
+    ch - 122,
   );
   ctx.textAlign = "left";
 
   // recent log lines
   ctx.fillStyle = C.muted;
   ctx.font = "13px system-ui";
+  // one band, left aligned, clamped to the panel width so a long line
+  // can never run under the centred lines below it
+  const tickerMax = cw - 72;
   ui.lastLines.slice(-3).forEach((line, i) => {
-    ctx.globalAlpha = 0.45 + i * 0.25;
-    ctx.fillText(line, 380, 540 + i * 18);
+    ctx.globalAlpha = 0.4 + i * 0.28;
+    let text = line;
+    if (ctx.measureText(text).width > tickerMax) {
+      while (text.length > 8 && ctx.measureText(`${text}\u2026`).width > tickerMax) text = text.slice(0, -1);
+      text += "\u2026";
+    }
+    ctx.fillText(text, 36, 506 + i * 18);
   });
   ctx.globalAlpha = 1;
 

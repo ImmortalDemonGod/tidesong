@@ -510,7 +510,7 @@ export function useAbility(state: CombatState, abilityKey: string, targetPart?: 
     state.log.push(
       state.boss
         ? `Analyze: target the ${getPart(state, currentKeyPart(state)!)!.name} to end the ${state.boss.phaseName} phase (${bossDamage(state)} dmg per hit). Best disable: ${CONDITION_INFO[state.enemy.analyzeHint].ability} (${CONDITION_INFO[state.enemy.analyzeHint].key}), ${CONDITION_INFO[state.enemy.analyzeHint].effect(1)}`
-        : `Analyze: best disable here is ${CONDITION_INFO[state.enemy.analyzeHint].ability} (${CONDITION_INFO[state.enemy.analyzeHint].key}): ${CONDITION_INFO[state.enemy.analyzeHint].effect(1)}. Damage is still Tail Strike's job. It hits for ${state.enemy.attackDamage} and dodges ${Math.round(state.enemy.dodge * 100)}%`,
+        : `Analyze: ${CONDITION_INFO[state.enemy.analyzeHint].ability} (${CONDITION_INFO[state.enemy.analyzeHint].key}) is its best answer: ${CONDITION_INFO[state.enemy.analyzeHint].effect(1)}. It hits ${state.enemy.attackDamage}, dodges ${Math.round(state.enemy.dodge * 100)}%`,
     );
   }
   if (ability.inflicts) {
