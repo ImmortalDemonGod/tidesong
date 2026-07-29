@@ -239,13 +239,30 @@ function endCombat(w: WorldState): void {
   }
 }
 
-export function combatAction(w: WorldState, ability: string, part?: PartKey): boolean {
+// UI-facing split: the player's beat and the enemy's beat are separate so
+// the played game shows a visible exchange instead of both resolving in
+// one keypress (user-found during the run: "it's not an API, it's a
+// game"). The sim stays synchronous; pacing lives in the UI layer.
+export function playerAct(w: WorldState, ability: string, part?: PartKey): boolean {
   if (w.mode !== "combat" || !w.combat) return false;
   // A failed input (not enough stamina, no heal uses) must NOT cost a turn;
   // combatPass is the only explicit pass (fidelity review round 1, MED).
   if (!useAbility(w.combat, ability, part)) return false;
-  if (w.combat.outcome === "ongoing") advanceTurn(w.combat);
   if (w.combat.outcome !== "ongoing") endCombat(w);
+  return true;
+}
+
+export function enemySlot(w: WorldState): boolean {
+  if (w.mode !== "combat" || !w.combat) return false;
+  advanceTurn(w.combat);
+  if (w.combat.outcome !== "ongoing") endCombat(w);
+  return true;
+}
+
+// Bot/test composition: identical behavior to the original combatAction.
+export function combatAction(w: WorldState, ability: string, part?: PartKey): boolean {
+  if (!playerAct(w, ability, part)) return false;
+  if (w.mode === "combat") enemySlot(w);
   return true;
 }
 

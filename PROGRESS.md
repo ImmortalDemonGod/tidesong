@@ -516,3 +516,24 @@ optimal 14.4 HP lost):
   cohorts are ~5 points HARDER despite lower durability (early break
   means longer under phase-2 damage); all cohorts in band; the wander is
   fair.
+- 01:30 USER-FOUND GAP, the sharpest catch of the run: combat resolved
+  INSTANTLY (one keypress executed the player action AND the enemy answer
+  in the same frame: every floater, sound, and bar change landed at once)
+  and no instrument had ever pressed a real key: all verification was
+  sim-level bots and static demo-state screenshots. "It's not an API,
+  it's a game." Fixes: (1) the played exchange is now two visible beats:
+  playerAct resolves, input locks, the pill flips to THE SEA ANSWERS, and
+  enemySlot lands 550ms later (sim stays synchronous and pure; bots use
+  the unchanged composition; 77 tests green untouched). (2) New
+  as-played instrument, ?filmstrip=combat: dispatches REAL KeyboardEvents
+  through the REAL handlers, steps the REAL frame function on a virtual
+  clock, and composes 4 timestamped canvas snapshots into one shot.
+  Captured proof (/tmp/tidesong-gallery/filmstrip.png): t=16ms the blind
+  chip is up and the squid has NOT answered; t=320ms still pending;
+  t=920ms the enemy turn provably ran (blind ticked I-2 to I-1 and the
+  counterattack MISSED because of the blind, demonstrating the condition
+  system unprompted). Two instrument bugs found while building it (frame
+  self-rescheduling overdrawing the strip via an UNASSERTED string
+  replace, and the dt clamp starving the virtual clock); both fixed;
+  replaces must assert from now on. G6's gallery gains the filmstrip as
+  the played-sequence exhibit.

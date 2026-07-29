@@ -24,6 +24,7 @@ export interface UIState {
   shake: number; // seconds remaining on screen shake
   enemyFlash: number; // seconds remaining on enemy hit flash
   zoomPulse: number; // seconds remaining on the combat-entry/phase zoom
+  enemyBeat: number; // seconds until the enemy's answering beat lands
   floaters: Floater[];
 }
 
@@ -813,15 +814,15 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
 
   // turn pill: input is always the player's to give in this turn flow
   ctx.fillStyle = C.panel;
-  ctx.strokeStyle = C.glow;
+  ctx.strokeStyle = ui.enemyBeat > 0 ? C.danger : C.glow;
   ctx.beginPath();
-  ctx.roundRect(cw / 2 - 70, c.boss ? 60 : 20, 140, 30, 15);
+  ctx.roundRect(cw / 2 - 85, c.boss ? 60 : 20, 170, 30, 15);
   ctx.fill();
   ctx.stroke();
-  ctx.fillStyle = C.glow;
+  ctx.fillStyle = ui.enemyBeat > 0 ? C.danger : C.glow;
   ctx.font = "600 13px ui-monospace, monospace";
   ctx.textAlign = "center";
-  ctx.fillText("YOUR MOVE", cw / 2, c.boss ? 80 : 40);
+  ctx.fillText(ui.enemyBeat > 0 ? "THE SEA ANSWERS" : "YOUR MOVE", cw / 2, c.boss ? 80 : 40);
   ctx.textAlign = "left";
 
   // aim confirm line (boss): what will a number key hit right now?

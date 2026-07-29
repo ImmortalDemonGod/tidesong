@@ -1,6 +1,6 @@
 import { classifyLogLine } from "./events";
 import { Sound } from "./audio";
-import { createWorld, combatAction, combatPass, interact, step, type Dir, type WorldState } from "./world";
+import { createWorld, combatPass, enemySlot, interact, playerAct, step, type Dir, type WorldState } from "./world";
 import { ABILITY_ORDER, render, type UIState } from "./render";
 import type { PartKey } from "./game";
 
@@ -26,6 +26,7 @@ const ui: UIState = {
   shake: 0,
   enemyFlash: 0,
   zoomPulse: 0,
+  enemyBeat: 0,
   floaters: [],
 };
 
@@ -129,12 +130,16 @@ function onKey(e: KeyboardEvent): void {
       if (k === "ArrowDown" || k === "s") cyclePart(1);
       return;
     }
+    // input locks while the sea answers: the exchange must be watchable
+    if (ui.enemyBeat > 0) return;
     const slot = Number.parseInt(k, 10);
     if (slot >= 1 && slot <= ABILITY_ORDER.length) {
-      combatAction(world, ABILITY_ORDER[slot - 1], ui.selectedPart as PartKey | undefined);
-      if (world.mode !== "combat") ui.selectedPart = undefined;
+      if (playerAct(world, ABILITY_ORDER[slot - 1], ui.selectedPart as PartKey | undefined)) {
+        if (world.mode === "combat") ui.enemyBeat = 0.55;
+        else ui.selectedPart = undefined;
+      }
     }
-    if (k === " ") combatPass(world);
+    if (k === " " && world.mode === "combat") ui.enemyBeat = 0.3;
     return;
   }
   // explore
@@ -254,6 +259,7 @@ window.addEventListener("error", (e) => {
 });
 
 let last = performance.now();
+let virtualClock = false; // filmstrip mode: no self-rescheduling
 function frame(now: number): void {
   const dt = Math.min(0.1, (now - last) / 1000);
   last = now;
@@ -261,6 +267,13 @@ function frame(now: number): void {
   if (ui.deathFlash > 0) ui.deathFlash = Math.max(0, ui.deathFlash - dt * 0.7);
   if (ui.shake > 0) ui.shake = Math.max(0, ui.shake - dt * (reducedMotion ? 8 : 2.2));
   if (ui.zoomPulse > 0) ui.zoomPulse = Math.max(0, ui.zoomPulse - dt * (reducedMotion ? 10 : 1.8));
+  if (ui.enemyBeat > 0) {
+    ui.enemyBeat = Math.max(0, ui.enemyBeat - dt * (reducedMotion ? 3 : 1));
+    if (ui.enemyBeat === 0 && world.mode === "combat") {
+      enemySlot(world);
+      if (world.mode !== "combat") ui.selectedPart = undefined;
+    }
+  }
   if (ui.enemyFlash > 0) ui.enemyFlash = Math.max(0, ui.enemyFlash - dt * 2.5);
   for (const f of ui.floaters) f.age += dt;
   ui.floaters = ui.floaters.filter((f) => f.age < 1.3);
@@ -282,9 +295,75 @@ function frame(now: number): void {
   ui.animY += (world.pos.y - ui.animY) * Math.min(1, dt * 9);
 
   render(ctx, world, ui);
+  if (!virtualClock) requestAnimationFrame(frame);
+}
+// ?filmstrip=combat: played-game verification (user-found gap: every shot
+// was a static state; nobody had pressed a key). Dispatches REAL
+// KeyboardEvents through the REAL handlers and steps the REAL frame
+// function on a virtual clock, snapshotting the canvas at beats and
+// composing the strip synchronously so a load-time screenshot captures
+// proof that the exchange is visible and sequential, not instant.
+const filmstrip = new URLSearchParams(location.search).get("filmstrip");
+if (filmstrip === "combat") {
+  virtualClock = true;
+  last = 0;
+  world = createWorld(7);
+  ui.screen = "play";
+  world.area = "dungeon1";
+  world.pos = { x: 7, y: 4 };
+  world.checkpoint = { area: "dungeon1", pos: { x: 1, y: 4 } };
+  step(world, "right"); // trigger the squid: real encounter path
+  ui.animX = world.pos.x;
+  ui.animY = world.pos.y;
+  logCursor = world.log.length;
+
+  const snaps: { label: string; img: HTMLCanvasElement }[] = [];
+  const snap = (label: string) => {
+    const c = document.createElement("canvas");
+    c.width = canvas.width;
+    c.height = canvas.height;
+    c.getContext("2d")!.drawImage(canvas, 0, 0);
+    const hp = world.combat ? `you ${world.combat.player.hp} · squid ${world.combat.enemy.hp}` : "";
+    snaps.push({ label: `${label}  [${hp}]`, img: c });
+  };
+  const press = (key: string) => window.dispatchEvent(new KeyboardEvent("keydown", { key }));
+
+  // step the virtual clock in <=100ms increments (frame clamps dt at 0.1s)
+  let vt = 0;
+  const advanceTo = (target: number) => {
+    while (vt < target) {
+      vt = Math.min(target, vt + 80);
+      frame(vt);
+    }
+  };
+  frame(0);
+  snap("t=0 your move: nothing has happened");
+  press("2"); // Silt Burst through the real handler
+  advanceTo(16);
+  snap("t=16ms you act: squid hit + blinded, sea has NOT answered");
+  advanceTo(320);
+  snap("t=320ms the sea answers pending: still no counterattack");
+  advanceTo(920);
+  snap("t=920ms the sea answered: counterattack landed, your move again");
+
+  // compose 2x2 strip
+  ctx.fillStyle = "#06121C";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  snaps.forEach((sn, i) => {
+    const x = (i % 2) * (canvas.width / 2);
+    const y = Math.floor(i / 2) * (canvas.height / 2);
+    ctx.drawImage(sn.img, x, y, canvas.width / 2, canvas.height / 2);
+    ctx.strokeStyle = "#35C8D6";
+    ctx.strokeRect(x + 1, y + 1, canvas.width / 2 - 2, canvas.height / 2 - 2);
+    ctx.fillStyle = "#0B1D2A";
+    ctx.fillRect(x + 4, y + 4, 640, 24);
+    ctx.fillStyle = "#D8E9EE";
+    ctx.font = "600 13px ui-monospace, monospace";
+    ctx.fillText(sn.label, x + 10, y + 21);
+  });
+} else {
+  // Synchronous first paint: headless screenshots capture on page load, which
+  // can precede the first rAF tick (the cause of intermittently blank shots).
+  render(ctx, world, ui);
   requestAnimationFrame(frame);
 }
-// Synchronous first paint: headless screenshots capture on page load, which
-// can precede the first rAF tick (the cause of intermittently blank shots).
-render(ctx, world, ui);
-requestAnimationFrame(frame);
