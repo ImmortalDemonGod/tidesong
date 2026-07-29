@@ -937,8 +937,8 @@ export function render(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
   if (ui.screen === "victory" || w.mode === "victory") {
     ctx.fillStyle = "rgba(4,12,20,0.96)";
     ctx.fillRect(0, 0, cw, ch);
-    centered(ctx, "the currents part", 230, "700 52px system-ui", C.glow, cw);
-    centered(ctx, "the way to the second ruin lies open", 280, "17px system-ui", C.ink, cw);
+    centered(ctx, "the sea remembers its song", 230, "700 52px system-ui", C.glow, cw);
+    centered(ctx, "both ruins stand quiet; the corruption recedes", 280, "17px system-ui", C.ink, cw);
     const frags = w.fragments.filter((f) => f.collected).length;
     centered(ctx, `memory fragments ${frags}/${w.fragments.length} · deaths ${w.deaths} · strokes ${w.steps}`, 340, "600 15px ui-monospace, monospace", C.muted, cw);
     centered(ctx, "TIDESONG (vertical slice)", 470, "600 20px system-ui", C.ink, cw);
