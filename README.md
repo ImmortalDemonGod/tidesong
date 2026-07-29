@@ -1,6 +1,6 @@
 # TIDESONG (working title)
 
-**▶ PLAY NOW: https://fern-waffle-h52c.here.now/**
+**▶ PLAY NOW: https://immortaldemongod.github.io/tidesong/**
 
 ![THE CORRUPTED SHARK boss intro](media/boss-intro.png)
 
@@ -15,7 +15,7 @@ build log, exit gates, and the honest morning report.
 ## How to run
 
 **In your browser (nothing to install):**
-https://fern-waffle-h52c.here.now/
+https://immortaldemongod.github.io/tidesong/
 
 **Offline:** download `dist/index.html` and double-click it -- one
 self-contained ~69KB file, no dependencies, no server.
