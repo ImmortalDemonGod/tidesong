@@ -971,7 +971,9 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
   // coordinates through the whole exchange). All offsets are presentation
   // reading ui timers; reduced motion collapses them to flashes.
   const rm = ui.reducedMotion;
-  const beatP = ui.enemyBeat > 0 ? 1 - ui.enemyBeat / 0.55 : 0; // windup progress
+  const heavyBeat = c.outcome === "ongoing" && enemyIntent(c).heavy;
+  const beatAmp = heavyBeat ? 2 : 1; // a heavy windup reads twice as big
+  const beatP = (ui.enemyBeat > 0 ? 1 - ui.enemyBeat / 0.55 : 0) * beatAmp; // windup progress
   const strikeP = ui.enemyStrike > 0 ? Math.sin(Math.PI * (1 - ui.enemyStrike / 0.22)) : 0;
   const attackP = ui.attackAnim ? Math.sin(Math.PI * (1 - ui.attackAnim.t / 0.3)) : 0;
   const meleeCast = ui.attackAnim && (ui.attackAnim.kind === "tailStrike" || ui.attackAnim.kind === "finSlash");
@@ -1237,7 +1239,7 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
       text = "NEXT: held by the slow current, it will skip";
       color = C.biolum;
     } else {
-      text = `NEXT: strikes for ${intent.dmg}`;
+      text = intent.heavy ? `NEXT: WINDS UP · heavy blow for ${intent.dmg}` : `NEXT: strikes for ${intent.dmg}`;
       if (intent.missChance > 0) text += ` · ${Math.round(intent.missChance * 100)}% miss (blinded)`;
       if (intent.bubbled) text += " · your bubble holds";
       if (c.enemy.ink) text += " · ink in the water";
@@ -1245,7 +1247,7 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
       // never off the canvas edge: compact tokens when the full line
       // cannot fit right of the boss nameplate (panel 2 seat C MED)
       if (ctx.measureText(text).width > cw - headX - 16) {
-        text = `NEXT: ${intent.dmg} dmg`;
+        text = intent.heavy ? `NEXT: HEAVY ${intent.dmg}` : `NEXT: ${intent.dmg} dmg`;
         if (intent.missChance > 0) text += ` · ${Math.round(intent.missChance * 100)}% miss`;
         if (intent.bubbled) text += " · bubbled";
         if (c.enemy.ink) text += " · ink";

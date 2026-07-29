@@ -32,6 +32,12 @@ export const BASE = {
   inkChance: 0.4,
   inkMiss: 0.4,
   inkTurns: 2,
+  // The heavy cycle (Jul 29, tactician playtest top change): every 3rd
+  // ACTING slot the enemy winds up a 1.6x blow, telegraphed a turn ahead.
+  // One rule redeems three systems: Bubble becomes a real decision, Slow
+  // visibly steals the big turns, and the intent line gains drama.
+  heavyEvery: 3,
+  heavyMult: 1.6,
 } as const;
 
 export type ConditionKind = "blind" | "slow";
@@ -117,6 +123,8 @@ export interface CombatState {
   // were explicitly aimed at a boss part
   conditionsApplied: number;
   aimedHits: number;
+  // enemy ACTING slots taken (skips excluded): the heavy cycle counts these
+  actSlots: number;
   // Raw damage the player has absorbed this fight, heals excluded: the
   // G3 difficulty floors measure this, because net hpLost is zeroable by
   // Heal Song (correctness review round 1, MED-4).
@@ -167,6 +175,7 @@ export function createCombat(seed = 1): CombatState {
     slowSlots: 0,
     conditionsApplied: 0,
     aimedHits: 0,
+    actSlots: 0,
     damageTaken: 0,
     relicEcho: false,
     turn: 1,
@@ -450,13 +459,16 @@ export interface EnemyIntent {
   dmg: number;
   missChance: number;
   bubbled: boolean;
+  heavy: boolean;
 }
 
 export function enemyIntent(state: CombatState): EnemyIntent {
   const slow = getCondition(state.enemy, "slow");
   const skip = !!slow && (state.slowSlots + 1) % 2 === 1;
+  const heavy = !skip && (state.actSlots + 1) % BASE.heavyEvery === 0;
   const blind = getCondition(state.enemy, "blind");
   let dmg = bossDamage(state);
+  if (heavy) dmg = Math.round(dmg * BASE.heavyMult);
   if (slow?.level === 2) dmg = Math.round(dmg * BASE.slowDamageMult);
   if (state.bubbleCharge) dmg = Math.round(dmg * (1 - BASE.bubbleReduction));
   return {
@@ -464,6 +476,7 @@ export function enemyIntent(state: CombatState): EnemyIntent {
     dmg,
     missChance: blind ? BASE.blindMiss[blind.level] : 0,
     bubbled: state.bubbleCharge,
+    heavy,
   };
 }
 
@@ -483,12 +496,15 @@ export function advanceTurn(state: CombatState): void {
   if (skipped) {
     state.log.push("enemy slowed: skips its action");
   } else {
+    state.actSlots += 1;
+    const heavy = state.actSlots % BASE.heavyEvery === 0;
     const blind = getCondition(enemy, "blind");
     const miss = blind ? BASE.blindMiss[blind.level] : 0;
     if (miss > 0 && nextRand(state) < miss) {
-      state.log.push("enemy attack missed (blind)");
+      state.log.push(heavy ? "enemy attack missed (blind): the heavy blow goes wide" : "enemy attack missed (blind)");
     } else {
       let dmg = bossDamage(state);
+      if (heavy) dmg = Math.round(dmg * BASE.heavyMult);
       if (slow?.level === 2) dmg = Math.round(dmg * BASE.slowDamageMult);
       if (state.bubbleCharge) {
         dmg = Math.round(dmg * (1 - BASE.bubbleReduction));
@@ -497,7 +513,7 @@ export function advanceTurn(state: CombatState): void {
       }
       player.hp = Math.max(0, player.hp - dmg);
       state.damageTaken += dmg;
-      state.log.push(`enemy hits for ${dmg}`);
+      state.log.push(heavy ? `enemy hits for ${dmg} (heavy)` : `enemy hits for ${dmg}`);
       // the ink squid's twist rides on landed hits only (a blinded miss
       // or slowed skip never inks); level I, duration refresh only. The
       // +1 compensates for this same slot's tick below so the blind
@@ -514,6 +530,7 @@ export function advanceTurn(state: CombatState): void {
   for (const c of [player, enemy]) {
     c.conditions = c.conditions
       .map((x) => ({ ...x, turns: x.turns - 1 }))
+      .map((x) => (x.turns <= 0 && x.level === 2 ? { kind: x.kind, level: 1 as const, turns: 1 } : x))
       .filter((x) => x.turns > 0);
   }
   // Slow parity carries across expiry and re-application (correctness

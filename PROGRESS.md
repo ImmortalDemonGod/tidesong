@@ -880,3 +880,18 @@ every evidence class before any PENDING becomes GREEN.
   screen rebuilt as the pitch surface (living reef, fantasy lines,
   controls, no duplicate header, confident credit); fragment harmony
   voices made audible. 90 tests green; G2/G3 batteries re-run.
+- (git time of this commit) PLAYTEST RESPONSE ROUND B (combat depth,
+  the tactician's top change): THE HEAVY CYCLE: every 3rd acting slot
+  is a telegraphed 1.6x windup (NEXT: WINDS UP a turn ahead, doubled
+  windup body language, heavier shake/hit-stop/zoom and a deep thud on
+  impact, "!" on the floater). One rule redeems three systems: Bubble
+  has a right answer, Slow visibly steals the big turns (skips do not
+  advance the cycle), heal timing matters. Paired: CONDITION II now
+  DECAYS TO I for one slot instead of vanishing (the "II is a trap"
+  feel), partially offsetting the difficulty. Full batteries re-run,
+  ZERO band edits needed: squid 76.4 casual / opt 29.3 dmg (spam
+  margins 1.5-2.0x, no-cond 2.59x: conditions pay MORE under heavies);
+  boss 35.4 / 44.7; elder 75.4; eel 38.2 / 30.0; ink in band (suite);
+  G2 scripted 50/50 (16 deaths, max 215), casual 100/100 (max 3335).
+  The intent-honesty property test held unmodified through the change:
+  announced heavies are exactly what lands. 90 tests green.

@@ -56,10 +56,21 @@ the build is placeholder for Marc's story and must be marked as such.
 - Intent telegraph (added Jul 29 from the playtest verdict "abilities
   should make sense at key moments"): the UI shows what the enemy's next
   slot will attempt (strike damage, a slowed skip, blind miss chance, a
-  held bubble), read from sim state without consuming RNG. Conditions
-  thereby become visible counterplay. Analyze keeps its exclusive
-  information: the most effective condition, enemy dodge, and the boss
-  key part are never telegraphed for free.
+  held bubble, a heavy windup), read from sim state without consuming
+  RNG. Conditions thereby become visible counterplay. Analyze keeps its
+  exclusive information: the most effective condition, enemy dodge, and
+  the boss key part are never telegraphed for free.
+- Heavy cycle (added Jul 29, tactician playtest top change): every 3rd
+  ACTING slot, any enemy winds up a 1.6x blow, telegraphed one turn
+  ahead (NEXT: WINDS UP). Slow visibly delays the big turns (skipped
+  slots do not count), Bubble's 60 percent reduction has a right moment,
+  and heal timing matters. All bands re-measured in band after the
+  change with no retune (casual rates settle ~10 points lower across
+  the board; condition value RISES: no-cond 2.6x on the squid).
+- Condition levels decay, not vanish (amended Jul 29, tactician "II is
+  a trap"): a level II condition whose duration ends drops to level I
+  for one slot instead of expiring outright, honoring Glass_Goat's
+  accumulation idea in the fade as well as the stack.
 - Enemy attack patterns and damage are deliberately not pinned here: choose
   them under gates G3/G4 and record the chosen behavior in the feature log.
 

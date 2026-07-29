@@ -117,10 +117,16 @@ function drainLog(): void {
     // juice: floaters, shake, hit flash, parsed from the same lines
     const enemyHit = line.match(/hits (?:the \w+: |for )?(\d+)/) ?? line.match(/: (\d+) dmg/);
     if (line.includes("enemy hits for")) {
-      ui.shake = 0.5;
-      ui.playerFlinch = 0.35;
-      ui.hitStop = reducedMotion ? 0 : 0.06;
-      addFloater(`-${line.match(/for (\d+)/)?.[1] ?? ""}`, "#FF6B5D", "player");
+      const heavyHit = line.includes("(heavy)");
+      ui.shake = heavyHit ? 0.85 : 0.5;
+      ui.playerFlinch = heavyHit ? 0.5 : 0.35;
+      ui.hitStop = reducedMotion ? 0 : heavyHit ? 0.09 : 0.06;
+      if (heavyHit) {
+        ui.zoomPulse = Math.max(ui.zoomPulse, 0.5);
+        sound.play("rebuff", soundSlot * 0.12); // a deep thud under the hit
+        soundSlot += 1;
+      }
+      addFloater(`-${line.match(/for (\d+)/)?.[1] ?? ""}${heavyHit ? "!" : ""}`, "#FF6B5D", "player");
     } else if (enemyHit && !line.startsWith("enemy")) {
       ui.enemyFlash = 0.3;
       if (!reducedMotion) ui.hitStop = Math.max(ui.hitStop, 0.04);
