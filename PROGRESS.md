@@ -150,9 +150,12 @@ exist because an agent under a deadline will claim done when it is not.
 Realignment prompt (verbatim, injected every 45 minutes):
 "Realign: run `date` and print it. Re-read /Users/tomriddle1/tidesong/
 PROGRESS.md and /Users/tomriddle1/tidesong/DESIGN.md in full; they are the
-binding spec, your memory of them is not. State which slice priority and
-gate you are on. Verify caffeinate is alive and bun tests are green. Commit
-and push current work. The run does not stop before 11:00 AM Jul 29 under
+binding spec, your memory of them is not. For any decision they do not
+cover, consult the source docs in docs/ before inventing: Marc's proposal
+PDF and Glass_Goat's combat PDF for design intent, the merge proposal for
+scope, the visual sketch for layout and UI reference. State which slice
+priority and gate you are on. Verify caffeinate is alive and bun tests are
+green. Commit and push current work. The run does not stop before 11:00 AM Jul 29 under
 any circumstances; SHIPPED is not a stopping condition; if you believe you
 are done, you are in the improvement loop, so pick its next item and
 continue."
@@ -167,6 +170,13 @@ continue."
 - No session-link trailers or AI co-author lines in commits.
 - Placeholder art only; all real art is Glass_Goat's.
 - game.ts stays pure simulation (no DOM); that is what makes bots possible.
+- DESIGN.md wins on conflicts, but it is a distillation: before inventing
+  anything it does not cover, check docs/ first. Marc's proposal PDF and
+  Glass_Goat's combat PDF carry design intent the summary may have dropped
+  (that is how condition stacking was nearly lost); the merge proposal
+  carries agreed scope; the visual sketch is the reference for every screen
+  layout, HUD element, and label. Cite which doc informed any invented
+  detail in the feature log.
 
 ## Feature log (chronological)
 (empty; the overnight run appends here)
