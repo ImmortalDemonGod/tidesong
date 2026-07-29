@@ -501,3 +501,18 @@ optimal 14.4 HP lost):
   lost; fin spam 0 percent); bulwark conclusions hold (casual 50 percent,
   no-cond 0 percent). Recommendations for Marc unchanged in shape,
   sharpened in numbers.
+- 01:20 Ability-usage study (tools/usage.ts, 300 fights per cell) and
+  wandering-key fairness study (tools/keyfairness.ts, 3000 seeds) banked.
+  Findings, reported honestly: Bubble is 0 percent of optimal play
+  everywhere (a 1 STA trial changed nothing because optimal never runs
+  dry; REVERTED as unmeasurable churn): it is the casual player's panic
+  guard (18 percent of casual actions), a human-facing role bot evidence
+  cannot value. Analyze is likewise 0 percent for bots because they read
+  state for free; its worth is the wandering key and boss aiming, human
+  questions for the morning playtest. Blind falls out of optimal play in
+  dungeon 2 (echo-boosted attacks dominate); in-band, flagged to the team
+  as enemy-type-2 tuning guidance (higher-dodge enemies would restore
+  blind's niche via Blind II dodge-zeroing). Key fairness: tail-key eel
+  cohorts are ~5 points HARDER despite lower durability (early break
+  means longer under phase-2 damage); all cohorts in band; the wander is
+  fair.
