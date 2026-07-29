@@ -5,6 +5,13 @@
 import { ABILITIES, getCondition, type CombatState, type PartKey } from "./game";
 import { AREAS, D1, HUB, type WorldState } from "./world";
 
+export interface Floater {
+  text: string;
+  color: string;
+  age: number; // seconds since spawn
+  side: "player" | "enemy";
+}
+
 export interface UIState {
   screen: "title" | "play" | "pause" | "victory";
   time: number;
@@ -14,6 +21,9 @@ export interface UIState {
   selectedPart?: PartKey;
   deathFlash: number; // seconds remaining on the death overlay
   lastLines: string[];
+  shake: number; // seconds remaining on screen shake
+  enemyFlash: number; // seconds remaining on enemy hit flash
+  floaters: Floater[];
 }
 
 export const ABILITY_ORDER = ["tailStrike", "siltBurst", "finSlash", "healSong", "analyze", "bubble"];
@@ -459,6 +469,12 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
   water(ctx, cw, ch, "#122036");
   lightRays(ctx, cw, ch, t * 0.5);
   particles(ctx, cw, ch, t, 0.5);
+
+  // screen shake while a hit lands on the player
+  ctx.save();
+  if (ui.shake > 0) {
+    ctx.translate((Math.random() - 0.5) * 14 * ui.shake, (Math.random() - 0.5) * 10 * ui.shake);
+  }
   ctx.fillStyle = "#081B2A";
   ctx.beginPath();
   ctx.ellipse(cw / 2, 640, 700, 90, 0, 0, Math.PI * 2);
@@ -470,6 +486,41 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
   const broken = new Set<PartKey>((c.boss?.parts ?? []).filter((p) => p.broken).map((p) => p.key));
   if (c.boss) sharkSprite(ctx, 800, 300, 1.25, t, broken);
   else squidSprite(ctx, 810, 300, 2.1, t);
+  if (ui.enemyFlash > 0) {
+    ctx.save();
+    ctx.globalAlpha = Math.min(0.5, ui.enemyFlash * 1.8);
+    ctx.fillStyle = "#FFFFFF";
+    ctx.beginPath();
+    ctx.ellipse(800, 300, c.boss ? 210 : 110, c.boss ? 120 : 110, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // condition tint: blinded enemies dim, slowed enemies trail
+  if (getCondition(c.enemy, "blind")) {
+    ctx.save();
+    ctx.globalAlpha = 0.25;
+    ctx.fillStyle = "#0A0614";
+    ctx.beginPath();
+    ctx.ellipse(800, 300, c.boss ? 220 : 120, c.boss ? 130 : 120, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // damage floaters
+  for (const f of ui.floaters) {
+    const x = f.side === "enemy" ? 800 + (f.age * 20) : 250;
+    const y = (f.side === "enemy" ? 180 : 360) - f.age * 46;
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, 1 - f.age / 1.3);
+    ctx.font = "700 20px ui-monospace, monospace";
+    ctx.fillStyle = f.color;
+    ctx.textAlign = "center";
+    ctx.fillText(f.text, x, y);
+    ctx.restore();
+    ctx.textAlign = "left";
+  }
+  ctx.restore();
 
   // enemy header: name, HP, condition chips with levels
   ctx.fillStyle = C.ink;

@@ -23,6 +23,9 @@ const ui: UIState = {
   selectedPart: undefined,
   deathFlash: 0,
   lastLines: [],
+  shake: 0,
+  enemyFlash: 0,
+  floaters: [],
 };
 
 function resetRun(): void {
@@ -44,6 +47,28 @@ function drainLog(): void {
     if (ui.lastLines.length > 6) ui.lastLines.shift();
     const ev = classifyLogLine(line);
     if (ev) sound.play(ev);
+
+    // juice: floaters, shake, hit flash, parsed from the same lines
+    const enemyHit = line.match(/hits (?:the \w+: |for )?(\d+)/);
+    if (line.includes("enemy hits for")) {
+      ui.shake = 0.5;
+      ui.floaters.push({ text: `-${line.match(/for (\d+)/)?.[1] ?? ""}`, color: "#FF6B5D", age: 0, side: "player" });
+    } else if (enemyHit && !line.startsWith("enemy")) {
+      ui.enemyFlash = 0.3;
+      ui.floaters.push({ text: `-${enemyHit[1]}`, color: "#D8E9EE", age: 0, side: "enemy" });
+    }
+    if (line.includes("+2 STA") || line.includes("disable landed")) {
+      ui.floaters.push({ text: "+2 STA", color: "#7FE8A9", age: 0, side: "player" });
+    }
+    if (line.includes("BREAKS")) {
+      ui.shake = 0.8;
+    }
+    if (line.includes("missed")) {
+      ui.floaters.push({ text: "miss", color: "#7FA0AC", age: 0, side: "enemy" });
+    }
+    if (line.includes("Heal Song: +")) {
+      ui.floaters.push({ text: "+40", color: "#7FE8A9", age: 0, side: "player" });
+    }
   }
   if (world.deaths > lastDeaths) {
     lastDeaths = world.deaths;
@@ -187,6 +212,10 @@ function frame(now: number): void {
   last = now;
   ui.time += reducedMotion ? dt * 0.25 : dt;
   if (ui.deathFlash > 0) ui.deathFlash = Math.max(0, ui.deathFlash - dt * 0.7);
+  if (ui.shake > 0) ui.shake = Math.max(0, ui.shake - dt * (reducedMotion ? 8 : 2.2));
+  if (ui.enemyFlash > 0) ui.enemyFlash = Math.max(0, ui.enemyFlash - dt * 2.5);
+  for (const f of ui.floaters) f.age += dt;
+  ui.floaters = ui.floaters.filter((f) => f.age < 1.3);
 
   if (ui.screen === "play" && world.mode === "explore" && heldDirs.size > 0 && now - lastMoveAt > 130) {
     lastMoveAt = now;
