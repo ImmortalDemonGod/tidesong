@@ -1157,3 +1157,11 @@ every evidence class before any PENDING becomes GREEN.
   ink 79.2 / eel 37.3 percent casual, optimal floors 27.0 to 44.9
   damage taken. All five encounters in band at 10x scale: the final
   tuning is overfit-free with 100,000 fresh fights of margin.
+- (git time of this commit) Long-session stability soak (the one
+  instrument never run: the 11am table will leave the game idling in a
+  tab): nine continuous minutes of mixed real-key play in the real
+  bundle, sampled per minute: JS heap FLAT at 9.5MB from minute 1 to
+  minute 9, exactly ONE live interval (the mood pad) the whole session,
+  locked 60fps, zero page errors. No leak shape anywhere. (The probe's
+  own 10-minute harness timeout ended it, not the game; readings were
+  identical every minute.)
