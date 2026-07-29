@@ -340,7 +340,7 @@ function chip(ctx: CanvasRenderingContext2D, x: number, y: number, text: string,
 
 function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState, cw: number, ch: number): void {
   const t = ui.time;
-  water(ctx, cw, ch, w.area === "hub" ? C.mid : "#0B2036");
+  water(ctx, cw, ch, w.area === "hub" ? C.mid : w.area === "dungeon2" ? "#0B2A26" : "#0B2036");
   lightRays(ctx, cw, ch, t);
 
   const area = AREAS[w.area];
@@ -505,13 +505,13 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
     }
   } else {
     // dungeon dressing: pillars and bones of the ruin
-    ctx.fillStyle = "#0D2A40";
+    ctx.fillStyle = w.area === "dungeon2" ? "#123528" : "#0D2A40";
     for (let i = 2; i < 24; i += 5) {
       ctx.fillRect(px(i) - 8, 150, 16, 60);
     }
     ctx.fillStyle = C.muted;
     ctx.font = "12px system-ui";
-    ctx.fillText("the first ruin", px(2) - 20, 140);
+    ctx.fillText(w.area === "dungeon2" ? "the second ruin" : "the first ruin", px(2) - 20, 140);
   }
 
   // fragments

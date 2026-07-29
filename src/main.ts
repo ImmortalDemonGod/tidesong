@@ -196,6 +196,11 @@ if (demo) {
     world.pos = { x: 19, y: 4 };
     step(world, "right");
     step(world, "right");
+  } else if (demo === "dungeon2") {
+    world.hasTideRelic = true;
+    world.area = "dungeon2";
+    world.pos = { x: 4, y: 4 };
+    world.checkpoint = { area: "dungeon2", pos: { x: 1, y: 4 } };
   } else if (demo === "trench") {
     world.pos = { x: 13, y: 6 };
     step(world, "down");
