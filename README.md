@@ -1,6 +1,9 @@
 # TIDESONG (working title)
 
-Team Ratateam's entry for the itch.io Underwater Jam (Jul 30 to Oct 5, 2026).
+A vertical-slice prototype for Team Ratateam's itch.io Underwater Jam project
+(jam runs Jul 30 to Oct 5, 2026). It tests the agreed design in TypeScript;
+the engine for the final entry is the team's call (the merge proposal left
+Unity vs Godot vs web open).
 
 A small fish explores the ruins of a fallen merfolk civilization. Turn-based
 combat about disabling enemies, not out-damaging them: conditions on regular

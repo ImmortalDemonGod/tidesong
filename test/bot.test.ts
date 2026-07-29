@@ -29,6 +29,17 @@ test("re-applying an existing condition does not refund again", () => {
   expect(s.player.sta).toBe(before - ABILITIES.siltBurst.staCost);
 });
 
+test("re-applying refreshes the condition's duration", () => {
+  const s = createCombat();
+  useAbility(s, "siltBurst");
+  endTurn(s);
+  useAbility(s, "siltBurst");
+  endTurn(s);
+  expect(hasCondition(s.enemy, "blind")).toBe(true);
+  endTurn(s);
+  expect(hasCondition(s.enemy, "blind")).toBe(false);
+});
+
 test("conditions tick down and expire; stamina regenerates each turn", () => {
   const s = createCombat();
   useAbility(s, "siltBurst");

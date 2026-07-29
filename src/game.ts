@@ -85,10 +85,17 @@ export function useAbility(state: CombatState, abilityKey: string): boolean {
   enemy.hp = Math.max(0, enemy.hp - ability.damage);
   state.log.push(`${ability.name}: ${ability.damage} dmg`);
 
-  if (ability.inflicts && !hasCondition(enemy, ability.inflicts)) {
-    enemy.conditions.push({ kind: ability.inflicts, turns: ability.inflictTurns ?? 1 });
-    player.sta = Math.min(player.maxSta, player.sta + BASE.disableRefund);
-    state.log.push(`disable landed: ${ability.inflicts} (+${BASE.disableRefund} STA)`);
+  if (ability.inflicts) {
+    const existing = enemy.conditions.find((x) => x.kind === ability.inflicts);
+    if (existing) {
+      // Re-applying refreshes duration; no second refund (DESIGN.md rule).
+      existing.turns = ability.inflictTurns ?? 1;
+      state.log.push(`${ability.inflicts} refreshed`);
+    } else {
+      enemy.conditions.push({ kind: ability.inflicts, turns: ability.inflictTurns ?? 1 });
+      player.sta = Math.min(player.maxSta, player.sta + BASE.disableRefund);
+      state.log.push(`disable landed: ${ability.inflicts} (+${BASE.disableRefund} STA)`);
+    }
   }
   return true;
 }
