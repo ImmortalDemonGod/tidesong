@@ -295,25 +295,32 @@ time against `date` before appending.
   relic -> barrier -> victory in ~100 actions; 100/100 casual runs also
   close it (reproduce: `bun test test/fullrun.test.ts`). Fragments carry
   story, the gate pays off the earlier shove-back.
-- DECISIONS: choices measurably matter. Ignoring conditions costs 154%
-  more damage vs the squid and 104% vs the boss; the best single-button
-  strategy takes 43% more damage than mixed play; aimed boss hits beat
-  drifting ones (untargeted damage is random by design); Heal Song is 2
-  charges across a dungeon; Analyze is a real info purchase (per-enemy
-  best condition, boss key part). Reproduce: `bun test test/bands.test.ts`.
-- UNCERTAINTY: 15% squid dodge, 60/80% blind rolls, and the bands prove
-  outcomes are not predetermined (casual 86.8% squid / 54.2% shark /
-  54.4% eel, optimal never under 4 turns). The pity escalator keeps failure tense without
-  the compounding spiral (100/100 casual completion).
-- CURVE (updated after round 2 flagged stale evidence): squid 86.8% ->
-  shark 54.2% -> eel 54.4% casual, with each boss a different puzzle
-  (fixed key vs wandering key); the shark ramps within itself (CRUSH 12
-  -> FRENZY 15); relic echo is real power growth between dungeons; the
-  trench is optional risk-for-reward; heals do not refill on death.
-  DISCLOSED: the shark was softened in the dungeon-2 commit (13/16 ->
-  12/15, jaw 24 -> 22, eye 20 -> 18, casual 36% -> 54%) to make the
-  doubled gauntlet clearable; the ramp now lives across the two-dungeon
-  arc rather than in one brutal fight.
+- DECISIONS: choices measurably matter, MORE under the heavy cycle
+  (Jul 29): ignoring conditions costs 159% more damage vs the squid
+  (2.59x) and 162% vs the boss; the best spam line takes 47-89% more;
+  the telegraphed WINDS UP makes Bubble a repeating timed decision
+  (round-2 tactician measured saves of 21 to 8 and called the dance
+  "the only winning line at retry margins"); aimed boss hits beat
+  drifting ones; Heal Song is charges you budget (entrance mend + boss
+  mercy amended Jul 29); Analyze is a real info purchase (per-enemy
+  best condition, boss key part, and the wandering eel key).
+  Reproduce: `bun test test/bands.test.ts`, `bun tools/tune.ts`.
+- UNCERTAINTY: 15% squid dodge, 60/80% blind rolls, drift targeting,
+  and the ink squid's gamble prove outcomes are not predetermined
+  (post-heavy casual: 76-79% regulars, 35/38% bosses, optimal never
+  under 4 turns). The pity escalator plus the Jul 29 mercy rules keep
+  failure tense without the compounding spiral (100/100 casual, worst
+  case 1614 actions).
+- CURVE (re-measured post heavy cycle, Jul 29): squid 78.5% -> elder
+  79.1% -> ink 79.7% (a different QUESTION, not a bigger number: it
+  blinds YOU) -> shark 34.7% -> eel 38.3% casual on fresh seeds, each
+  boss a different puzzle (fixed key vs wandering key), the heavy
+  metronome inside every fight, phase 2 visibly escalating (FRENZY
+  banner, blood tint, 1.6x windups); relic echo is real power growth
+  between dungeons; the trench is optional risk-for-reward; the retry
+  economy converges (entrance mend + boss mercy) instead of walling.
+  DISCLOSED: the shark softening (dungeon-2 commit) and the Jul 29
+  heavy-cycle retune are both logged with numbers in the feature log.
 - JUICE: screen shake on hits taken and part breaks, enemy hit flash,
   damage/refund/miss floaters, blind dimming tint, 4-layer parallax with
   fog and rays, 7 wired audio events, death flash, victory ceremony with
@@ -324,7 +331,11 @@ Process note 00:35: one commit (059606d, lab + docs only) landed without
 its pre-commit test run because a grep exit code broke the shell chain;
 suite re-run immediately after, 64 pass / 0 fail. Slip logged, not hidden.
 
-## Enemy variety lab (slice item 9, SIM-ONLY; for Marc's balance question)
+## Enemy variety lab (slice item 9; for Marc's balance question. UPDATE
+## Jul 29: the lab's ink-squid recommendation SHIPPED as enemy type 2
+## at its recommended 40 percent chance under the playtest mandate, with
+## full G3/G4 batteries; warded and bulwark remain sim-only data for
+## type 3.)
 
 Method: jam-scope enemy twists prototyped as per-fight hook wrappers around
 the UNMODIFIED sim (tools/lab.ts, never bundled), 500 seeded fights per bot
