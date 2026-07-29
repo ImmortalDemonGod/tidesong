@@ -132,6 +132,11 @@ exist because an agent under a deadline will claim done when it is not.
   commit. Republish playable artifact periodically.
 
 ## Rules for the run
+- Every turn starts by running `date` and printing the output, so the /goal
+  evaluator (which only sees the transcript) can verify wall-clock time.
+  This is what makes "no shorter than 11:00 AM" externally enforceable.
+- Keep the machine awake: start `caffeinate -dims` in the background at run
+  start and verify it is running at each checkpoint.
 - No em dashes in any user-shareable text.
 - No session-link trailers or AI co-author lines in commits.
 - Placeholder art only; all real art is Glass_Goat's.
