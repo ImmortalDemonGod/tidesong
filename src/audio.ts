@@ -7,6 +7,8 @@ import type { GameEvent } from "./events";
 
 export class Sound {
   private ctx: AudioContext | null = null;
+  private padTimer: ReturnType<typeof setInterval> | null = null;
+  private padStep = 0;
   muted = false;
 
   unlock(): void {
@@ -15,6 +17,21 @@ export class Sound {
       this.ctx = new AC();
     }
     if (this.ctx.state === "suspended") void this.ctx.resume();
+    this.startPad();
+  }
+
+  // The faded song, returning: a slow four-note pad on a pentatonic drift.
+  // Gain 0.35 of the 0.16 master: far under any clipping, under the SFX.
+  private startPad(): void {
+    if (this.padTimer) return;
+    const notes = [220, 261.6, 329.6, 293.7, 261.6, 196];
+    this.padTimer = setInterval(() => {
+      if (this.muted || !this.ctx) return;
+      const f = notes[this.padStep % notes.length];
+      this.padStep += 1;
+      this.tone(f, 2.6, "sine", 0.35);
+      this.tone(f / 2, 2.6, "sine", 0.22);
+    }, 2200);
   }
 
   toggleMute(): boolean {
