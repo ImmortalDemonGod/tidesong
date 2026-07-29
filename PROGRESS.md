@@ -720,3 +720,12 @@ every evidence class before any PENDING becomes GREEN.
   test count refreshed to 82/266,484. Seat B's G9 recommendation:
   BLOCKED solely on that stamp; cleared by this commit pending seat B
   confirmation.
+- (git time of this commit) Confirmation seat C (spec readthrough):
+  ZERO HIGH. Four LOW stale-summary residues, all fixed: Screens list
+  said "death screen" where the amendment shipped a veil; economy refund
+  summary lacked the level-II no-refund annotation; "stay optional
+  stretch" read as unshipped though the echo shipped; pre-first-dungeon
+  respawn case was unspecified (code: hub start). Seat C confirmed the
+  death rule, Heal Song, dungeon 2, baselines, controls, relic gate,
+  RECONCILIATION, and 2.5D claims all code-accurate, and the merge
+  proposal conflict-free.

@@ -61,12 +61,15 @@ the build is placeholder for Marc's story and must be marked as such.
   fully between fights).
 - HP is the sacred resource: it does NOT regenerate freely. Heal Song exists
   but is deliberately scarce (rare uses, e.g. limited per dungeon).
-- A landed disable refunds some stamina (+2 on baseline). This replaces the
-  cut Resonance system: tactical play is rewarded with tempo, not a new meter.
+- A landed disable refunds some stamina (+2 on baseline, first application
+  only; raising a condition to level II costs full price with no refund, per
+  the condition-levels amendment). This replaces the cut Resonance system:
+  tactical play is rewarded with tempo, not a new meter.
 - Baseline numbers from the sketch (tune freely, keep ratios): HP 100,
   STA 20, ability costs 1 to 4 STA, refund +2, stamina regen 3 per combat
   turn (full between fights).
-- Death: at 0 HP the player respawns at the dungeon-entrance checkpoint.
+- Death: at 0 HP the player respawns at the checkpoint (the entrance of the
+  current dungeon; hub start before any dungeon has been entered).
   COMBAT deaths climb the pity escalator: 60 percent, then 75, then capped
   at 90. HAZARD deaths (the trench) do NOT climb it and respawn at no more
   HP than you held when the checkpoint was set (amended by final panel
@@ -170,10 +173,11 @@ The parts every game needs that no design doc remembered to write down:
   scene; winning returns to exploration with that enemy gone (per the death
   rule, defeated encounters stay defeated).
 - Ability availability: all 6 abilities from the first fight. Relic-based
-  ability upgrades stay optional stretch.
+  ability upgrades were scoped optional stretch; one shipped (the relic
+  combat echo, see RECONCILIATION).
 - Screens: title card (click to start; this is also the audio unlock, the
-  TRUNK! lesson), pause overlay, death screen (respawn per DESIGN death
-  rule), and a slice-end victory screen with placeholder team credits
+  TRUNK! lesson), pause overlay, death veil (auto-respawn per the death
+  rule; see the G8 amendment under Controls), and a slice-end victory screen with placeholder team credits
   (Marc, Glass_Goat, ImmortalDemon).
 - Slice end condition, AMENDED when stretch item 8 shipped: the mouth of
   dungeon 2 opens on the relic, and victory plays at the defeat of boss 2
