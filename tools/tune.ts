@@ -1,11 +1,15 @@
 import { casualBot, optimalBot, spamBot, runBatch, ABILITY_KEYS, NO_CONDITION_KEYS } from "../test/bots";
 import { createCombat, createBossCombat } from "../src/game";
-const f = (s: any) => `win ${(s.winRate*100).toFixed(1)}% turns ${s.meanTurns.toFixed(1)} hpLost ${s.meanHpLost.toFixed(1)}`;
+const f = (s: any) => `win ${(s.winRate*100).toFixed(1)}% turns ${s.meanTurns.toFixed(1)} hpLost ${s.meanHpLost.toFixed(1)} dmgTaken ${s.meanDamageTaken.toFixed(1)}`;
 console.log("== squid ==");
 console.log("casual  :", f(runBatch((seed) => casualBot(seed), createCombat)));
 console.log("optimal :", f(runBatch(() => optimalBot(), createCombat)));
-console.log("== boss: corrupted shark ==");
+console.log("no-cond :", f(runBatch(() => optimalBot(NO_CONDITION_KEYS), createCombat)));
+console.log("blindOnly:", f(runBatch(() => optimalBot(ABILITY_KEYS.filter(k => k !== "finSlash")), createCombat)));
+console.log("slowOnly:", f(runBatch(() => optimalBot(ABILITY_KEYS.filter(k => k !== "siltBurst")), createCombat)));
+for (const k of ABILITY_KEYS) console.log(`spam ${k.padEnd(10)}:`, f(runBatch(() => spamBot(k), createCombat)));
+console.log("== boss ==");
 console.log("casual  :", f(runBatch((seed) => casualBot(seed), createBossCombat)));
 console.log("optimal :", f(runBatch(() => optimalBot(), createBossCombat)));
 console.log("no-cond :", f(runBatch(() => optimalBot(NO_CONDITION_KEYS), createBossCombat)));
-for (const k of ["tailStrike", "siltBurst", "finSlash"]) console.log(`spam ${k.padEnd(10)}:`, f(runBatch(() => spamBot(k), createBossCombat)));
+for (const k of ABILITY_KEYS) console.log(`spam ${k.padEnd(10)}:`, f(runBatch(() => spamBot(k), createBossCombat)));

@@ -160,7 +160,7 @@ function inTrench(area: AreaKey, p: Vec): boolean {
   );
 }
 
-// Pity escalator (added 01:05 after softlock data: flat 60 percent respawn
+// Pity escalator (added 00:18 after softlock data: flat 60 percent respawn
 // with burned heals left 20 percent of casual runs death-looping forever,
 // the exact compounding-punishment spiral the merge cut from the exhaustion
 // system). 60 -> 75 -> 90 percent, capped: converges for a struggling
@@ -206,7 +206,7 @@ function endCombat(w: WorldState): void {
   } else if (c.outcome === "defeat") {
     // Sync heals SPENT in the fatal fight before respawning; without this,
     // death un-spends Heal Song, the exact refund the death rule forbids
-    // (found by fidelity review 01:20, HIGH).
+    // (found by fidelity review 00:24, HIGH).
     w.healSongUses = c.healSongUses;
     applyDeath(w);
   }
@@ -215,7 +215,7 @@ function endCombat(w: WorldState): void {
 export function combatAction(w: WorldState, ability: string, part?: PartKey): boolean {
   if (w.mode !== "combat" || !w.combat) return false;
   // A failed input (not enough stamina, no heal uses) must NOT cost a turn;
-  // combatPass is the only explicit pass (fidelity review 01:20, MED).
+  // combatPass is the only explicit pass (fidelity review 00:24, MED).
   if (!useAbility(w.combat, ability, part)) return false;
   if (w.combat.outcome === "ongoing") advanceTurn(w.combat);
   if (w.combat.outcome !== "ongoing") endCombat(w);
@@ -260,7 +260,11 @@ export function step(w: WorldState, dir: Dir): boolean {
     return true;
   }
 
+  const moved = next.x !== w.pos.x || next.y !== w.pos.y;
   w.pos = next;
+  // A wall bump that goes nowhere triggers no tile effects (correctness
+  // review 00:47, LOW-10: trench chipped HP on no-op bumps).
+  if (!moved) return true;
 
   if (w.area === "hub" && w.pos.x === HUB.dungeonEntrance.x && w.pos.y === HUB.dungeonEntrance.y) {
     w.area = "dungeon1";

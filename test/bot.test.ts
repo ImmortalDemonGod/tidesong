@@ -137,7 +137,7 @@ test("slow skips every other enemy action", () => {
   expect(losses[3]).toBeGreaterThan(0);
 });
 
-test("slow II halves enemy damage when it does act", () => {
+test("slow II reduces enemy damage when it does act", () => {
   const s = createCombat();
   s.enemy.conditions.push({ kind: "slow", level: 2, turns: 2 });
   advanceTurn(s);
@@ -203,7 +203,9 @@ test("defeat at player 0 HP", () => {
 
 // ---------- invariants under fuzz (G1 seed) ----------
 
-test("fuzz: invariants hold across 100 seeds of random play", () => {
+// Deterministic round-robin invariant sweep, combat layer only. The real
+// randomized fuzz (world level, hostile inputs) lives in test/fuzz.test.ts.
+test("invariant sweep: deterministic round-robin across 100 seeds", () => {
   const keys = Object.keys(ABILITIES);
   for (let seed = 0; seed < 100; seed++) {
     const s = createCombat(seed);

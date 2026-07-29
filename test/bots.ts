@@ -40,7 +40,7 @@ export function affordable(state: CombatState, keys: string[] = ABILITY_KEYS): s
   return keys.filter((k) => {
     const a = ABILITIES[k];
     if (state.player.sta < a.staCost) return false;
-    if (a.heals !== undefined && state.healSongUses <= 0) return false;
+    if (a.heals !== undefined && (state.healSongUses <= 0 || state.player.hp >= state.player.maxHp)) return false;
     return true;
   });
 }
@@ -109,7 +109,7 @@ function bestBossPart(state: CombatState, abilityDamage: number): { part: PartKe
 // the next enemy slot + healing value + lethal bonus. Deterministic.
 // Prevention is weighted 0.8x damage: a pure-defense action can never win the
 // fight, and an unweighted greedy turtles on Bubble forever once enemy damage
-// exceeds its own expected damage (found 00:10 Jul 29; the fix strengthens
+// exceeds its own expected damage (found 00:06 Jul 29; the fix strengthens
 // the judge, the allowed direction).
 export function optimalBot(keys: string[] = ABILITY_KEYS): Bot {
   return (state) => {
@@ -152,6 +152,7 @@ export interface FightResult {
   win: boolean;
   turns: number;
   hpLost: number;
+  damageTaken: number;
 }
 
 export function runFight(
@@ -170,6 +171,7 @@ export function runFight(
     win: s.outcome === "victory",
     turns: s.turn,
     hpLost: s.player.maxHp - s.player.hp,
+    damageTaken: s.damageTaken,
   };
 }
 
@@ -177,6 +179,7 @@ export interface BatchStats {
   winRate: number;
   meanTurns: number;
   meanHpLost: number;
+  meanDamageTaken: number;
   n: number;
 }
 
@@ -188,11 +191,13 @@ export function runBatch(
   let wins = 0;
   let turns = 0;
   let hpLost = 0;
+  let dmg = 0;
   for (let seed = 0; seed < n; seed++) {
     const r = runFight(makeBot(seed), seed, create);
     if (r.win) wins += 1;
     turns += r.turns;
     hpLost += r.hpLost;
+    dmg += r.damageTaken;
   }
-  return { winRate: wins / n, meanTurns: turns / n, meanHpLost: hpLost / n, n };
+  return { winRate: wins / n, meanTurns: turns / n, meanHpLost: hpLost / n, meanDamageTaken: dmg / n, n };
 }

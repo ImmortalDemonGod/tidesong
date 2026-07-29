@@ -65,7 +65,7 @@ the build is placeholder for Marc's story and must be marked as such.
   turn (full between fights).
 - Death: at 0 HP the player respawns at the dungeon-entrance checkpoint.
   Respawn HP escalates with deaths: 60 percent, then 75, then capped at 90
-  (pity escalator, amended 01:05 Jul 29: the flat 60 percent rule
+  (pity escalator, amended 00:18 Jul 29: the flat 60 percent rule
   death-looped 20 percent of casual bot runs, the same compounding
   punishment spiral this design cut from the exhaustion system). Heal Song
   uses are NOT restored, defeated encounters stay defeated, and the

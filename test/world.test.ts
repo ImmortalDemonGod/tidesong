@@ -102,10 +102,16 @@ test("encounters trigger combat carrying persistent HP, victory syncs back", () 
   walkTo(w, 8, 4);
   expect(w.mode).toBe("combat");
   expect(w.combat?.player.hp).toBe(77);
-  winFight(w);
+  // Finish the fight WITHOUT the top-up helper so the HP sync is real
+  // (correctness review 00:47, MED-8: the old assertion was a tautology).
+  w.combat!.enemy.hp = 5;
+  w.combat!.enemy.dodge = 0;
+  w.combat!.player.sta = 20;
+  const hpAtKill = w.combat!.player.hp;
+  combatAction(w, "tailStrike");
   expect(w.mode).toBe("explore");
   expect(w.encounters.find((e) => e.id === 1)?.defeated).toBe(true);
-  expect(w.hp).toBe(w.combat?.player.hp ?? w.hp);
+  expect(w.hp).toBe(hpAtKill);
 });
 
 test("death: respawn at checkpoint with 60 percent HP, heals kept, encounter resets", () => {
@@ -129,6 +135,7 @@ test("heals spent in a fatal fight stay spent after respawn", () => {
   walkTo(w, HUB.dungeonEntrance.x, HUB.dungeonEntrance.y);
   walkTo(w, 8, 4);
   expect(w.mode).toBe("combat");
+  w.combat!.player.hp = 50;
   w.combat!.player.sta = 20;
   combatAction(w, "healSong");
   expect(w.combat!.healSongUses).toBe(1);

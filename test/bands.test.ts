@@ -2,6 +2,12 @@
 // here without the matching PROGRESS.md change (and a logged reason) is gate
 // tampering; the adversarial panel diffs the two.
 //
+// METRIC NOTE (00:55, logged in PROGRESS): optimal floors and G4 margins
+// measure meanDamageTaken (raw damage absorbed), not net hpLost, because
+// Heal Song can zero net HP loss and hide difficulty (correctness review
+// MED-4). Casual bands keep hpLost: casual represents a player experience,
+// and their heals are part of it.
+//
 // All batches are seeded and deterministic: same code, same numbers, forever.
 
 import { expect, test } from "bun:test";
@@ -25,7 +31,7 @@ const spams = ABILITY_KEYS.map((k) => ({ key: k, stats: runBatch(() => spamBot(k
 const bossCasual = runBatch((seed) => casualBot(seed), createBossCombat);
 const bossOptimal = runBatch(() => optimalBot(), createBossCombat);
 const bossNoCond = runBatch(() => optimalBot(NO_CONDITION_KEYS), createBossCombat);
-const bossSpams = ["tailStrike", "siltBurst", "finSlash"].map((k) => ({
+const bossSpams = ABILITY_KEYS.map((k) => ({
   key: k,
   stats: runBatch(() => spamBot(k), createBossCombat),
 }));
@@ -42,17 +48,17 @@ test("G3: casual bot mean fight length 4 to 15 turns", () => {
   expect(casual.meanTurns).toBeLessThanOrEqual(15);
 });
 
-test("G3: optimal bot averages at least 4 turns and loses at least 10 percent HP", () => {
+test("G3: optimal bot averages at least 4 turns and absorbs at least 10 percent damage", () => {
   expect(optimal.meanTurns).toBeGreaterThanOrEqual(4);
-  expect(optimal.meanHpLost).toBeGreaterThanOrEqual(10);
+  expect(optimal.meanDamageTaken).toBeGreaterThanOrEqual(10);
 });
 
 // ---------- G4: no dominant strategy ----------
 
-test("G4: every single-ability spam bot underperforms mixed by 10 win points or 20 percent more HP lost", () => {
+test("G4: every single-ability spam bot underperforms mixed by 10 win points or 20 percent more damage", () => {
   for (const { key, stats } of spams) {
     const winGap = optimal.winRate - stats.winRate;
-    const hpRatio = stats.meanHpLost / optimal.meanHpLost;
+    const hpRatio = stats.meanDamageTaken / optimal.meanDamageTaken;
     const underperforms = winGap >= 0.1 || hpRatio >= 1.2;
     if (!underperforms) {
       throw new Error(
@@ -63,16 +69,16 @@ test("G4: every single-ability spam bot underperforms mixed by 10 win points or 
   }
 });
 
-test("G4: ignoring conditions costs at least 20 percent more HP", () => {
-  expect(noCond.meanHpLost).toBeGreaterThanOrEqual(optimal.meanHpLost * 1.2);
+test("G4: ignoring conditions costs at least 20 percent more damage", () => {
+  expect(noCond.meanDamageTaken).toBeGreaterThanOrEqual(optimal.meanDamageTaken * 1.2);
 });
 
 test("G4: blind individually pays for its cost (blind-only beats no-conditions by 20 percent)", () => {
-  expect(blindOnly.meanHpLost).toBeLessThanOrEqual(noCond.meanHpLost * 0.8);
+  expect(blindOnly.meanDamageTaken).toBeLessThanOrEqual(noCond.meanDamageTaken * 0.8);
 });
 
 test("G4: slow individually pays for its cost (slow-only beats no-conditions by 20 percent)", () => {
-  expect(slowOnly.meanHpLost).toBeLessThanOrEqual(noCond.meanHpLost * 0.8);
+  expect(slowOnly.meanDamageTaken).toBeLessThanOrEqual(noCond.meanDamageTaken * 0.8);
 });
 
 // ---------- G3/G4: boss encounter (corrupted shark) ----------
@@ -89,15 +95,15 @@ test("G3 boss: casual mean fight length 6 to 26 turns", () => {
   expect(bossCasual.meanTurns).toBeLessThanOrEqual(26);
 });
 
-test("G3 boss: optimal loses at least 20 percent HP over at least 4 turns", () => {
+test("G3 boss: optimal absorbs at least 20 percent damage over at least 4 turns", () => {
   expect(bossOptimal.meanTurns).toBeGreaterThanOrEqual(4);
-  expect(bossOptimal.meanHpLost).toBeGreaterThanOrEqual(20);
+  expect(bossOptimal.meanDamageTaken).toBeGreaterThanOrEqual(20);
 });
 
 test("G4 boss: every spam bot underperforms mixed play", () => {
   for (const { key, stats } of bossSpams) {
     const winGap = bossOptimal.winRate - stats.winRate;
-    const hpRatio = stats.meanHpLost / bossOptimal.meanHpLost;
+    const hpRatio = stats.meanDamageTaken / bossOptimal.meanDamageTaken;
     const underperforms = winGap >= 0.1 || hpRatio >= 1.2;
     if (!underperforms) {
       throw new Error(
@@ -108,6 +114,6 @@ test("G4 boss: every spam bot underperforms mixed play", () => {
   }
 });
 
-test("G4 boss: ignoring conditions costs at least 20 percent more HP", () => {
-  expect(bossNoCond.meanHpLost).toBeGreaterThanOrEqual(bossOptimal.meanHpLost * 1.2);
+test("G4 boss: ignoring conditions costs at least 20 percent more damage", () => {
+  expect(bossNoCond.meanDamageTaken).toBeGreaterThanOrEqual(bossOptimal.meanDamageTaken * 1.2);
 });

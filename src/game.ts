@@ -4,8 +4,9 @@
 // Numbers chosen tonight (logged per PROGRESS.md rules, tunable under G3/G4):
 // Blind miss: 60% at level I, 80% at level II (DESIGN says 50-75 for I; 60 picked).
 // Blind II also zeroes enemy dodge ("agility drops", Glass_Goat's example).
-// Slow: skip every other action; level II also halves damage when acting.
-// Squid: 30 HP, 13 damage, 15% dodge (tuned 00:15 under G3: 40/10 gave casual
+// Slow: skip every other action; level II acting slots at 75% damage
+// (retuned 00:55: at 50% the perma-slow-II finSlash line dominated).
+// Squid: 30 HP, 13 damage, 15% dodge (tuned 00:06 under G3: 40/10 gave casual
 // 90.6% wins over 18 turns, both out of band). Bubble: next hit reduced 60%.
 // Analyze hint is per-enemy data (squid: slow), set from measured bot value.
 // Dodge affects DAMAGE only; conditions always land. Rationale: Glass_Goat's
@@ -20,7 +21,7 @@ export const BASE = {
   healSongAmount: 40,
   healSongUses: 2,
   blindMiss: [0, 0.6, 0.8],
-  slowDamageMult: 0.5,
+  slowDamageMult: 0.75,
   bubbleReduction: 0.6,
 } as const;
 
@@ -56,7 +57,7 @@ export interface Ability {
 export const ABILITIES: Record<string, Ability> = {
   tailStrike: { name: "Tail Strike", staCost: 2, damage: 8 },
   siltBurst: { name: "Silt Burst", staCost: 3, damage: 2, inflicts: "blind", inflictTurns: 2 },
-  finSlash: { name: "Fin Slash", staCost: 3, damage: 5, inflicts: "slow", inflictTurns: 2 },
+  finSlash: { name: "Fin Slash", staCost: 3, damage: 3, inflicts: "slow", inflictTurns: 2 },
   healSong: { name: "Heal Song", staCost: 4, damage: 0, heals: BASE.healSongAmount },
   analyze: { name: "Analyze", staCost: 1, damage: 0, analyze: true },
   bubble: { name: "Bubble", staCost: 2, damage: 0, bubble: true },
@@ -97,6 +98,10 @@ export interface CombatState {
   bubbleCharge: boolean;
   analyzed: boolean;
   slowSlots: number;
+  // Raw damage the player has absorbed this fight, heals excluded: the
+  // G3 difficulty floors measure this, because net hpLost is zeroable by
+  // Heal Song (correctness review 00:47, MED-4).
+  damageTaken: number;
   turn: number;
   rng: number;
   outcome: Outcome;
@@ -123,8 +128,8 @@ export function createCombat(seed = 1): CombatState {
     },
     enemy: {
       name: "vampire squid",
-      hp: 30,
-      maxHp: 30,
+      hp: 28,
+      maxHp: 28,
       sta: 0,
       maxSta: 0,
       conditions: [],
@@ -136,6 +141,7 @@ export function createCombat(seed = 1): CombatState {
     bubbleCharge: false,
     analyzed: false,
     slowSlots: 0,
+    damageTaken: 0,
     turn: 1,
     rng: seed | 0,
     outcome: "ongoing",
@@ -143,15 +149,15 @@ export function createCombat(seed = 1): CombatState {
   };
 }
 
-// Boss 1: the corrupted shark. Tuned 00:35 under G3 (journey in PROGRESS.md):
+// Boss 1: the corrupted shark. Tuned 00:12 under G3 (journey in PROGRESS.md):
 // parts jaw 26 / eye 22 / fin 12 / tail 12; phase damage 14 then 17; each
 // broken utility part (fin, tail) takes 3 off boss damage permanently. Boss cannot
 // dodge (a huge target); enemy.hp mirrors total remaining durability so the
 // HUD and the hp<=0 victory path stay uniform with regular fights.
 export function createBossCombat(seed = 1): CombatState {
   const parts: BossPart[] = [
-    { key: "jaw", name: "Jaw", durability: 26, maxDurability: 26, broken: false },
-    { key: "eye", name: "Eye", durability: 22, maxDurability: 22, broken: false },
+    { key: "jaw", name: "Jaw", durability: 24, maxDurability: 24, broken: false },
+    { key: "eye", name: "Eye", durability: 20, maxDurability: 20, broken: false },
     { key: "fin", name: "Fin", durability: 12, maxDurability: 12, broken: false },
     { key: "tail", name: "Tail", durability: 12, maxDurability: 12, broken: false },
   ];
@@ -164,7 +170,7 @@ export function createBossCombat(seed = 1): CombatState {
     sta: 0,
     maxSta: 0,
     conditions: [],
-    attackDamage: 14,
+    attackDamage: 13,
     dodge: 0,
     analyzeHint: "slow",
   };
@@ -173,7 +179,7 @@ export function createBossCombat(seed = 1): CombatState {
     phase: 1,
     phaseName: "CRUSH",
     keyPartByPhase: { 1: "jaw", 2: "eye" },
-    baseDamageByPhase: { 1: 14, 2: 17 },
+    baseDamageByPhase: { 1: 13, 2: 16 },
     utilityBreakDamageReduction: 3,
   };
   return state;
@@ -251,7 +257,9 @@ export function useAbility(state: CombatState, abilityKey: string, targetPart?: 
   if (!ability) throw new Error(`unknown ability: ${abilityKey}`);
   const { player, enemy } = state;
   if (player.sta < ability.staCost) return false;
-  if (ability.heals !== undefined && state.healSongUses <= 0) return false;
+  // Full-HP healing would burn a scarce charge for nothing: refuse like
+  // the 0-uses case (correctness review 00:47, LOW-9).
+  if (ability.heals !== undefined && (state.healSongUses <= 0 || player.hp >= player.maxHp)) return false;
 
   player.sta -= ability.staCost;
 
@@ -263,7 +271,7 @@ export function useAbility(state: CombatState, abilityKey: string, targetPart?: 
     } else if (state.boss) {
       // Damage routes to a part. UNTARGETED damage drifts to a random
       // unbroken part: aiming (and Analyze's hint) must carry real decision
-      // value, so the key part is never free (fidelity review 01:20).
+      // value, so the key part is never free (fidelity review 00:24).
       let part = targetPart ? getPart(state, targetPart) : undefined;
       if (part?.broken) part = undefined;
       if (!part) {
@@ -338,6 +346,7 @@ export function advanceTurn(state: CombatState): void {
         state.log.push("Bubble absorbed part of the hit");
       }
       player.hp = Math.max(0, player.hp - dmg);
+      state.damageTaken += dmg;
       state.log.push(`enemy hits for ${dmg}`);
     }
   }
@@ -347,7 +356,11 @@ export function advanceTurn(state: CombatState): void {
       .map((x) => ({ ...x, turns: x.turns - 1 }))
       .filter((x) => x.turns > 0);
   }
-  if (!hasCondition(enemy, "slow")) state.slowSlots = 0;
+  // Slow parity carries across expiry and re-application (correctness
+  // review 00:47, MED-5): resetting it let expire-and-reapply cycling
+  // produce 2 skips per 3 slots, an 85 percent damage-reduction line no
+  // pinned judge could play. Carrying parity keeps the DESIGN promise:
+  // slowed slots alternate skip/act, every other, always.
 
   player.sta = Math.min(player.maxSta, player.sta + BASE.staRegenPerTurn);
   state.turn += 1;

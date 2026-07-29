@@ -57,7 +57,7 @@ function runVariantFight(bot: Bot, seed: number, hooks: Hooks, maxTurns = 60) {
 function batch(makeBot: (seed: number) => Bot, makeHooks: (seed: number) => Hooks, n = 500) {
   // Hooks are per-FIGHT: closure state (buff stacks, rng) must reset each
   // seed. A shared closure silently capped the bulwark after fight 1
-  // (caught 01:55 when its numbers came back identical to baseline).
+  // (caught 00:33 when its numbers came back identical to baseline).
   let wins = 0;
   let turns = 0;
   let hp = 0;

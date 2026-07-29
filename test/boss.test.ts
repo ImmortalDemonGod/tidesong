@@ -24,13 +24,13 @@ test("boss creation: 4 parts, phase 1 CRUSH, key part jaw, hp mirrors durability
   expect(s.boss?.phase).toBe(1);
   expect(s.boss?.phaseName).toBe("CRUSH");
   expect(currentKeyPart(s)).toBe("jaw");
-  expect(s.enemy.hp).toBe(26 + 22 + 12 + 12);
+  expect(s.enemy.hp).toBe(24 + 20 + 12 + 12);
 });
 
 test("damage with no target drifts to a random unbroken part", () => {
   const s = createBossCombat(11);
   useAbility(s, "tailStrike");
-  expect(s.enemy.hp).toBe(72 - 8);
+  expect(s.enemy.hp).toBe(68 - 8);
   const damaged = s.boss!.parts.filter((p) => p.durability < p.maxDurability);
   expect(damaged.length).toBe(1);
 });
@@ -39,18 +39,18 @@ test("aimed damage hits exactly the chosen part", () => {
   const s = createBossCombat();
   useAbility(s, "tailStrike", "tail");
   expect(getPart(s, "tail")!.durability).toBe(12 - 8);
-  expect(getPart(s, "jaw")!.durability).toBe(26);
+  expect(getPart(s, "jaw")!.durability).toBe(24);
 });
 
 test("breaking a utility part reduces boss damage, never ends a phase", () => {
   const s = createBossCombat();
-  expect(bossDamage(s)).toBe(14);
+  expect(bossDamage(s)).toBe(13);
   smash(s, "fin");
   expect(s.boss?.phase).toBe(1);
-  expect(bossDamage(s)).toBe(11);
+  expect(bossDamage(s)).toBe(10);
   const hp = s.player.hp;
   advanceTurn(s);
-  expect(hp - s.player.hp).toBe(11);
+  expect(hp - s.player.hp).toBe(10);
 });
 
 test("breaking the jaw ends phase 1: FRENZY begins, key part becomes eye, damage rises", () => {
@@ -59,7 +59,7 @@ test("breaking the jaw ends phase 1: FRENZY begins, key part becomes eye, damage
   expect(s.boss?.phase).toBe(2);
   expect(s.boss?.phaseName).toBe("FRENZY");
   expect(currentKeyPart(s)).toBe("eye");
-  expect(bossDamage(s)).toBe(17);
+  expect(bossDamage(s)).toBe(16);
   expect(s.outcome).toBe("ongoing");
 });
 
@@ -97,12 +97,15 @@ test("slow works on the boss: first affected slot is skipped", () => {
 });
 
 test("the boss cannot dodge: player damage always lands", () => {
-  // 3 hits of 8 stay under the jaw's 26 durability, so no overkill clamp.
+  // Aimed at the jaw explicitly: untargeted damage drifts randomly, and
+  // 2 hits of 8 stay under the jaw's durability, so no overkill clamp
+  // (correctness review 00:47, MED-7: the drift version passed by seed
+  // lottery).
   const s = createBossCombat(3);
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 2; i++) {
     s.player.sta = s.player.maxSta;
     const before = s.enemy.hp;
-    useAbility(s, "tailStrike");
+    useAbility(s, "tailStrike", "jaw");
     expect(s.enemy.hp).toBe(before - 8);
   }
 });
