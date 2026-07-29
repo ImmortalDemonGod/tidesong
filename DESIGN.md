@@ -81,21 +81,38 @@ the build is placeholder for Marc's story and must be marked as such.
 - Tail Strike (2 STA): reliable damage, can target boss parts
 - Silt Burst (3 STA): inflicts Blind for 2 turns
 - Fin Slash (3 STA): damage plus Slow
-- Heal Song (4 STA): restores 40 HP; 2 uses per dungeon, restored at the
-  dungeon-entrance autosave
+- Heal Song (4 STA): restores 40 HP; 2 uses per dungeon, restored on the
+  FIRST entry to each dungeon only (amended per the shipped anti-exploit:
+  walking out and back in does not refill; seat 2 F4)
 - Analyze (1 STA): on regular enemies, reveals stats and the most effective
   condition (do NOT invent a weakness/element system); on bosses, highlights
   the key part
 - Bubble (2 STA): defensive, reduces incoming damage
 
+### Dungeon 2 contents (amended when stretch item 8 shipped; seat 2 F2/F3)
+- Elder squid: the second ruin's regular enemy, a STATS-ONLY variant of
+  the vampire squid (30 HP / 14 damage, same mechanics, same hint).
+  RULING, written here so the designer sees it: stats variants do NOT
+  count as enemy TYPES against the one-twist-per-enemy principle or the
+  3-type budget; the twist axis (conditions on the player, immunities,
+  buffs) remains reserved for true types 2 and 3 in jam scope.
+- Boss 2, the corrupted eel: parts Maw / Lure / Coil / Tail; phases
+  CONSTRICT then THRASH (13/16 damage); its one new idea, inside agreed
+  systems: the phase-1 key part WANDERS per run (seeded from the world,
+  never remapped by deaths) among Lure/Coil/Tail, making Analyze
+  genuinely informative every run; the Maw finale is fixed.
+- The relic combat echo (Tail Strike 8 to 11 with the relic) is the
+  power growth that makes the second gauntlet survivable.
+
 ### Exploration: hub reef + dungeons
 - Structure: 1 hub reef + 2 dungeons, each dungeon ends in a boss.
 - Zelda loop: hub has a locked song-seal puzzle door, a relic-gated current
-  barrier, memory fragments, merfolk NPCs, and a dark trench (Glass_Goat's
+  barrier, memory fragments, a merfolk NPC (one in the slice), and a dark trench (Glass_Goat's
   "don't swim low" danger idea). The relic barrier is gating, not a puzzle
   type; the song-seal door is the slice's puzzle type.
-- Relic gate: the current barrier physically shoves the player back out
-  (self-explaining, no tutorial text). Tide Relic is dungeon 1's boss reward.
+- Relic gate: the current barrier physically shoves the player back out.
+  (Originally "no tutorial text"; a G6 readability ruling added the
+  on-screen label, and legibility won over purism: seat 2 F8.) Tide Relic is dungeon 1's boss reward.
   With it, the barrier parts around you and dungeon 2 opens. Implementation:
   trigger volume + one boolean; a bot test MUST assert blocked-without /
   passable-with so the gate can never ship accidentally open.
@@ -132,11 +149,15 @@ The parts every game needs that no design doc remembered to write down:
   4. Camera drift/zoom moments (combat entry, phase break) that exercise
      the parallax
   Floor if time runs short: static layered parallax with depth fog still
-  ships; cutting mechanics to fund depth is never allowed. The point is to
+  ships; cutting mechanics to fund depth is never allowed. AS SHIPPED:
+  items 1, 2, and 4 in full; item 3 delivered scale-by-depth and idle bob
+  but not angled enemies or squash/stretch (seat 2 F10). The point is to
   read closer to the team's 3D target (Glass_Goat's Wind Waker direction)
   while staying an overnight-sized canvas build.
 - Controls: WASD or arrows to swim, E to interact, combat via clickable
-  ability buttons plus 1 to 6 hotkeys, P pauses, M mutes. AMENDED (G8
+  ability buttons plus 1 to 6 hotkeys, SPACE passes the turn (required
+  when stamina cannot afford any ability), up/down (or W/S, repurposed in
+  combat) aim at boss parts, P pauses, M mutes. AMENDED (G8
   round 2 F2): death auto-respawns under a transient veil instead of an
   R-gated death screen; the pity flow made a modal death screen redundant
   and the sim's respawn is what every G2 bot verifies. R replays after
@@ -167,10 +188,13 @@ from combat (economy decision that belongs to the team), relic combat echo,
 settings beyond pause/mute, difficulty modes, speedrun timer, touch/mobile
 controls, input remapping, localization.
 
-RECONCILIATION (G8 round 2 F10c): the relic combat echo below was listed
-as deferred but shipped with logged justification (the extended slice was
-unsurvivable without power growth; see PROGRESS). The deferral stands for
-everything else in this section.
+RECONCILIATION (final panel seat 2, F1: per-item status instead of a
+blanket claim): SHIPPED AS STRETCH with logged justification: dungeon 2,
+boss 2 (the corrupted eel), the song-seal puzzle door, and the relic
+combat echo. STILL DEFERRED: localStorage saves, flee/escape, settings
+beyond pause/mute, difficulty modes, speedrun timer, touch controls,
+input remapping, localization, third regular enemy type, and everything
+in the enemy-variety paragraph below.
 
 Also deferred (team discussion Jul 28, Marc's proposal, Glass_Goat's
 timing): enemy-applied conditions on the player, and per-enemy immunities

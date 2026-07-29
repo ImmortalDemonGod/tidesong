@@ -26,7 +26,7 @@ space passes, P pauses, M mutes, R replays after victory.
 Requires [bun](https://bun.sh).
 
 ```
-bun test          # 77 bot-playtest and invariant tests
+bun test          # the bot-playtest and invariant suite
 bun build.ts      # rebuilds dist/index.html
 bun tools/tune.ts # difficulty band report across all encounters
 ```
