@@ -626,8 +626,8 @@ optimal 14.4 HP lost):
 ## until the final adversarial panel rules; this section is complete only
 ## when no PENDING remains)
 
-- G1 BUG-FREE: PENDING FINAL PANEL. Evidence staged: 80 tests / 266,479
-  assertions; soaked 10x clean (00:59) and 25x clean (endurance log);
+- G1 BUG-FREE: PENDING FINAL PANEL. Evidence staged: 82 tests / 266,484
+  assertions at HEAD; soaked 10x clean (00:59) and 25x clean (endurance);
   night-watch 50x soak COMPLETE, all clean; world fuzz 20k actions + 12k
   dungeon-2-seeded actions with per-action invariants incl. the relic
   gate; on-canvas error overlay with 15+ gallery states rendering clean.
@@ -711,3 +711,12 @@ every evidence class before any PENDING becomes GREEN.
   casual 100/100 / max 2679: bot routes never hazard-die). 82 tests
   green. ALL THREE PANEL SEATS NOW CLOSED; per protocol the HIGHs found
   this round require a confirmation re-panel before verdicts stamp.
+- (git time of this commit) Confirmation seat B: every timestamp,
+  number, and fix claim reproduces digit for digit; ONE survivor of the
+  fabrication class found and purged: DESIGN.md line 43 cited "logged
+  01:05", a time written 14 minutes before it occurred, referencing a
+  PROGRESS entry that never existed (missed by all three prior purges,
+  each scoped elsewhere). Rewritten truthfully with no time. Staged G1
+  test count refreshed to 82/266,484. Seat B's G9 recommendation:
+  BLOCKED solely on that stamp; cleared by this commit pending seat B
+  confirmation.
