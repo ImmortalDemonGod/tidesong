@@ -5,7 +5,9 @@
 // Blind miss: 60% at level I, 80% at level II (DESIGN says 50-75 for I; 60 picked).
 // Blind II also zeroes enemy dodge ("agility drops", Glass_Goat's example).
 // Slow: skip every other action; level II also halves damage when acting.
-// Squid: 40 HP, 10 damage, 15% dodge. Bubble: next incoming hit reduced 60%.
+// Squid: 30 HP, 13 damage, 15% dodge (tuned 00:15 under G3: 40/10 gave casual
+// 90.6% wins over 18 turns, both out of band). Bubble: next hit reduced 60%.
+// Analyze hint is per-enemy data (squid: slow), set from measured bot value.
 // Dodge affects DAMAGE only; conditions always land. Rationale: Glass_Goat's
 // doc asks for "consistent and predictable results"; a dodged disable is the
 // least predictable outcome in the kit.
@@ -64,7 +66,7 @@ export type Outcome = "ongoing" | "victory" | "defeat";
 
 export interface CombatState {
   player: Combatant;
-  enemy: Combatant & { attackDamage: number; dodge: number };
+  enemy: Combatant & { attackDamage: number; dodge: number; analyzeHint: ConditionKind };
   healSongUses: number;
   bubbleCharge: boolean;
   analyzed: boolean;
@@ -95,13 +97,14 @@ export function createCombat(seed = 1): CombatState {
     },
     enemy: {
       name: "vampire squid",
-      hp: 40,
-      maxHp: 40,
+      hp: 30,
+      maxHp: 30,
       sta: 0,
       maxSta: 0,
       conditions: [],
-      attackDamage: 10,
+      attackDamage: 13,
       dodge: 0.15,
+      analyzeHint: "slow",
     },
     healSongUses: BASE.healSongUses,
     bubbleCharge: false,
@@ -171,7 +174,7 @@ export function useAbility(state: CombatState, abilityKey: string): boolean {
   }
   if (ability.analyze) {
     state.analyzed = true;
-    state.log.push("Analyze: Blind is most effective");
+    state.log.push(`Analyze: ${state.enemy.analyzeHint} is most effective`);
   }
   if (ability.inflicts) {
     applyCondition(state, ability.inflicts, ability.inflictTurns ?? 1);

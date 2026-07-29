@@ -39,7 +39,7 @@ Slice target, in priority order:
    the morning report as "Enemy variety lab" for Marc's balance question.
    Hard rule: none of this appears in dist/index.html tonight.
 
-## State: RUN IN PROGRESS (priority 1: combat core)
+## State: RUN IN PROGRESS (priority 3: boss 1)
 
 ## Exit gates
 
@@ -199,3 +199,16 @@ continue."
   `bun test` 19 pass / 0 fail, 10,998 expect() calls, incl. 100-seed
   fuzz with invariant checks (STA/HP bounds, condition levels, fights
   terminate under 200 rounds). dist builds 2.8 KB.
+- 00:18 P2 squid fight G3/G4-verified. Judge bots (test/bots.ts, pinned
+  policies) + bands as permanent tests (test/bands.test.ts, thresholds
+  verbatim from PROGRESS.md). Tuning journey: squid 40/10 gave casual
+  90.6% wins over 18.1 turns (both out of band) -> 32/12 -> 30/13 lands
+  casual 86.4% / 14.1 turns. Judge pathology found and fixed: unweighted
+  1-ply greedy turtles on Bubble once enemy damage exceeds its own
+  expected damage (no-cond went 0% win); prevention now weighted 0.8x,
+  which STRENGTHENS the judge. Analyze hint made per-enemy data after
+  measurement showed slow (not blind) is the squid's best condition.
+  Evidence: casual win 86.4% turns 14.1; optimal 100% / 6.5 turns /
+  14.4 hpLost; no-cond +105% HP lost; best spam (finSlash) +31% HP lost;
+  blind-only and slow-only each beat no-cond by >45%. `bun test` 26 pass
+  / 0 fail, soaked 5x clean.
