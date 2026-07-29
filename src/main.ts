@@ -1,6 +1,6 @@
 import { classifyLogLine } from "./events";
 import { Sound } from "./audio";
-import { createWorld, combatPass, enemySlot, interact, playerAct, step, type Dir, type WorldState } from "./world";
+import { combatAction, combatPass, createWorld, enemySlot, interact, playerAct, step, type Dir, type WorldState } from "./world";
 import { ABILITY_ORDER, render, type UIState } from "./render";
 import type { PartKey } from "./game";
 
