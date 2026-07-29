@@ -43,6 +43,7 @@ function resetRun(): void {
   logCursor = 0;
   lastDeaths = 0;
   lastArea = world.area;
+  victorySung = false;
   ui.animX = world.pos.x;
   ui.animY = world.pos.y;
   ui.selectedPart = undefined;
@@ -507,6 +508,7 @@ window.addEventListener("error", (e) => {
 });
 
 let last = performance.now();
+let victorySung = false; // one-shot: the reassembled song plays once
 let virtualClock = false; // filmstrip mode: no self-rescheduling
 function frame(now: number): void {
   let dt = Math.min(0.1, (now - last) / 1000);
@@ -536,6 +538,13 @@ function frame(now: number): void {
   // a victory can land while paused (blur mid-beat): normalize here, in
   // the state-owning loop, never in the renderer
   if (ui.screen === "pause" && world.mode === "victory") ui.screen = "play";
+  // the payoff the fragments promised, HEARD: on the victory screen the
+  // collected verses play back in order as one reassembled song
+  if (world.mode === "victory" && !ui.victoryHold && !victorySung) {
+    victorySung = true;
+    const count = world.fragments.filter((f) => f.collected).length;
+    for (let i = 1; i <= count; i++) sound.versePhrase(i, 0.8 + (i - 1) * 1.1);
+  }
   // presentation freezes with the game: nothing decays while paused (MED-9)
   const live = ui.screen === "play";
   if (live && ui.deathFlash > 0) ui.deathFlash = Math.max(0, ui.deathFlash - dt * 0.7);
