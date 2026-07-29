@@ -1,7 +1,7 @@
 import { abilityCast, classifyLogLine } from "./events";
 import { Sound, type Mood } from "./audio";
 import { combatAction, combatPass, createWorld, enemySlot, interact, playerAct, step, type Dir, type WorldState } from "./world";
-import { ABILITY_ORDER, render, type UIState } from "./render";
+import { ABILITY_ORDER, CAST_TIME, render, type UIState } from "./render";
 import type { PartKey } from "./game";
 
 const canvas = document.getElementById("game") as HTMLCanvasElement;
@@ -115,9 +115,9 @@ function drainLog(): void {
       sound.castVoice(cast, soundSlot * 0.12);
       soundSlot += 1;
       ui.castFx.push({ kind: cast, age: 0 });
-      if (cast === "tailStrike" || cast === "finSlash" || cast === "siltBurst") {
-        ui.attackAnim = { kind: cast, t: 0.3 };
-      }
+      // every ability poses the fish differently now (played report:
+      // "it always just moves forward a little")
+      ui.attackAnim = { kind: cast, t: CAST_TIME };
     }
     // stagger chorded drains; dedupe immediate repeats (hunt, MED-8)
     if (ev && ev !== lastEv && !(cast && (ev === "hit" || ev === "note"))) {
@@ -695,7 +695,7 @@ function frame(now: number): void {
       if (ui.buttonFlash[i] > 0) ui.buttonFlash[i] = Math.max(0, ui.buttonFlash[i] - dt);
     }
     for (const fx of ui.castFx) fx.age += dt;
-    ui.castFx = ui.castFx.filter((fx) => fx.age < 0.5);
+    ui.castFx = ui.castFx.filter((fx) => fx.age < 0.65);
     for (const f of ui.floaters) f.age += dt;
     ui.floaters = ui.floaters.filter((f) => f.age < 1.3);
     if (ui.storyCard && world.mode === "explore" && !ui.victoryHold) {

@@ -12,6 +12,7 @@
 // - Verse texts are PLACEHOLDER for Marc's story, marked as such.
 
 import {
+  BASE,
   advanceTurn,
   createBoss2Combat,
   createBossCombat,
@@ -247,6 +248,13 @@ function startCombat(w: WorldState, enc: Encounter): void {
             ? createInkCombat(seed)
             : createCombat(seed);
   c.player.hp = w.hp;
+  // the song you have gathered returns to you: +1 max STA per fragment
+  // (added Jul 29 from the played report that the hub is skippable and
+  // pointless; the fragments are the hub's whole content, so they now
+  // pay a real, visible, permanent dividend)
+  const verses = w.fragments.filter((f) => f.collected).length;
+  c.player.maxSta = BASE.playerSta + verses;
+  c.player.sta = c.player.maxSta;
   c.healSongUses = w.healSongUses;
   c.relicEcho = w.hasTideRelic;
   // THE PIPE: combat pushes its lines into the world log the UI drains.
@@ -464,6 +472,31 @@ function enterDungeon(w: WorldState, area: "dungeon1" | "dungeon2", entrance: Ve
   } else {
     w.log.push("checkpoint: dungeon entrance");
   }
+}
+
+// What the player should do next, in their words. Pure reader over world
+// state (added Jul 29: a played report ended with "I defeat the boss but
+// I'm just stuck here" in an emptied dungeon 21 tiles from its exit).
+export function nextObjective(w: WorldState): string {
+  if (w.mode === "victory") return "the sea remembers its song";
+  const boss1 = w.encounters.find((e) => e.kind === "boss")!;
+  const boss2 = w.encounters.find((e) => e.kind === "boss2")!;
+  const hubVerses = w.fragments.filter((f) => !f.collected && f.area === "hub" && (w.doorOpen || f.y !== HUB.alcove.y));
+  // Short enough to read at a glance in the HUD strip.
+  if (w.area === "dungeon1") {
+    if (!boss1.defeated) return "east: the ruin's guardian";
+    return "west: carry the relic home";
+  }
+  if (w.area === "dungeon2") {
+    if (!boss2.defeated) return "east: the eel waits";
+    return "west: back to the reef";
+  }
+  if (!boss1.defeated) {
+    if (hubVerses.length > 0) return `${hubVerses.length} verse(s) here, then east`;
+    return "east: the first ruin";
+  }
+  if (!w.hasTideRelic) return "east: the first ruin";
+  return "east: the wall parts for the relic";
 }
 
 export function interact(w: WorldState): boolean {

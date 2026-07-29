@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { D1, D2, HUB, combatAction, combatPass, createWorld, interact, step, type WorldState } from "../src/world";
+import { D1, D2, HUB, combatAction, combatPass, createWorld, interact, nextObjective, step, type WorldState } from "../src/world";
 
 function walkTo(w: WorldState, x: number, y: number, cap = 200): void {
   // Stops on any area or mode change: entering a dungeon or a fight is a
@@ -380,4 +380,43 @@ test("boss death returns one Heal Song charge when empty; trash deaths wait for 
   expect(w.deaths).toBe(1);
   expect(w.healSongUses).toBe(1); // the boss loop is one-more-try
   expect(w.log.some((l) => l.includes("takes pity"))).toBe(true);
+});
+
+test("verses pay a dividend: each collected fragment is +1 max stamina in combat", () => {
+  const w = createWorld();
+  walkTo(w, HUB.dungeonEntrance.x, HUB.dungeonEntrance.y);
+  walkTo(w, 8, 4);
+  expect(w.combat!.player.maxSta).toBe(20); // no verses gathered
+  expect(w.combat!.player.sta).toBe(20);
+  winFight(w);
+
+  const w2 = createWorld();
+  walkTo(w2, 7, 5); // hub verse 1
+  expect(w2.fragments[0].collected).toBe(true);
+  walkTo(w2, HUB.dungeonEntrance.x, HUB.dungeonEntrance.y);
+  walkTo(w2, 8, 4);
+  expect(w2.combat!.player.maxSta).toBe(21);
+  expect(w2.combat!.player.sta).toBe(21);
+});
+
+test("the objective line always names a next step, and it changes with progress", () => {
+  const w = createWorld();
+  const seen = new Set<string>();
+  seen.add(nextObjective(w));
+  expect(nextObjective(w)).toContain("first ruin");
+  walkTo(w, HUB.dungeonEntrance.x, HUB.dungeonEntrance.y);
+  expect(w.area).toBe("dungeon1");
+  seen.add(nextObjective(w));
+  expect(nextObjective(w)).toContain("guardian");
+  // clear the ruin: the objective must point HOME, not deeper
+  for (const e of w.encounters) if (e.area === "dungeon1") e.defeated = true;
+  w.hasTideRelic = true;
+  seen.add(nextObjective(w));
+  expect(nextObjective(w)).toContain("west");
+  walkTo(w, D1.exitX, 4);
+  expect(w.area).toBe("hub");
+  seen.add(nextObjective(w));
+  expect(nextObjective(w)).toContain("second ruin");
+  expect(seen.size).toBe(4); // every stage speaks differently
+  for (const line of seen) expect(line.length).toBeGreaterThan(8);
 });

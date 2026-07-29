@@ -92,6 +92,16 @@ the build is placeholder for Marc's story and must be marked as such.
 - Baseline numbers from the sketch (tune freely, keep ratios): HP 100,
   STA 20, ability costs 1 to 4 STA, refund +2, stamina regen 3 per combat
   turn (full between fights).
+- The verse dividend (added Jul 29 from the played report "what is the
+  point of the entire first scene, I can bypass it entirely"): each
+  collected memory fragment permanently raises max stamina by 1. The
+  hub's content is optional by design, but optional must not mean
+  pointless: the fragments are the hub's whole payload, so gathering
+  the song now literally gives you more song to sing. Thematic, visible
+  in the HUD, and small enough that the difficulty bands (measured on
+  direct combats at baseline STA) are untouched: G2 re-measured
+  identical (scripted 50/50 / 12 deaths / max 194; casual 100/100 and
+  5000/5000 zero fail seeds).
 - Death: at 0 HP the player respawns at the checkpoint (the entrance of the
   current dungeon; hub start before any dungeon has been entered).
   COMBAT deaths climb the pity escalator: 60 percent, then 75, then capped
@@ -163,6 +173,13 @@ the build is placeholder for Marc's story and must be marked as such.
   barrier, memory fragments, a merfolk NPC (one in the slice), and a dark trench (Glass_Goat's
   "don't swim low" danger idea). The relic barrier is gating, not a puzzle
   type; the song-seal door is the slice's puzzle type.
+- The song-seal door gates the ALCOVE above it, never the way past: it
+  is a treasure vault, not a wall (clarified Jul 29 after a played
+  report expected it to block the corridor and read the swim-under as a
+  bug; the door label and the sealed-fragment label now say so).
+- A standing objective line (added Jul 29, played report "I defeat the
+  boss but I'm just stuck here"): the HUD always names the next step,
+  and a cleared ruin visibly runs its current westward toward the exit.
 - Relic gate: the current barrier physically shoves the player back out.
   (Originally "no tutorial text"; a G6 readability ruling added the
   on-screen label, and legibility won over purism: seat 2 F8.) Tide Relic is dungeon 1's boss reward.

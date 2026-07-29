@@ -3,7 +3,7 @@
 // combat staging, all presentation-only. Palette follows the greybox sketch.
 
 import { ABILITIES, BASE, enemyIntent, getCondition, type CombatState, type PartKey } from "./game";
-import { AREAS, D1, HUB, type WorldState } from "./world";
+import { AREAS, D1, HUB, nextObjective, type WorldState } from "./world";
 
 export interface Floater {
   text: string;
@@ -43,6 +43,10 @@ export interface UIState {
 }
 
 export const ABILITY_ORDER = ["tailStrike", "siltBurst", "finSlash", "healSong", "analyze", "bubble"];
+
+// One cast beat: long enough to read as a move, short enough to stay
+// inside the 550ms answer beat (played report: the casts were a blip).
+export const CAST_TIME = 0.42;
 
 // Per-ability identity: an accent color and a small painted glyph, matched
 // by the cast effect and the synth voice so each ability reads as itself in
@@ -568,7 +572,7 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
     ctx.fillStyle = C.muted;
     ctx.font = "11px system-ui";
     ctx.textAlign = "center";
-    ctx.fillText(w.doorOpen ? "song-seal door (open)" : "song-seal door", px(HUB.door.x), py(HUB.door.y) + 52);
+    ctx.fillText(w.doorOpen ? "song-seal (open)" : "song-seal (the alcove)", px(HUB.door.x), py(HUB.door.y) + 52);
     ctx.textAlign = "left";
 
     // dungeon entrance arch on twin pillars rooted in the floor
@@ -715,6 +719,30 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
     ctx.fillStyle = C.muted;
     ctx.font = "12px system-ui";
     ctx.fillText("the second ruin: the drowned gullet", px(2) - 20, 140);
+  }
+
+  // once the ruin is cleared, the current visibly runs west: the way out
+  // must be legible from the boss chamber (played report: stuck at the
+  // east wall of an emptied dungeon)
+  const ruinBoss = w.encounters.find((e) => e.area === w.area && (e.kind === "boss" || e.kind === "boss2"));
+  if (w.area !== "hub" && ruinBoss?.defeated) {
+    ctx.save();
+    ctx.strokeStyle = C.biolum;
+    ctx.lineWidth = 3;
+    for (let i = 0; i < 7; i++) {
+      const flow = ((t * 90 + i * 190) % (worldW + 260)) - 130;
+      const ay = 250 + (i % 3) * 120;
+      ctx.globalAlpha = 0.16 + Math.sin(t * 2 + i) * 0.07;
+      ctx.beginPath();
+      ctx.moveTo(worldW - flow, ay);
+      ctx.lineTo(worldW - flow - 54, ay);
+      ctx.moveTo(worldW - flow - 54, ay);
+      ctx.lineTo(worldW - flow - 40, ay - 9);
+      ctx.moveTo(worldW - flow - 54, ay);
+      ctx.lineTo(worldW - flow - 40, ay + 9);
+      ctx.stroke();
+    }
+    ctx.restore();
   }
 
   // fragments
@@ -874,16 +902,36 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
   bar(ctx, 62, 32, 150, 12, w.hp / w.maxHp, C.coral);
   ctx.fillStyle = C.muted;
   ctx.fillText(`${w.hp}/${w.maxHp}`, 220, 42);
+  const verses = w.fragments.filter((f) => f.collected).length;
   ctx.fillText("STA", 32, 66);
   bar(ctx, 62, 56, 150, 12, 1, C.glow);
   ctx.fillStyle = C.muted;
-  ctx.fillText(`${BASE.playerSta}/${BASE.playerSta}`, 220, 66);
+  ctx.fillText(`${BASE.playerSta + verses}/${BASE.playerSta + verses}`, 220, 66);
   ctx.fillText("SONG", 32, 90);
   ctx.fillStyle = C.ink;
   ctx.fillText(`${"~".repeat(w.healSongUses) || "-"}`, 76, 90);
   ctx.fillStyle = C.muted;
-  ctx.fillText(`fragments ${w.fragments.filter((f) => f.collected).length}/${w.fragments.length}`, 120, 90);
+  ctx.fillText(`verses ${verses}/${w.fragments.length}`, 120, 90);
+  if (verses > 0) {
+    ctx.fillStyle = C.biolum;
+    ctx.fillText(`+${verses} STA`, 214, 90);
+  }
   if (w.hasTideRelic) chip(ctx, 304, 24, "TIDE RELIC", C.glow);
+
+  // the standing objective: the player must never wonder where to go
+  // (played report: "I defeat the boss but I'm just stuck here")
+  ctx.fillStyle = "rgba(6,18,28,0.82)";
+  ctx.beginPath();
+  ctx.roundRect(18, 116, 292, 30, 8);
+  ctx.fill();
+  ctx.fillStyle = C.biolum;
+  ctx.font = "600 11px ui-monospace, monospace";
+  ctx.fillText("NEXT", 32, 135);
+  ctx.fillStyle = C.ink;
+  ctx.font = "12px system-ui";
+  const objective = nextObjective(w);
+  const objLine = objective;
+  ctx.fillText(objLine, 70, 135);
 
   const hint =
     w.area === "hub"
@@ -975,15 +1023,74 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
   const beatAmp = heavyBeat ? 2 : 1; // a heavy windup reads twice as big
   const beatP = (ui.enemyBeat > 0 ? 1 - ui.enemyBeat / 0.55 : 0) * beatAmp; // windup progress
   const strikeP = ui.enemyStrike > 0 ? Math.sin(Math.PI * (1 - ui.enemyStrike / 0.22)) : 0;
-  const attackP = ui.attackAnim ? Math.sin(Math.PI * (1 - ui.attackAnim.t / 0.3)) : 0;
-  const meleeCast = ui.attackAnim && (ui.attackAnim.kind === "tailStrike" || ui.attackAnim.kind === "finSlash");
-  const lunge = rm ? 0 : attackP * (meleeCast ? 210 : 26);
+  // linear progress 0..1 through the cast, plus its arc, so each ability
+  // can pose the fish differently (played report: "it always just moves
+  // forward a little, no real animations")
+  const castLin = ui.attackAnim ? 1 - ui.attackAnim.t / CAST_TIME : 0;
+  const attackP = ui.attackAnim ? Math.sin(Math.PI * castLin) : 0;
   const flinch = rm ? 0 : Math.min(1, ui.playerFlinch / 0.35) * 16;
+  // per-ability body language: where the fish goes, how it turns, how it
+  // squashes. Reduced motion keeps the flashes and drops the travel.
+  const pose = { dx: 0, dy: 0, rot: 0, sx: 1, sy: 1 };
+  if (ui.attackAnim && !rm) {
+    const k = ui.attackAnim.kind;
+    if (k === "tailStrike") {
+      // a committed dash: stretch into it, snap back
+      pose.dx = attackP * 215;
+      pose.rot = Math.sin(Math.PI * castLin) * 0.12;
+      pose.sx = 1 + attackP * 0.22;
+      pose.sy = 1 - attackP * 0.12;
+    } else if (k === "finSlash") {
+      // an arc: rise, roll through the cut, come down
+      pose.dx = attackP * 165;
+      pose.dy = -Math.sin(Math.PI * castLin) * 70;
+      pose.rot = -0.9 * Math.sin(Math.PI * castLin);
+      pose.sx = 1 + attackP * 0.1;
+    } else if (k === "siltBurst") {
+      // a tail-flick that kicks the silt out and shoves the fish back
+      pose.dx = -attackP * 46;
+      pose.rot = 0.3 * Math.sin(Math.PI * castLin);
+      pose.sy = 1 + attackP * 0.16;
+    } else if (k === "healSong") {
+      // rises and swells while it sings
+      pose.dy = -attackP * 46;
+      pose.sx = 1 + attackP * 0.14;
+      pose.sy = 1 + attackP * 0.14;
+    } else if (k === "analyze") {
+      // leans in and holds still, reading
+      pose.dx = attackP * 26;
+      pose.rot = -0.2 * attackP;
+    } else if (k === "bubble") {
+      // curls in behind the forming shell
+      pose.dx = -attackP * 16;
+      pose.rot = 0.5 * attackP;
+      pose.sx = 1 - attackP * 0.16;
+      pose.sy = 1 + attackP * 0.16;
+    }
+  }
+  const lunge = pose.dx;
   const recoil = rm ? 0 : Math.min(1, ui.enemyFlash / 0.3);
   const sink = ui.victoryHold ? 1 - Math.max(0, ui.victoryHold.t) / 1.1 : 0;
 
   // player, small and near (left); enemy staged big (right): scale-by-depth
-  fish(ctx, 250 + lunge - flinch, 430, 1.7, t, 1);
+  const fx = 250 + pose.dx - flinch;
+  const fy = 430 + pose.dy;
+  ctx.save();
+  ctx.translate(fx, fy);
+  ctx.rotate(pose.rot);
+  ctx.scale(pose.sx, pose.sy);
+  fish(ctx, 0, 0, 1.7, t, 1);
+  ctx.restore();
+  // motion trail behind a committed dash so the strike reads as travel
+  if (ui.attackAnim && !rm && attackP > 0.15 && (ui.attackAnim.kind === "tailStrike" || ui.attackAnim.kind === "finSlash")) {
+    ctx.save();
+    for (let i = 1; i <= 3; i++) {
+      ctx.globalAlpha = 0.16 * attackP * (1 - i / 4);
+      ctx.translate(-26, 0);
+      fish(ctx, fx, fy, 1.7, t, 1);
+    }
+    ctx.restore();
+  }
   if (ui.playerFlinch > 0) {
     ctx.save();
     ctx.globalAlpha = Math.min(0.3, ui.playerFlinch);
@@ -1105,9 +1212,11 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
   // per-ability cast effects, colored like their cards (fun diagnosis:
   // every cast was one shared white ellipse)
   for (const fx of ui.castFx) {
-    const p = Math.min(1, fx.age / 0.45);
+    const p = Math.min(1, fx.age / 0.6);
     const fade = 1 - p;
     const accent = ABILITY_META[fx.kind]?.accent ?? C.ink;
+    const fx2x = 250 + pose.dx - flinch;
+    const fx2y = 430 + pose.dy;
     ctx.save();
     ctx.globalAlpha = Math.max(0, fade);
     if (fx.kind === "tailStrike") {
@@ -1140,9 +1249,9 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
     } else if (fx.kind === "healSong") {
       // green motes rising off the fish
       ctx.fillStyle = accent;
-      for (let i = 0; i < 8; i++) {
+      for (let i = 0; i < 12; i++) {
         ctx.beginPath();
-        ctx.arc(230 + (i % 4) * 18, 440 - p * 120 - i * 9, 3, 0, Math.PI * 2);
+        ctx.arc(fx2x - 30 + (i % 5) * 16, fx2y + 12 - p * 150 - i * 8, 3.4, 0, Math.PI * 2);
         ctx.fill();
       }
     } else if (fx.kind === "analyze") {
@@ -1157,9 +1266,9 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
     } else if (fx.kind === "bubble") {
       // the shield ring forming
       ctx.strokeStyle = accent;
-      ctx.lineWidth = 3;
+      ctx.lineWidth = 3 + (1 - p) * 3;
       ctx.beginPath();
-      ctx.arc(250, 430, 30 + p * 54, 0, Math.PI * 2);
+      ctx.arc(fx2x, fx2y, 26 + p * 64, 0, Math.PI * 2);
       ctx.stroke();
     }
     ctx.restore();
@@ -1613,7 +1722,7 @@ export function render(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
     centered(ctx, "design and story (all verses placeholder) · Marc", 540, "15px system-ui", C.muted, cw);
     centered(ctx, "art (everything you saw is a placeholder skeleton) · Glass_Goat", 563, "15px system-ui", C.muted, cw);
     centered(ctx, "code · ImmortalDemon", 586, "15px system-ui", C.muted, cw);
-    centered(ctx, "R: swim it again", 634, "14px system-ui", C.glow, cw);
+    centered(ctx, "R or click: back to the title, then swim it again", 634, "14px system-ui", C.glow, cw);
   }
 
   if (ui.muted) {

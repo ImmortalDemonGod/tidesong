@@ -1165,3 +1165,37 @@ every evidence class before any PENDING becomes GREEN.
   locked 60fps, zero page errors. No leak shape anywhere. (The probe's
   own 10-minute harness timeout ended it, not the game; readings were
   identical every minute.)
+- (git time of this commit) PLAYED REPORT from the user on the live
+  build, five defects, all fixed:
+  (1) "I defeat the boss but I'm just stuck here": a cleared ruin gave
+  no direction and its exit is 20 tiles west. Fixed with a standing
+  NEXT objective line in the HUD (pure nextObjective() reader over
+  world state, tested to change at every stage) plus a visible westward
+  current that runs through a cleared ruin.
+  (2) "what does replay after victory do": the chip claimed R replays
+  at any time; it only works on the victory screen and now returns to
+  the title. Chip and victory line reworded to say exactly that.
+  (3) "abilities always just move the fish forward a little, no real
+  animations": TRUE, and the sharpest of the five. Every ability now
+  poses the fish differently over a longer 0.42s cast: Tail Strike
+  dashes 215px with stretch and motion trails, Fin Slash rises and
+  rolls through its arc, Silt Burst tail-flicks backward as the cloud
+  goes out, Heal Song rises and swells, Analyze leans in and holds,
+  Bubble curls behind its forming shell. Cast effects follow the posed
+  fish and last 0.6s. Captured at cast peak as evidence
+  (scratchpad/poses/pose-*.png).
+  (4) "is the song seal door supposed to block your way, I can swim
+  under it": the door seals the ALCOVE column above it by design, but
+  read as a corridor gate. Labels now say "song-seal (the alcove)" and
+  the sealed verse above says a verse sleeps there; DESIGN records the
+  ruling.
+  (5) "what is the point of the entire first scene, I can bypass it
+  entirely": also TRUE, and the deepest. THE VERSE DIVIDEND: every
+  collected fragment permanently grants +1 max STA, shown in the HUD
+  ("verses 3/5 · +3 STA"). The hub stays optional (a slice choice) but
+  is no longer pointless, and it pays in the game's own currency.
+  Bands untouched (they measure direct combats at baseline); G2
+  re-measured identical: scripted 50/50 / 12 deaths / max 194, casual
+  100/100 worst 1614, x5000 5000/5000 zero fail seeds. 95 tests green
+  (two new: the dividend, and the objective line changing per stage).
+  Two label collisions caught by render-and-look before commit.

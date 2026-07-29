@@ -24,7 +24,7 @@ const html = `<meta charset="utf-8">\n<meta name="viewport" content="width=devic
   <span class="chip"><b>1-6</b> abilities in combat</span>
   <span class="chip"><b>up/down</b> pick a boss part</span>
   <span class="chip"><b>space</b> pass turn</span>
-  <span class="chip"><b>P</b> pause · <b>M</b> mute · <b>R</b> replay after victory</span>
+  <span class="chip"><b>P</b> pause · <b>M</b> mute · <b>R</b> new run (from the victory screen)</span>
 </div>
 <script>${js.replace(/<\/script>/g, "<\\/script>")}</script>
 `;
