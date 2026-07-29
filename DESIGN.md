@@ -264,8 +264,13 @@ The parts every game needs that no design doc remembered to write down:
      the parallax
   Floor if time runs short: static layered parallax with depth fog still
   ships; cutting mechanics to fund depth is never allowed. AS SHIPPED:
-  items 1, 2, and 4 in full; item 3 delivered scale-by-depth and idle bob
-  but not angled enemies or squash/stretch (seat 2 F10). The point is to
+  items 1, 2, and 4 in full; item 3 delivered scale-by-depth, idle bob,
+  and (since the per-ability animation pass) real squash and stretch on
+  the player through every cast, plus windup swell and recoil on
+  enemies. Still missing from item 3: enemies are never ANGLED, and
+  enemy deformation is uniform scale rather than true squash. (Amended
+  Jul 29: seat 2's F10 wording said no squash/stretch at all, which
+  stopped being true and would have understated the build.) The point is to
   read closer to the team's 3D target (Glass_Goat's Wind Waker direction)
   while staying an overnight-sized canvas build.
 - Controls: WASD or arrows to swim, E to interact, combat via clickable
