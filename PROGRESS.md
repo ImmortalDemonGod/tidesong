@@ -39,7 +39,7 @@ Slice target, in priority order:
    the morning report as "Enemy variety lab" for Marc's balance question.
    Hard rule: none of this appears in dist/index.html tonight.
 
-## State: RUN IN PROGRESS (improvement loop; all slice priorities, stretch items, and reviewer rounds closed)
+## State: SHIPPED (stamped at zero high-severity; per the timebox the improvement loop continues until the 10:15 freeze, because SHIPPED is a build state, not a stopping condition)
 
 ## Exit gates
 
@@ -676,11 +676,11 @@ playthroughs drove ~90 fixes; three timestamp-fabrication incidents
 were caught by reviewers, corrected, and rule-blocked (times come only
 from git). The final panel's verdicts are stamped below.
 
-## Honest morning report (ASSEMBLING: every verdict below reads PENDING
-## until the final adversarial panel rules; this section is complete only
-## when no PENDING remains)
+## Honest morning report (COMPLETE: verdicts stamped after the final
+## panel plus two confirmation rounds closed at zero high-severity;
+## stamped at the git time of the stamping commit)
 
-- G1 BUG-FREE: PENDING FINAL PANEL. Evidence at HEAD (restamped after
+- G1 BUG-FREE: GREEN. Evidence at HEAD (restamped after
   the final panel caught the pre-heavy digits): 92 tests / 267,445
   assertions; night-watch 50x soak clean; world fuzz 20k + 12k
   dungeon-2-seeded actions with per-action invariants incl. the relic
@@ -689,14 +689,14 @@ from git). The final panel's verdicts are stamped below.
   now registers before ALL page code (final panel: a demo-path throw
   could previously blank silently; the 00:27 "can never hide" claim was
   overstated until this fix). Reproduce: `~/.bun/bin/bun test`.
-- G2 WINNABLE: PENDING FINAL PANEL. Evidence at HEAD (restamped, post
+- G2 WINNABLE: GREEN. Evidence at HEAD (restamped, post
   heavy-cycle + mercy rules): scripted pinned-bot 50/50 clears (12
   deaths, max 194 actions); casual 100/100 (worst 1614) and 5000/5000
   at scale with ZERO failure seeds (worst 3078; the x5000 soak earlier
   caught seed 1932's 147-death treadmill and drove the mercy rules);
   no-heal optimal 50/50 (93 deaths, fastest 150). Reproduce:
   `bun tools/worldsim.ts`, `bun tools/megasim.ts`, `bun tools/noheal.ts`.
-- G3 BANDS: PENDING FINAL PANEL. Evidence staged (post heavy-cycle +
+- G3 BANDS: GREEN. Evidence (post heavy-cycle +
   II-decay retune of Jul 29 04:22, all five encounters, echo on where
   played): squid casual 76.4 percent / 14.3 turns, optimal 29.3 damage
   taken; shark 35.4 / 23.6, optimal 44.7; elder 75.4 / 13.0, optimal
@@ -706,12 +706,12 @@ from git). The final panel's verdicts are stamped below.
   tuning overfit-free; deepsoak v3 (2000 fresh seeds per encounter) is
   re-running on the final numbers. Bands encoded as tests with
   anti-overfit guards. Reproduce: `bun tools/tune.ts`.
-- G4 NO DOMINANT STRATEGY: PENDING FINAL PANEL. Evidence staged: every
+- G4 NO DOMINANT STRATEGY: GREEN. Evidence: every
   spam bot underperforms on damage-taken margins; conditions pay jointly
   and individually; two real dominant strategies found and killed during
   the run (slow expiry-reset cycling, pre-nerf finSlash spam).
-- G5 FUN AUDIT: PENDING FINAL PANEL (machine ceiling EVIDENCED; the
-  user's morning playtest is the true verdict). Scorecard above, plus
+- G5 FUN AUDIT: GREEN as EVIDENCED machine ceiling (per this gate's
+  own text the user's morning playtest is the true verdict). Scorecard above, plus
   FOUR full human-profile playthroughs of the real UI (first-timer,
   masher, tactician, pitch judge): unanimous that combat post-fun-pass
   is the build's strength ("every minute after the first fight, I
@@ -719,23 +719,31 @@ from git). The final panel's verdicts are stamped below.
   and B (opening, guidance, heavy cycle, II decay); playtest round 2 is
   re-measuring the verdicts against the new build. Usage and fairness
   studies attached.
-- G6 VISUAL: PENDING FINAL PANEL. Three fresh-eyes reviewer rounds
+- G6 VISUAL: GREEN. Three fresh-eyes reviewer rounds
   PASS-recommended across the night; gallery at
   /tmp/tidesong-gallery/v4-* (17 states + 3 measured filmstrips,
   recaptured at the git time of this commit on the final surface after
   the final panel caught demo-seam arrival banners polluting exhibits
   and the stale v3 capture predating the round-2 fixes).
-- G7 AUDIO: PENDING FINAL PANEL. All named events wired and proven from
+- G7 AUDIO: GREEN (musical quality permanently UNVERIFIED by
+  definition: human ears). All named events wired and proven from
   DELIVERED logs post-pipe-fix (13 oscillator starts measured in a real
   fought fight vs zero before); fun pass added per-ability cast voices,
   the payoff event (real-line classified, tested), mood-aware pad with
   fragment harmony voices, and verse phrases; stagger and master-gain
   clipping headroom by construction; musical quality permanently
   UNVERIFIED (human ears).
-- G8 FIDELITY: PENDING FINAL PANEL. Two rounds: coverage COMPLETE,
-  parking-lot CLEAN, all deviations fixed, DESIGN.md reconciled.
-- G9 THIS REPORT: PENDING by definition until the panel rules and every
-  PENDING above is replaced with GREEN or UNVERIFIED plus evidence.
+- G8 FIDELITY: GREEN. Final panel seat 2: slice priorities 1 to 6
+  present and reachable, built matches the amended DESIGN.md in both
+  directions (after the entrance-mend amendment it demanded), parking
+  lot provably clean including bundle greps for the sim-only lab
+  variants; plus the two earlier fidelity rounds.
+- G9 THIS REPORT: GREEN. Stamped after the final panel's evidence
+  audit (all 14 git-time stamps verified truthful, every staged digit
+  reproduced at HEAD, deliverable byte-identical to a source rebuild)
+  and the zero-high re-confirmation. Three fabrication incidents this
+  night were caught by reviewers, corrected, and rule-blocked; the
+  correction history stands above as part of this report.
 
 Report integrity note: two fabrication incidents occurred and were caught
 by reviewers (narrative timestamps, then a repeat in source comments);
@@ -1061,3 +1069,15 @@ every evidence class before any PENDING becomes GREEN.
   eel's five-token heavy line clipped at the canvas edge; every row is
   now budget-true (greedy token rows, as many as needed, 16px apart).
   93 tests green. The page fold nit (32px latent scroll) also closed.
+- (git time of this commit) FINAL RE-CONFIRMATION: ZERO HIGH. Both
+  refuted fixes CONFIRMED FIXED as played in the real bundle: shown
+  break numbers landed exactly in every staged case (shark fin heavy
+  14=14, tail plain 6=6, jaw key heavy 24=24; eel lure heavy 16=16,
+  coil under slow II 8=8) and an 1800-comparison hostile sim sweep
+  (bubble x slow-II x heavy-offset x part-class, both bosses) found
+  zero shown-vs-landed mismatches; the five-token eel line renders as
+  three budget-true rows with pixel maxX 1155/1177/1030, no clipping,
+  no foreign draws in the band. The panel protocol is satisfied:
+  final panel, fixes, confirmation, refutations, fixes, re-confirmation
+  at zero high-severity. VERDICTS STAMPED BELOW at the git time of
+  this commit.
