@@ -1,58 +1,99 @@
 # TIDESONG (working title)
 
-A vertical-slice prototype for Team Ratateam's itch.io Underwater Jam
-project (jam runs Jul 30 to Oct 5, 2026). Built overnight to test the
-merged design in TypeScript; the engine for the final entry is the team's
-call (the merge proposal left Unity vs Godot vs web open).
+**▶ PLAY NOW: https://fern-waffle-h52c.here.now/**
 
-A small fish crosses the ruins of a fallen merfolk civilization: swim the
-hub reef, sing the seal open, dive two ruins, break the corrupted shark
-and the corrupted eel limb by limb, and let the sea remember its song.
+![THE CORRUPTED SHARK boss intro](media/boss-intro.png)
 
-- Turn-based, disable-first combat where every enemy TELEGRAPHS its next
-  move: the intent line shows the incoming strike, heavy windups (every
-  3rd blow hits 1.6x), slowed skips, blind miss chances, and what changes
-  if the part you are aiming at breaks
-- Conditions on regular enemies, full limb targeting on bosses, one
-  stamina economy, HP is sacred; level II conditions fade to level I
-  instead of vanishing
-- The eel's weak point wanders every run; Analyze finds it. The ink squid
-  (enemy type 2) blinds YOU; your conditions still land
-- Song-seal puzzle door, Tide Relic gate, five memory fragments that
-  reassemble into the sea's song (each one adds a harmony voice to the
-  music; the victory screen sings them back), the trench where you
-  should not swim low
-- Deaths coach (the veil names the tool you ignored) and converge (pity
-  ladder plus a mercy Heal Song at empty-handed boss losses)
+An overnight TypeScript vertical slice of Team Ratateam's Underwater Jam
+project, built to test the merged design (Marc's proposal + Glass_Goat's
+combat system) before the jam starts Jul 30. Not the final game and not
+the final engine (the merge proposal left Unity vs Godot vs web open) --
+a playable answer to "is this design fun enough to build?" See
+`DESIGN.md` for every rule and logged amendment, `PROGRESS.md` for the
+build log, exit gates, and the honest morning report.
 
-## Play
+## How to run
 
-`dist/index.html` is the whole game in one file: open it in any modern
-browser, no server needed. Verified in Firefox and Chromium (full
-playthroughs, locked 60fps, flat memory over long sessions).
-WASD/arrows swim, E talks, 1-6 act in combat, up/down aim at boss parts,
-space passes, P pauses, M mutes, R replays after victory. Click works
-everywhere keys do.
+**In your browser (nothing to install):**
+https://fern-waffle-h52c.here.now/
 
-## Develop
+**Offline:** download `dist/index.html` and double-click it -- one
+self-contained ~69KB file, no dependencies, no server.
 
-Requires [bun](https://bun.sh).
-
+**Dev way** (only needed to modify the game):
+```bash
+# install bun once: https://bun.sh  (curl -fsSL https://bun.sh/install | bash)
+bun test          # run the 93 bot playtests (267k assertions)
+bun build.ts      # rebuild dist/index.html
+open dist/index.html
 ```
-bun test          # the bot-playtest and invariant suite (93 tests)
-bun build.ts      # rebuilds dist/index.html
-bun tools/tune.ts # difficulty band report across all encounters
-```
+No node_modules, no package install -- the game has zero dependencies;
+bun is just the TypeScript runner/bundler.
 
-- `DESIGN.md`: the binding spec (the team's merged design + every logged
-  amendment with its reason)
-- `PROGRESS.md`: the overnight build log, exit gates with stamped
-  verdicts, the honest morning report, and the 11am briefing
-- `BACKLOG.md`: post-jam worklist (design questions, polish, deferred
-  scope) with evidence pointers
-- `docs/`: the original member design docs, agreed merge proposal, and
-  greybox visual sketch
+**Note for teammates:** this branch (`overnight-build`) carries the whole
+prototype; `main` is a bare README. Grab `dist/index.html` if you just
+want to play.
+
+## The pitch
+
+You are a small fish returning the sea's lost song. Combat is turn-based
+and disable-first, and every enemy TELEGRAPHS: the intent line shows the
+incoming strike, the heavy windup (every 3rd blow lands 1.6x -- Bubble
+it, or Slow it away), the miss chance your silt bought, and what changes
+if the boss part you are aiming at breaks. Regular enemies take
+conditions; bosses are limb puzzles with phases (the eel's weak part
+wanders every run; Analyze finds it; the ink squid blinds YOU back).
+Journey: hub reef → merfolk and memory fragments → song-seal stone
+puzzle → first ruin → the corrupted shark → Tide Relic parts the
+current wall → second ruin → the corrupted eel → the sea remembers its
+song, and the verses you gathered play back as one melody.
+
+## Structure
+
+- `src/game.ts` -- pure combat sim: no DOM, no timers, seeded RNG.
+  Conditions, limb targeting, phases, the heavy cycle, enemy intent.
+- `src/world.ts` -- pure world sim: hub, dungeons, fragments, the
+  song-seal puzzle, the death/mercy rules. Bots drive both directly.
+- `src/render.ts` -- 2.5D canvas renderer (parallax, depth fog, staged
+  combat), pure function of state.
+- `src/main.ts` -- browser shell: input, the turn beat, story cards,
+  banners, `?demo=` / `?filmstrip=` hooks.
+- `src/events.ts` + `src/audio.ts` -- pure log-line classifier feeding a
+  WebAudio synth: per-ability voices, mood-aware music that gains a
+  harmony voice per collected fragment.
+- `test/` -- 93 bot playtests: pinned judge bots, difficulty bands with
+  anti-overfit guards, full-run clears, 32k-action fuzz, telegraph
+  honesty property tests.
+- `build.ts` -- bundles everything into `dist/index.html`.
+
+## Verification
+
+- 93/93 tests green (267,765 assertions); 25x consecutive soak clean.
+- Scripted full-run bot clears 50/50; casual bot 100/100, and
+  5,000/5,000 at scale with zero failure seeds.
+- Difficulty bands hold on 100,000 fresh-seed fights (20k per encounter)
+  disjoint from every tuning seed.
+- Telegraph honesty property-tested and pixel-verified as played: what
+  the intent line announces is what lands, including heavy windups,
+  phase breaks, and part breaks.
+- Three adversarial panel rounds plus seven human-profile playthroughs
+  drove ~90 logged fixes; the final panel and confirmations closed at
+  zero high-severity findings.
+- Nine-minute continuous browser session: flat 9.5MB heap, one live
+  interval, locked 60fps, zero errors (Firefox and Chromium verified).
+
+## Query params (testing hooks)
+
+`?demo=combat|boss|boss2|bossp2|bossintro|ink|victory|dungeon1|dungeon2|talk|fragment|doorcard|trench|pause|defeat|explore`
+canned states for screenshots · `?filmstrip=combat|kill|click` as-played
+strips with measured labels (real key/pointer events on a virtual clock).
+
+## The exchange as played
+
+![Combat filmstrip: cast, answer, payoff](media/combat-filmstrip.png)
+
+![The ink squid blinds YOU](media/ink-fight.png)
 
 All names are placeholders. All art, style, and character design:
-Glass_Goat (everything visual here is a placeholder skeleton). Design and
-story: Marc (all verses are marked drafts). Code: ImmortalDemon.
+Glass_Goat (everything visual here is a placeholder skeleton). Design
+and story: Marc (all verses are marked drafts). Code: ImmortalDemon.
