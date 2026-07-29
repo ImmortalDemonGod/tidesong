@@ -73,3 +73,51 @@ test("G1 fuzz: 20,000 hostile actions across 50 seeds hold every invariant", () 
   }
   expect(actions).toBeGreaterThanOrEqual(10000);
 });
+
+// Dungeon 2 coverage: a random walker cannot cross the full route, so these
+// starts are seeded inside the second ruin with the relic held (closing the
+// coverage gap noted in the morning-report draft).
+test("G1 fuzz: 12,000 hostile actions seeded inside dungeon 2", () => {
+  let actions = 0;
+  for (let seed = 100; seed < 130; seed++) {
+    const w = createWorld(seed);
+    w.hasTideRelic = true;
+    w.area = "dungeon2";
+    w.pos = { x: 4, y: 4 };
+    w.checkpoint = { area: "dungeon2", pos: { x: 1, y: 4 } };
+    const r = rng(seed ^ 0xd2f);
+    for (let i = 0; i < 400; i++) {
+      actions += 1;
+      const roll = r();
+      if (w.mode === "combat") {
+        if (roll < 0.75) {
+          combatAction(w, KEYS[Math.floor(r() * KEYS.length)], PARTS[Math.floor(r() * PARTS.length)]);
+        } else {
+          combatPass(w);
+        }
+      } else if (w.mode === "explore") {
+        if (roll < 0.85) step(w, DIRS[Math.floor(r() * DIRS.length)]);
+        else interact(w);
+      } else {
+        // victory inside dungeon 2 is only legal once the eel is down
+        expect(w.encounters.find((e) => e.kind === "boss2")?.defeated).toBe(true);
+        break;
+      }
+      expect(w.hp).toBeGreaterThanOrEqual(0);
+      expect(w.hp).toBeLessThanOrEqual(w.maxHp);
+      const bounds = AREAS[w.area];
+      expect(w.pos.x).toBeGreaterThanOrEqual(0);
+      expect(w.pos.x).toBeLessThan(bounds.w);
+      expect(w.pos.y).toBeGreaterThanOrEqual(0);
+      expect(w.pos.y).toBeLessThan(bounds.h);
+      if (w.combat?.boss) {
+        for (const p of w.combat.boss.parts) {
+          expect(p.durability).toBeGreaterThanOrEqual(0);
+          if (p.durability === 0) expect(p.broken).toBe(true);
+        }
+        expect(["shark", "eel"]).toContain(w.combat.boss.kind);
+      }
+    }
+  }
+  expect(actions).toBeGreaterThanOrEqual(10000);
+});
