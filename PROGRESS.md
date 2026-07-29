@@ -1405,3 +1405,41 @@ every evidence class before any PENDING becomes GREEN.
   asserting the guard is back in fight two while the heal is not. One
   collision caught by looking (the scope text ran into the card glyph)
   and the glyph moved up beside the name. 108 tests green.
+- (git time of this commit) COLD PLAYTEST OF THE CHANGED BUILD: 6/10.
+  "Yes, but only for about four minutes at a time... The first ruin is a
+  7. The second ruin is a 4." Full run at human pace, 7 sessions, plus a
+  400-seed strategy sweep. The verdict is the most useful thing anyone
+  has said about this build and most of it is damning.
+  FIXED THIS ROUND:
+  (1) HIGH, and mine from an hour earlier: THE GULLET SEAL WAS SILENT.
+  Its lines say "the gullet's seal" and the card gate matched
+  "song-seal", so the puzzle I had just added printed nothing, cost the
+  tester 102 seconds and 48 HP unsolved, and locked verse 5, the verse
+  that sets up the ending. One token. Verified as played with a new
+  demo=gulletseal hook: the card now reads "the gullet's seal hums:
+  hollow, gale, drift, keel".
+  (2) HIGH: ruin 2 opened with a 42-second reskin of a fight you had
+  already had twice. The NEW enemy (ink squid) now guards the gullet and
+  the elder is optional and later.
+  (3) MED, worth 72 measured HP: the boss branch of Analyze printed the
+  key part and dropped the condition sentence. It now says both.
+  (4) MED: ruin 1's verse sat adjacent to a squid, so pickup and combat
+  fired in one step and the card was never seen. Moved clear.
+  (5) MED: intro banners blanked the enemy they were introducing. The
+  band is lifted and lightened.
+  MEASURED AND LOGGED, NOT CHANGED: the stamina bar never falls below
+  16/20 in optimal play because Marc's +2 disable refund makes a
+  condition cost 1 net against 3 regen. Swept regen x refund: NO
+  configuration ever refuses a turn, and the only lever that visibly
+  moves the bar is cutting the refund, which is an agreed design rule
+  ("tactical play is rewarded with tempo"). So the economy is a pacing
+  rail, not a constraint, and whether that is acceptable is a decision
+  for the team rather than a number for me.
+  ALSO LOGGED for the team, with the tester's numbers: the taught line
+  (analyze, condition, brace, heal) LOSES to a naive two-button line on
+  every enemy, Analyze costs 5 to 12 HP per press, and Bubble measures
+  within +/-5 HP of neutral. Aiming and phase 2 are the two things that
+  measurably earn their place.
+  One process failure repeated: I moved a fragment without updating the
+  nav waypoint and G2 went 0/50 until I traced it. World data and route
+  data must move together.

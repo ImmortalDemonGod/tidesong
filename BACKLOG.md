@@ -39,6 +39,27 @@ feature log (entries cite their evidence), DESIGN.md amendments.
    squid's player-condition twist was the playtests' favorite trash
    idea; more twists on that axis beat more stat variants.
 
+## From the cold playtest (6/10) that the team should decide on
+
+- **The taught line loses to a naive one.** Measured over 400 seeds, HP
+  remaining after a win: mashing beats "analyze, apply the named
+  condition, brace the heavy, heal" on every enemy. Aiming at boss parts
+  is the one habit that measurably pays (a non-aiming masher wins the
+  shark 75.5 percent versus 100). If informed play is meant to win, the
+  costs of Analyze and Bubble have to come down or their payoffs up.
+- **Stamina never binds.** Lowest ever observed is 16/20 in optimal
+  play, because the +2 disable refund makes a condition cost 1 net
+  against 3 regen. Swept: no configuration refuses a turn; only cutting
+  the refund moves the bar, and the refund is an agreed rule. Decide
+  whether stamina is a constraint or a pacing rail, and if the former,
+  cut regen and refund together.
+- **The boss HP bar is not progress.** Half the eel's durability (Lure
+  and Coil, 32 points) is never on the victory path, so the bar reads
+  54/66 two hits from death. Consider showing the key part's durability
+  as the real progress meter.
+- **Level II is the strongest line and nothing points at it.** Two
+  presses of Silt Burst gives 80 percent miss and refreshing holds it.
+
 ## Presentation polish (all LOW, none embarrass the demo)
 
 - Boss intro banner overdraws the boss sprite and part labels during

@@ -196,7 +196,7 @@ export function createWorld(seed = 1): WorldState {
       {
         id: 3,
         area: "dungeon1",
-        x: 11,
+        x: 9,
         y: 6,
         collected: false,
         title: "THE GUARDIAN",
@@ -230,10 +230,12 @@ export function createWorld(seed = 1): WorldState {
       // duplicate corridor fight gated the shark, the build's best screen)
       { id: 2, area: "dungeon1", x: 12, y: 6, kind: "squid", defeated: false },
       { id: 3, area: "dungeon1", x: 21, y: 4, kind: "boss", defeated: false },
-      { id: 4, area: "dungeon2", x: 8, y: 4, kind: "elder", defeated: false, blocks: true },
-      // enemy type 2 (Jul 29, playtest fun mandate): the second ruin's
-      // second fight introduces the ink squid before the eel
-      { id: 5, area: "dungeon2", x: 14, y: 4, kind: "ink", defeated: false },
+      // the gullet's guard is the NEW enemy, not a third reskin of the
+      // first one (cold playtest, HIGH: ruin 2 opened with 42 seconds of
+      // a fight you had already had twice). The elder squid stays in the
+      // sim and the lab for the team, but it is out of the slice.
+      { id: 4, area: "dungeon2", x: 8, y: 4, kind: "ink", defeated: false, blocks: true },
+      { id: 5, area: "dungeon2", x: 15, y: 4, kind: "elder", defeated: false },
       { id: 6, area: "dungeon2", x: 21, y: 4, kind: "boss2", defeated: false },
     ],
     deaths: 0,

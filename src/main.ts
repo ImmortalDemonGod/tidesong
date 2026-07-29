@@ -229,7 +229,10 @@ function drainLog(): void {
     if (line.includes("shoves you back")) {
       ui.storyCard = { text: "the current shoves you back: the first ruin's guardian holds the Tide Relic", age: 0, kind: "song" };
     }
-    if (line.includes("song-seal") || line.includes("rings true") || line.includes("jars against") || line.includes("seal holds")) {
+    // "seal", not "song-seal": the gullet's lines say "the gullet's seal"
+    // and were matching nothing, so that whole puzzle was silent and its
+    // verse unreachable (cold playtest, HIGH)
+    if (line.includes("seal") || line.includes("rings true") || line.includes("jars against")) {
       ui.storyCard = { text: line, age: 0, kind: "song" };
     }
     const npc = line.match(/^npc: (.+)$/);
@@ -560,6 +563,14 @@ if (demo) {
       combatAction(world, "finSlash");
       ui.selectedPart = "jaw";
     }
+  } else if (demo === "gulletseal") {
+    world.hasTideRelic = true;
+    world.area = "dungeon2";
+    for (const e of world.encounters) e.defeated = true;
+    world.pos = { x: 17, y: 2 };
+    interact(world);
+    const hum = world.log.find((l) => l.includes("gullet's seal hums"));
+    if (hum) ui.storyCard = { text: hum, age: 0, kind: "song" };
   } else if (demo === "choice") {
     world.mode = "victory";
     world.fragments[0].collected = true;

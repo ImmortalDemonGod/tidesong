@@ -17,7 +17,7 @@ export function fullRoute(): Objective[] {
     { area: "hub", target: { x: 7, y: 5 }, done: (w) => w.fragments[0].collected },
     { area: "hub", target: { x: 14, y: 7 }, done: (w) => w.fragments[1].collected },
     { area: "dungeon1", target: { x: 8, y: 4 }, done: (w) => w.encounters[0].defeated },
-    { area: "dungeon1", target: { x: 11, y: 6 }, done: (w) => w.fragments[2].collected },
+    { area: "dungeon1", target: { x: 9, y: 6 }, done: (w) => w.fragments[2].collected },
     // squid 2 moved to guard the verse at (12,6) (playtest round: the
     // duplicate corridor fight gated the shark); waypoint is world DATA,
     // the pinned axis-greedy policy is unchanged
@@ -29,7 +29,7 @@ export function fullRoute(): Objective[] {
     // audit), so the axis-greedy route skips it exactly as it already
     // skips the hub's sealed verse: bots do not solve puzzles
 
-    { area: "dungeon2", target: { x: 14, y: 4 }, done: (w) => w.encounters[4].defeated },
+    { area: "dungeon2", target: { x: 15, y: 4 }, done: (w) => w.encounters[4].defeated },
     { area: "dungeon2", target: { x: 21, y: 4 }, done: (w) => w.mode === "victory" },
   ];
 }
