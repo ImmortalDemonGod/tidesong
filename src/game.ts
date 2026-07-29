@@ -238,7 +238,7 @@ export function createBoss2Combat(seed = 1): CombatState {
     kind: "eel",
     parts,
     phase: 1,
-    phaseName: "COIL",
+    phaseName: "CONSTRICT",
     keyPartByPhase: { 1: phase1Key, 2: "jaw" },
     baseDamageByPhase: { 1: 13, 2: 16 },
     utilityBreakDamageReduction: 3,

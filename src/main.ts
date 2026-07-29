@@ -178,6 +178,7 @@ if (demo) {
     if (world.combat) {
       combatAction(world, "analyze");
       combatAction(world, "finSlash");
+      ui.selectedPart = "jaw";
     }
   } else if (demo === "boss2") {
     world.hasTideRelic = true;
@@ -188,14 +189,34 @@ if (demo) {
     step(world, "right");
     if (world.combat) {
       combatAction(world, "analyze");
+      ui.selectedPart = world.combat.boss?.keyPartByPhase[1];
     }
   } else if (demo === "victory") {
     world.hasTideRelic = true;
-    for (const f of world.fragments) if (f.id <= 3) f.collected = true;
+    for (const f of world.fragments) if (f.id <= 4) f.collected = true;
     world.steps = 340;
-    world.pos = { x: 19, y: 4 };
+    world.area = "dungeon2";
+    for (const e of world.encounters) if (e.kind !== "boss2") e.defeated = true;
+    world.pos = { x: 20, y: 4 };
+    world.checkpoint = { area: "dungeon2", pos: { x: 1, y: 4 } };
     step(world, "right");
-    step(world, "right");
+    let guard = 0;
+    while (world.mode === "combat" && world.combat && guard++ < 300) {
+      world.combat.player.sta = world.combat.player.maxSta;
+      world.combat.player.hp = world.combat.player.maxHp;
+      combatAction(world, "tailStrike");
+    }
+  } else if (demo === "dungeon1") {
+    world.area = "dungeon1";
+    world.pos = { x: 4, y: 4 };
+    world.checkpoint = { area: "dungeon1", pos: { x: 1, y: 4 } };
+  } else if (demo === "talk") {
+    world.pos = { x: 5, y: 4 };
+    interact(world);
+  } else if (demo === "pause") {
+    ui.screen = "pause";
+  } else if (demo === "defeat") {
+    ui.deathFlash = 1.1;
   } else if (demo === "dungeon2") {
     world.hasTideRelic = true;
     world.area = "dungeon2";

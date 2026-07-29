@@ -532,11 +532,28 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
     ctx.restore();
   }
 
-  // encounters visible as lurking silhouettes
+  // encounters visible as lurking silhouettes, labeled by kind
   for (const e of w.encounters) {
     if (e.defeated || e.area !== w.area) continue;
-    if (e.kind === "squid") squidSprite(ctx, px(e.x), py(e.y) - 10, 0.5, t + e.id);
-    else sharkSprite(ctx, px(e.x), py(e.y) - 20, 0.42, t, new Set());
+    let label = "";
+    if (e.kind === "squid") {
+      squidSprite(ctx, px(e.x), py(e.y) - 10, 0.5, t + e.id);
+      label = "vampire squid";
+    } else if (e.kind === "elder") {
+      squidSprite(ctx, px(e.x), py(e.y) - 12, 0.62, t + e.id);
+      label = "elder squid";
+    } else if (e.kind === "boss") {
+      sharkSprite(ctx, px(e.x), py(e.y) - 20, 0.42, t, new Set());
+      label = "the corrupted shark";
+    } else {
+      eelSprite(ctx, px(e.x), py(e.y) - 16, 0.4, t, new Set());
+      label = "the corrupted eel";
+    }
+    ctx.fillStyle = C.muted;
+    ctx.font = "11px system-ui";
+    ctx.textAlign = "center";
+    ctx.fillText(label, px(e.x), py(e.y) + 52);
+    ctx.textAlign = "left";
   }
 
   ctx.restore();
@@ -665,7 +682,7 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
     const eelAnchors: Record<PartKey, { x: number; y: number }> = {
       jaw: { x: 800 - 125 * 1.25, y: 300 + 40 * 1.25 },
       eye: { x: 800 - 150 * 1.25, y: 300 - 66 * 1.25 },
-      fin: { x: 800 + 30 * 1.25, y: 300 - 48 * 1.25 },
+      fin: { x: 800 + 30 * 1.25, y: 300 - 16 * 1.25 },
       tail: { x: 800 + 190 * 1.25, y: 300 + 10 },
     };
     const anchors = c.boss.kind === "eel" ? eelAnchors : sharkAnchors;
