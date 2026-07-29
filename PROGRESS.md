@@ -1099,3 +1099,15 @@ every evidence class before any PENDING becomes GREEN.
   boss banner overdraws the sprite during its moment; floaters can
   cross the analyze hint for a beat; condition level II paths rarely
   exercised in natural play.
+- (git time of this commit) Instrument disposition, logged not hidden:
+  the deepsoak v4 x5000 lane DIED SILENTLY (its bun process vanished
+  under the night's peak load around the panel and playtest sessions;
+  only the shell wrapper survived at zero CPU). Its five per-encounter
+  fresh-seed batteries completed and are recorded above; the x5000
+  casual datum it never printed is covered by the INDEPENDENT megasim
+  run at HEAD (5000/5000, zero fail seeds, worst 3078), which is what
+  the stamped G2 bullet cites and what the confirmation agent
+  re-reproduced. Stale processes reaped. Also this cycle: 3x
+  consecutive full-suite soak green (93/93 each), and the published
+  artifact verified byte-identical to dist at HEAD (shared sha
+  374f3ca4).
