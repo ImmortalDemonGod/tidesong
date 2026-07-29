@@ -1143,3 +1143,11 @@ every evidence class before any PENDING becomes GREEN.
   softer numbers than the pre-heavy recommendation (start +2 every 3rd
   slot under heavies, not every 2nd) or heavy slots excluded from the
   buff. BACKLOG updated to match.
+- (git time of this commit) Holding-phase verification block: the full
+  instrument chain re-reproduces every stamped digit at HEAD (worldsim
+  50/50 12 deaths max 194, casual 100/100 worst 1614; megasim 5000/5000
+  zero fail seeds worst 3078; no-heal 50/50, 93 deaths, fastest 150);
+  25x consecutive endurance soak all 93/93; and one fresh datum: the
+  eel's wandering key stays FAIR under the heavy cycle (keyfairness at
+  final mechanics: eye 40.3 / fin 38.9 / tail 35.7 percent casual, all
+  in the boss band, optimal floors 29-32).
