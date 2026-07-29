@@ -693,3 +693,21 @@ every evidence class before any PENDING becomes GREEN.
   which is G9's exact subject. Also per seat 3: G5's two stale bullets
   restamped from HEAD reproductions, gallery count corrected to 14
   states, and the two stale filmstrips re-shot on the final surface.
+- (git time of this commit) FINAL PANEL SEAT 1 (break the game): could
+  not crash, softlock, wrong-state, or dead-input the build across
+  30,000-event hostile storms, 27-sequence door brute force, URL fuzzing,
+  and pixel-exact click sweeps. Findings: 1 HIGH + 2 MED + 6 LOW, ALL
+  fixed: trench suicide was a free escalating heal (fight-free deaths now
+  respawn capped at checkpoint-arrival HP and never climb the pity
+  ladder, which counts combat deaths only; the "never the efficient heal"
+  invariant is true again, DESIGN amended, two regression tests); R
+  during the final SPENT hold no longer skips the victory screen; Heal
+  Song reports the actual amount healed, not the nominal 40; a spent boss
+  shows an empty bar on cascade kills; corpse-frame prompts suppressed;
+  mouse parity for pause-resume and victory-restart; same-direction key
+  pairs no longer cancel on release; demo sessions unlock audio; the
+  Heal Song refill announces itself as a card. G2 re-measured identical
+  after the death-rule change (scripted 50/50 / 16 deaths / max 189;
+  casual 100/100 / max 2679: bot routes never hazard-die). 82 tests
+  green. ALL THREE PANEL SEATS NOW CLOSED; per protocol the HIGHs found
+  this round require a confirmation re-panel before verdicts stamp.

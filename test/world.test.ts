@@ -263,3 +263,31 @@ test("THE PIPE: combat lines land in the world log the UI drains (skeptic F1)", 
   expect(w.log.length).toBeGreaterThan(before);
   expect(w.log.some((l) => l.includes("Tail Strike"))).toBe(true);
 });
+
+test("trench suicide is never a heal: hazard respawn capped at checkpoint HP (seat 1 HIGH)", () => {
+  const w = createWorld();
+  walkTo(w, HUB.dungeonEntrance.x, HUB.dungeonEntrance.y);
+  w.hp = 12;
+  w.checkpointHp = 12;
+  walkTo(w, D1.exitX, 4); // back to hub
+  let guard = 0;
+  while (w.deaths === 0 && guard++ < 200) {
+    walkTo(w, 13, 6);
+    step(w, "down");
+    step(w, "up");
+  }
+  expect(w.deaths).toBe(1);
+  expect(w.hp).toBeLessThanOrEqual(12);
+  expect(w.pityDeaths).toBe(0);
+});
+
+test("pity ladder climbs on combat deaths only", () => {
+  const w = createWorld();
+  walkTo(w, HUB.dungeonEntrance.x, HUB.dungeonEntrance.y);
+  walkTo(w, 8, 4);
+  w.combat!.player.hp = 1;
+  let guard = 0;
+  while (w.mode === "combat" && guard++ < 100) combatPass(w);
+  expect(w.pityDeaths).toBe(1);
+  expect(w.hp).toBe(60);
+});

@@ -96,6 +96,11 @@ export interface WorldState {
   fragments: Fragment[];
   encounters: Encounter[];
   deaths: number;
+  // pity ladder counts COMBAT deaths only; hazard suicide may not climb it
+  pityDeaths: number;
+  // HP held when the checkpoint was set: hazard respawns cap here so a
+  // fight-free death can never be the efficient heal (final panel seat 1)
+  checkpointHp: number;
   steps: number;
   checkpoint: { area: AreaKey; pos: Vec };
   combat?: CombatState;
@@ -137,6 +142,8 @@ export function createWorld(seed = 1): WorldState {
       { id: 6, area: "dungeon2", x: 21, y: 4, kind: "boss2", defeated: false },
     ],
     deaths: 0,
+    pityDeaths: 0,
+    checkpointHp: 100,
     steps: 0,
     checkpoint: { area: "hub", pos: { ...HUB.start } },
     melody: shuffledMelody(seed | 0),
@@ -178,10 +185,19 @@ function inTrench(area: AreaKey, p: Vec): boolean {
 // system). 60 -> 75 -> 90 percent, capped: converges for a struggling
 // player, still costs HP on a first death, and a deliberate death costs a
 // lost fight, so it is never the efficient heal.
-function applyDeath(w: WorldState): void {
+function applyDeath(w: WorldState, cause: "combat" | "hazard" = "combat"): void {
   w.deaths += 1;
-  const frac = Math.min(0.6 + 0.15 * (w.deaths - 1), 0.9);
-  w.hp = Math.round(w.maxHp * frac);
+  if (cause === "combat") {
+    // the pity escalator exists for repeated COMBAT failure
+    w.pityDeaths += 1;
+    const frac = Math.min(0.6 + 0.15 * (w.pityDeaths - 1), 0.9);
+    w.hp = Math.round(w.maxHp * frac);
+  } else {
+    // hazard deaths are fight-free: respawn HP is capped at what you HAD
+    // when the checkpoint was set, so trench suicide can never heal you
+    // (final panel seat 1, HIGH: the trench was a free escalating heal)
+    w.hp = Math.min(Math.round(w.maxHp * 0.6), Math.max(1, w.checkpointHp));
+  }
   w.area = w.checkpoint.area;
   w.pos = { ...w.checkpoint.pos };
   w.mode = "explore";
@@ -338,7 +354,7 @@ export function step(w: WorldState, dir: Dir): boolean {
     w.hp = Math.max(0, w.hp - HUB.trenchChip);
     w.log.push(`the low dark bites: -${HUB.trenchChip} HP`);
     if (w.hp <= 0) {
-      applyDeath(w);
+      applyDeath(w, "hazard");
       return true;
     }
   }
@@ -380,6 +396,7 @@ function enterDungeon(w: WorldState, area: "dungeon1" | "dungeon2", entrance: Ve
   } else {
     w.log.push("checkpoint: dungeon entrance");
   }
+  w.checkpointHp = w.hp;
 }
 
 export function interact(w: WorldState): boolean {

@@ -828,7 +828,7 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
       if (!p.broken) bar(ctx, panelX + 4, py2 + 20, 150, 8, p.durability / p.maxDurability, C.coral);
       py2 += 54;
     }
-    if (c.analyzed) {
+    if (c.analyzed && !ui.victoryHold) {
       ctx.fillStyle = C.biolum;
       ctx.font = "12px system-ui";
       const keyName = c.boss.parts.find((p) => p.key === c.boss!.keyPartByPhase[c.boss!.phase])?.name ?? "";
@@ -859,7 +859,8 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
   }
 
   // aim confirm line (boss): what will a number key hit right now?
-  if (c.boss) {
+  // (suppressed on the corpse frame: the fight is over, seat 1 LOW-5)
+  if (c.boss && !ui.victoryHold) {
     ctx.fillStyle = ui.selectedPart ? C.glow : C.muted;
     ctx.font = "13px ui-monospace, monospace";
     ctx.textAlign = "center";

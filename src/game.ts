@@ -283,10 +283,12 @@ function breakPart(state: CombatState, part: BossPart): void {
       const nextKey = getPart(state, boss.keyPartByPhase[2]);
       if (nextKey?.broken) {
         state.outcome = "victory";
+        state.enemy.hp = 0; // a spent boss shows an empty bar (seat 1 LOW-4)
         state.log.push(`the ${state.enemy.name} is spent: victory`);
       }
     } else {
       state.outcome = "victory";
+      state.enemy.hp = 0; // a spent boss shows an empty bar (seat 1 LOW-4)
       state.log.push(`the ${state.enemy.name} is spent: victory`);
     }
   } else if (part.key !== boss.keyPartByPhase[1] && part.key !== boss.keyPartByPhase[2]) {
@@ -367,9 +369,11 @@ export function useAbility(state: CombatState, abilityKey: string, targetPart?: 
     }
   }
   if (ability.heals !== undefined) {
-    player.hp = Math.min(player.maxHp, player.hp + ability.heals);
+    const healed = Math.min(player.maxHp - player.hp, ability.heals);
+    player.hp += healed;
     state.healSongUses -= 1;
-    state.log.push(`Heal Song: +${ability.heals} HP (${state.healSongUses} left)`);
+    // report what actually happened, not the nominal amount (seat 1 MED-3)
+    state.log.push(`Heal Song: +${healed} HP (${state.healSongUses} left)`);
   }
   if (ability.bubble) {
     state.bubbleCharge = true;

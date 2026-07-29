@@ -97,8 +97,9 @@ function drainLog(): void {
     if (line.includes("missed")) {
       ui.floaters.push({ text: "miss", color: "#7FA0AC", age: 0, side: "enemy" });
     }
-    if (line.includes("Heal Song: +")) {
-      ui.floaters.push({ text: "+40", color: "#7FE8A9", age: 0, side: "player" });
+    const healedMatch = line.match(/Heal Song: \+(\d+)/);
+    if (healedMatch) {
+      ui.floaters.push({ text: `+${healedMatch[1]}`, color: "#7FE8A9", age: 0, side: "player" });
     }
     // the story must be VISIBLE: fragment verses surface as a card in
     // exploration (found via sketch re-check: verses only reached the
@@ -116,6 +117,9 @@ function drainLog(): void {
     const npc = line.match(/^npc: (.+)$/);
     if (npc) {
       ui.storyCard = { text: `"${npc[1]}"`, age: 0, kind: "npc" };
+    }
+    if (line.includes("(Heal Song restored)")) {
+      ui.storyCard = { text: "the entrance current mends your song: Heal Song restored", age: 0, kind: "song" };
     }
     if (line.includes("Tide Relic is yours")) {
       ui.storyCard = { text: line, age: 0, kind: "relic" };
@@ -157,12 +161,33 @@ const MOVE_KEYS: Record<string, Dir> = {
 const EXPLORE_VERTICAL: Record<string, Dir> = { ArrowUp: "up", ArrowDown: "down" };
 
 let lastMoveAt = 0;
-const heldDirs = new Set<Dir>();
+// raw keys, directions derived: two keys for one direction must not cancel
+// each other on release (seat 1 LOW-7)
+const heldKeys = new Set<string>();
+const heldDirs = {
+  get size(): number {
+    return this.dirs().length;
+  },
+  dirs(): Dir[] {
+    const out = new Set<Dir>();
+    for (const k of heldKeys) {
+      const d = MOVE_KEYS[k] ?? EXPLORE_VERTICAL[k];
+      if (d) out.add(d);
+    }
+    return [...out];
+  },
+  add(_d: Dir, key?: string): void {
+    if (key) heldKeys.add(key);
+  },
+  clear(): void {
+    heldKeys.clear();
+  },
+};
 
 function onKey(e: KeyboardEvent): void {
   const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+  sound.unlock(); // idempotent; also covers demo sessions that skip title
   if (ui.screen === "title") {
-    sound.unlock();
     ui.screen = "play";
     return;
   }
@@ -179,7 +204,8 @@ function onKey(e: KeyboardEvent): void {
   }
   if (ui.screen === "pause") return;
   if (world.mode === "victory") {
-    if (k === "r") resetRun();
+    // R waits out the final SPENT hold: the climax must render (seat 1 MED-2)
+    if (k === "r" && !ui.victoryHold) resetRun();
     return;
   }
   if (world.mode === "combat") {
@@ -212,14 +238,13 @@ function onKey(e: KeyboardEvent): void {
   // explore; the death veil and the victory hold suppress action
   if (ui.deathFlash > 0.8 || ui.victoryHold) return;
   const dir = MOVE_KEYS[k] ?? EXPLORE_VERTICAL[k];
-  if (dir) heldDirs.add(dir);
+  if (dir) heldDirs.add(dir, k);
   if (k === "e") interact(world);
 }
 
 function onKeyUp(e: KeyboardEvent): void {
   const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
-  const dir = MOVE_KEYS[k] ?? EXPLORE_VERTICAL[k];
-  if (dir) heldDirs.delete(dir);
+  heldKeys.delete(k);
 }
 
 window.addEventListener("keydown", onKey);
@@ -266,6 +291,15 @@ canvas.addEventListener("pointerdown", (e) => {
   if (ui.screen === "title") {
     sound.unlock();
     ui.screen = "play";
+    return;
+  }
+  // mouse parity for the non-combat states (seat 1 LOW-6)
+  if (ui.screen === "pause") {
+    if (world.mode !== "victory") ui.screen = "play";
+    return;
+  }
+  if (world.mode === "victory" && !ui.victoryHold) {
+    resetRun();
     return;
   }
   const rect = canvas.getBoundingClientRect();
@@ -427,8 +461,8 @@ function frame(now: number): void {
     now - lastMoveAt > 130
   ) {
     lastMoveAt = now;
-    const dir = [...heldDirs][heldDirs.size - 1];
-    step(world, dir);
+    const dirsNow = heldDirs.dirs();
+    step(world, dirsNow[dirsNow.length - 1]);
   }
 
   // No auto-selected boss part: unaimed hits drift to a random part in the

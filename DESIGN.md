@@ -67,8 +67,12 @@ the build is placeholder for Marc's story and must be marked as such.
   STA 20, ability costs 1 to 4 STA, refund +2, stamina regen 3 per combat
   turn (full between fights).
 - Death: at 0 HP the player respawns at the dungeon-entrance checkpoint.
-  Respawn HP escalates with deaths: 60 percent, then 75, then capped at 90
-  (pity escalator, amended after softlock data: the flat 60 percent rule
+  COMBAT deaths climb the pity escalator: 60 percent, then 75, then capped
+  at 90. HAZARD deaths (the trench) do NOT climb it and respawn at no more
+  HP than you held when the checkpoint was set (amended by final panel
+  seat 1: fight-free trench suicide was a free escalating heal, breaking
+  the "never the efficient heal" invariant). (Pity escalator originally
+  amended after softlock data: the flat 60 percent rule
   death-looped 20 percent of casual bot runs, the same compounding
   punishment spiral this design cut from the exhaustion system). Heal Song
   uses are NOT restored, defeated encounters stay defeated, and the
