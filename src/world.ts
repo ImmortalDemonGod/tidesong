@@ -13,14 +13,16 @@
 
 import {
   advanceTurn,
+  createBoss2Combat,
   createBossCombat,
   createCombat,
+  createElderCombat,
   useAbility,
   type CombatState,
   type PartKey,
 } from "./game";
 
-export type AreaKey = "hub" | "dungeon1";
+export type AreaKey = "hub" | "dungeon1" | "dungeon2";
 export type Mode = "explore" | "combat" | "victory";
 export type Dir = "up" | "down" | "left" | "right";
 
@@ -43,13 +45,14 @@ export interface Encounter {
   area: AreaKey;
   x: number;
   y: number;
-  kind: "squid" | "boss";
+  kind: "squid" | "elder" | "boss" | "boss2";
   defeated: boolean;
 }
 
 export const AREAS: Record<AreaKey, { w: number; h: number }> = {
   hub: { w: 22, h: 8 },
   dungeon1: { w: 24, h: 8 },
+  dungeon2: { w: 24, h: 8 },
 };
 
 // Hub landmarks. The current barrier occupies x >= BARRIER_X; the mouth of
@@ -76,6 +79,11 @@ export const D1 = {
   exitX: 0,
 };
 
+export const D2 = {
+  entrance: { x: 1, y: 4 },
+  exitX: 0,
+};
+
 export interface WorldState {
   mode: Mode;
   area: AreaKey;
@@ -83,7 +91,7 @@ export interface WorldState {
   hp: number;
   maxHp: number;
   healSongUses: number;
-  healRestoredOnce: boolean;
+  healRestored: Record<"dungeon1" | "dungeon2", boolean>;
   hasTideRelic: boolean;
   fragments: Fragment[];
   encounters: Encounter[];
@@ -110,7 +118,7 @@ export function createWorld(seed = 1): WorldState {
     hp: 100,
     maxHp: 100,
     healSongUses: 2,
-    healRestoredOnce: false,
+    healRestored: { dungeon1: false, dungeon2: false },
     hasTideRelic: false,
     fragments: [
       // Verses are placeholder for Marc's story.
@@ -118,11 +126,15 @@ export function createWorld(seed = 1): WorldState {
       { id: 2, area: "hub", x: 14, y: 7, collected: false, verse: "(placeholder) the low dark took the bravest first" },
       { id: 3, area: "dungeon1", x: 11, y: 6, collected: false, verse: "(placeholder) the shark was a guardian once" },
       { id: 4, area: "hub", x: HUB.alcove.x, y: HUB.alcove.y, collected: false, verse: "(placeholder) the seal keepers sang in threes" },
+      { id: 5, area: "dungeon2", x: 11, y: 2, collected: false, verse: "(placeholder) the eel swallowed the last verse whole" },
     ],
     encounters: [
       { id: 1, area: "dungeon1", x: 8, y: 4, kind: "squid", defeated: false },
       { id: 2, area: "dungeon1", x: 14, y: 4, kind: "squid", defeated: false },
       { id: 3, area: "dungeon1", x: 21, y: 4, kind: "boss", defeated: false },
+      { id: 4, area: "dungeon2", x: 8, y: 4, kind: "elder", defeated: false },
+      { id: 5, area: "dungeon2", x: 14, y: 4, kind: "elder", defeated: false },
+      { id: 6, area: "dungeon2", x: 21, y: 4, kind: "boss2", defeated: false },
     ],
     deaths: 0,
     steps: 0,
@@ -180,9 +192,17 @@ function applyDeath(w: WorldState): void {
 
 function startCombat(w: WorldState, enc: Encounter): void {
   const seed = (w.seed * 31 + enc.id * 101 + w.deaths * 7) | 0;
-  const c = enc.kind === "boss" ? createBossCombat(seed) : createCombat(seed);
+  const c =
+    enc.kind === "boss"
+      ? createBossCombat(seed)
+      : enc.kind === "boss2"
+        ? createBoss2Combat(seed)
+        : enc.kind === "elder"
+          ? createElderCombat(seed)
+          : createCombat(seed);
   c.player.hp = w.hp;
   c.healSongUses = w.healSongUses;
+  c.relicEcho = w.hasTideRelic;
   w.combat = c;
   w.activeEncounter = enc.id;
   w.mode = "combat";
@@ -199,6 +219,13 @@ function endCombat(w: WorldState): void {
     if (enc.kind === "boss") {
       w.hasTideRelic = true;
       w.log.push("the Tide Relic is yours: the currents will part");
+    }
+    if (enc.kind === "boss2") {
+      w.mode = "victory";
+      w.log.push("the second ruin falls silent: the sea remembers its song");
+      w.combat = undefined;
+      w.activeEncounter = undefined;
+      return;
     }
     w.mode = "explore";
     w.combat = undefined;
@@ -267,22 +294,20 @@ export function step(w: WorldState, dir: Dir): boolean {
   if (!moved) return true;
 
   if (w.area === "hub" && w.pos.x === HUB.dungeonEntrance.x && w.pos.y === HUB.dungeonEntrance.y) {
-    w.area = "dungeon1";
-    w.pos = { ...D1.entrance };
-    w.checkpoint = { area: "dungeon1", pos: { ...D1.entrance } };
-    if (!w.healRestoredOnce) {
-      w.healSongUses = 2;
-      w.healRestoredOnce = true;
-      w.log.push("checkpoint: dungeon entrance (Heal Song restored)");
-    } else {
-      w.log.push("checkpoint: dungeon entrance");
-    }
+    enterDungeon(w, "dungeon1", D1.entrance);
     return true;
   }
 
   if (w.area === "dungeon1" && w.pos.x <= D1.exitX) {
     w.area = "hub";
     w.pos = { ...HUB.dungeonEntrance };
+    w.log.push("back to the hub reef");
+    return true;
+  }
+
+  if (w.area === "dungeon2" && w.pos.x <= D2.exitX) {
+    w.area = "hub";
+    w.pos = { x: HUB.barrierX - 1, y: HUB.mouth.y };
     w.log.push("back to the hub reef");
     return true;
   }
@@ -315,11 +340,24 @@ export function step(w: WorldState, dir: Dir): boolean {
   }
 
   if (w.area === "hub" && w.hasTideRelic && w.pos.x >= HUB.mouth.x && w.pos.y === HUB.mouth.y) {
-    w.mode = "victory";
-    w.log.push("the currents part: the way to the second ruin lies open");
+    w.log.push("the currents part: the second ruin opens before you");
+    enterDungeon(w, "dungeon2", D2.entrance);
   }
 
   return true;
+}
+
+function enterDungeon(w: WorldState, area: "dungeon1" | "dungeon2", entrance: Vec): void {
+  w.area = area;
+  w.pos = { ...entrance };
+  w.checkpoint = { area, pos: { ...entrance } };
+  if (!w.healRestored[area]) {
+    w.healSongUses = 2;
+    w.healRestored[area] = true;
+    w.log.push("checkpoint: dungeon entrance (Heal Song restored)");
+  } else {
+    w.log.push("checkpoint: dungeon entrance");
+  }
 }
 
 export function interact(w: WorldState): boolean {

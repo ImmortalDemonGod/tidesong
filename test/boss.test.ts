@@ -24,13 +24,13 @@ test("boss creation: 4 parts, phase 1 CRUSH, key part jaw, hp mirrors durability
   expect(s.boss?.phase).toBe(1);
   expect(s.boss?.phaseName).toBe("CRUSH");
   expect(currentKeyPart(s)).toBe("jaw");
-  expect(s.enemy.hp).toBe(24 + 20 + 12 + 12);
+  expect(s.enemy.hp).toBe(22 + 18 + 12 + 12);
 });
 
 test("damage with no target drifts to a random unbroken part", () => {
   const s = createBossCombat(11);
   useAbility(s, "tailStrike");
-  expect(s.enemy.hp).toBe(68 - 8);
+  expect(s.enemy.hp).toBe(64 - 8);
   const damaged = s.boss!.parts.filter((p) => p.durability < p.maxDurability);
   expect(damaged.length).toBe(1);
 });
@@ -39,18 +39,18 @@ test("aimed damage hits exactly the chosen part", () => {
   const s = createBossCombat();
   useAbility(s, "tailStrike", "tail");
   expect(getPart(s, "tail")!.durability).toBe(12 - 8);
-  expect(getPart(s, "jaw")!.durability).toBe(24);
+  expect(getPart(s, "jaw")!.durability).toBe(22);
 });
 
 test("breaking a utility part reduces boss damage, never ends a phase", () => {
   const s = createBossCombat();
-  expect(bossDamage(s)).toBe(13);
+  expect(bossDamage(s)).toBe(12);
   smash(s, "fin");
   expect(s.boss?.phase).toBe(1);
-  expect(bossDamage(s)).toBe(10);
+  expect(bossDamage(s)).toBe(9);
   const hp = s.player.hp;
   advanceTurn(s);
-  expect(hp - s.player.hp).toBe(10);
+  expect(hp - s.player.hp).toBe(9);
 });
 
 test("breaking the jaw ends phase 1: FRENZY begins, key part becomes eye, damage rises", () => {
@@ -59,7 +59,7 @@ test("breaking the jaw ends phase 1: FRENZY begins, key part becomes eye, damage
   expect(s.boss?.phase).toBe(2);
   expect(s.boss?.phaseName).toBe("FRENZY");
   expect(currentKeyPart(s)).toBe("eye");
-  expect(bossDamage(s)).toBe(16);
+  expect(bossDamage(s)).toBe(15);
   expect(s.outcome).toBe("ongoing");
 });
 

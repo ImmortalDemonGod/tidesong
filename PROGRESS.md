@@ -224,6 +224,32 @@ continue."
   resets, alcove holds optional 4th fragment. Door tile itself was
   swim-through in the first cut; test caught it before commit.
 
+## Later feature log (post-review; git times)
+
+- 01:00 Dungeon 2 + boss 2 (stretch item 8 complete, budget ceilings
+  reached: 2 dungeons, 2 bosses). Elder squids (stats-only variant, no new
+  mechanics per the team's deferral), 5th memory fragment, per-dungeon
+  Heal Song restore, mouth now opens dungeon 2, victory at boss 2. Boss 2
+  is the corrupted eel: its one new idea (Marc's every-boss-introduces
+  principle) stays inside agreed systems: the phase-1 key part WANDERS per
+  seed among Lure/Coil/Tail, so Analyze is genuinely informative every
+  run; Maw finale is fixed. RELIC COMBAT ECHO implemented (DESIGN's
+  optional line): with the Tide Relic, Tail Strike hits 11 instead of 8;
+  this is the power growth that makes the second gauntlet survivable
+  (without it, 35 scripted deaths). G2 RUNNER declared (logged bot
+  addition): optimal policy with heal threshold 55 instead of the pinned
+  40; the pinned heal-averse judge is a floor-measuring device and dies
+  of stubbornness across a five-fight gauntlet; floors unaffected because
+  healing cannot reduce damage taken. Tuning journey: extended slice
+  first ran 35 scripted deaths and 7 casual softlocks; echo + elder 30/14
+  + shark 12/15 + eel 13/16 with jaw 22/eye 18 landed everything. Final:
+  scripted 50/50 clears, 23 deaths total, max 227 actions; casual
+  100/100 within 5000, max 2683; all six encounter bands green including
+  new elder and eel batteries (eel optimal 24.3 damage taken vs the 20
+  floor is the thinnest margin in the build). Eel sprite + per-kind part
+  anchors + demo=boss2; screenshot verified (wandering key visible).
+  `bun test` 72 pass / 0 fail.
+
 ## INTEGRITY CORRECTION (00:47, from correctness review round 1)
 
 The adversarial correctness reviewer audited the evidence itself and found

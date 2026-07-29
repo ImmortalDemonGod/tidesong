@@ -13,3 +13,13 @@ console.log("casual  :", f(runBatch((seed) => casualBot(seed), createBossCombat)
 console.log("optimal :", f(runBatch(() => optimalBot(), createBossCombat)));
 console.log("no-cond :", f(runBatch(() => optimalBot(NO_CONDITION_KEYS), createBossCombat)));
 for (const k of ABILITY_KEYS) console.log(`spam ${k.padEnd(10)}:`, f(runBatch(() => spamBot(k), createBossCombat)));
+import { createElderCombat, createBoss2Combat } from "../src/game";
+const withEcho = (make: (s: number) => any) => (s: number) => { const c = make(s); c.relicEcho = true; return c; };
+console.log("== elder squid (relic echo on) ==");
+console.log("casual  :", f(runBatch((seed) => casualBot(seed), withEcho(createElderCombat))));
+console.log("optimal :", f(runBatch(() => optimalBot(), withEcho(createElderCombat))));
+console.log("== boss 2: corrupted eel (relic echo on) ==");
+console.log("casual  :", f(runBatch((seed) => casualBot(seed), withEcho(createBoss2Combat))));
+console.log("optimal :", f(runBatch(() => optimalBot(), withEcho(createBoss2Combat))));
+console.log("no-cond :", f(runBatch(() => optimalBot(NO_CONDITION_KEYS), withEcho(createBoss2Combat))));
+for (const k of ["tailStrike", "siltBurst", "finSlash"]) console.log(`spam ${k.padEnd(10)}:`, f(runBatch(() => spamBot(k), withEcho(createBoss2Combat))));

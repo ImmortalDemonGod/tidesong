@@ -23,6 +23,7 @@ export const BASE = {
   blindMiss: [0, 0.6, 0.8],
   slowDamageMult: 0.75,
   bubbleReduction: 0.6,
+  relicTailStrike: 11,
 } as const;
 
 export type ConditionKind = "blind" | "slow";
@@ -82,6 +83,7 @@ export interface BossPart {
 // phase-2 key part means the phase break cascades immediately (same total
 // durability either way, so no degenerate shortcut).
 export interface BossData {
+  kind: "shark" | "eel";
   parts: BossPart[];
   phase: 1 | 2;
   phaseName: string;
@@ -102,6 +104,11 @@ export interface CombatState {
   // G3 difficulty floors measure this, because net hpLost is zeroable by
   // Heal Song (correctness review 00:47, MED-4).
   damageTaken: number;
+  // The relic combat echo (DESIGN: "holding the Tide Relic upgrades one
+  // existing ability"): Tail Strike hits for 11 instead of 8. This is the
+  // player power growth that makes dungeon 2 survivable (added 01:15 when
+  // the extended slice ran 35 scripted deaths without it).
+  relicEcho: boolean;
   turn: number;
   rng: number;
   outcome: Outcome;
@@ -142,6 +149,7 @@ export function createCombat(seed = 1): CombatState {
     analyzed: false,
     slowSlots: 0,
     damageTaken: 0,
+    relicEcho: false,
     turn: 1,
     rng: seed | 0,
     outcome: "ongoing",
@@ -156,8 +164,8 @@ export function createCombat(seed = 1): CombatState {
 // HUD and the hp<=0 victory path stay uniform with regular fights.
 export function createBossCombat(seed = 1): CombatState {
   const parts: BossPart[] = [
-    { key: "jaw", name: "Jaw", durability: 24, maxDurability: 24, broken: false },
-    { key: "eye", name: "Eye", durability: 20, maxDurability: 20, broken: false },
+    { key: "jaw", name: "Jaw", durability: 22, maxDurability: 22, broken: false },
+    { key: "eye", name: "Eye", durability: 18, maxDurability: 18, broken: false },
     { key: "fin", name: "Fin", durability: 12, maxDurability: 12, broken: false },
     { key: "tail", name: "Tail", durability: 12, maxDurability: 12, broken: false },
   ];
@@ -170,15 +178,68 @@ export function createBossCombat(seed = 1): CombatState {
     sta: 0,
     maxSta: 0,
     conditions: [],
-    attackDamage: 13,
+    attackDamage: 12,
     dodge: 0,
     analyzeHint: "slow",
   };
   state.boss = {
+    kind: "shark",
     parts,
     phase: 1,
     phaseName: "CRUSH",
     keyPartByPhase: { 1: "jaw", 2: "eye" },
+    baseDamageByPhase: { 1: 12, 2: 15 },
+    utilityBreakDamageReduction: 3,
+  };
+  return state;
+}
+
+// Elder squid: dungeon 2's regular enemy, a stats-only variant (no new
+// mechanics: enemy TYPES with new twists are deferred to jam scope by team
+// decision; a tougher squid is not a new type). Tuned under the regular
+// G3 bands like any encounter.
+export function createElderCombat(seed = 1): CombatState {
+  const state = createCombat(seed);
+  state.enemy.name = "elder squid";
+  state.enemy.hp = 30;
+  state.enemy.maxHp = 30;
+  state.enemy.attackDamage = 14;
+  return state;
+}
+
+// Boss 2: the corrupted eel (dungeon 2). Its one new idea, inside agreed
+// systems: the phase-1 key part WANDERS per run (seeded), so Analyze is
+// genuinely informative every time. Phase 2 key is always the Maw finale.
+// Placeholder part naming reuses the PartKey slots; the render layer maps
+// eel names (Maw/Lure/Coil/Tail).
+export function createBoss2Combat(seed = 1): CombatState {
+  const parts: BossPart[] = [
+    { key: "jaw", name: "Maw", durability: 22, maxDurability: 22, broken: false },
+    { key: "eye", name: "Lure", durability: 16, maxDurability: 16, broken: false },
+    { key: "fin", name: "Coil", durability: 16, maxDurability: 16, broken: false },
+    { key: "tail", name: "Tail", durability: 12, maxDurability: 12, broken: false },
+  ];
+  const total = parts.reduce((sum, p) => sum + p.durability, 0);
+  const state = createCombat(seed);
+  const wanderPool: PartKey[] = ["eye", "fin", "tail"];
+  const phase1Key = wanderPool[Math.abs((seed ^ 0xee1) * 2654435761) % wanderPool.length];
+  state.enemy = {
+    name: "corrupted eel",
+    hp: total,
+    maxHp: total,
+    sta: 0,
+    maxSta: 0,
+    conditions: [],
+    attackDamage: 13,
+    dodge: 0,
+    analyzeHint: "blind",
+  };
+  state.boss = {
+    kind: "eel",
+    parts,
+    phase: 1,
+    phaseName: "COIL",
+    keyPartByPhase: { 1: phase1Key, 2: "jaw" },
     baseDamageByPhase: { 1: 13, 2: 16 },
     utilityBreakDamageReduction: 3,
   };
@@ -208,17 +269,18 @@ function breakPart(state: CombatState, part: BossPart): void {
   state.log.push(`${part.name} BREAKS`);
   if (part.key === boss.keyPartByPhase[boss.phase]) {
     if (boss.phase === 1) {
+      const endedPhase = boss.phaseName;
       boss.phase = 2;
-      boss.phaseName = "FRENZY";
-      state.log.push("PHASE BREAK: the Crush ends, the Frenzy begins");
+      boss.phaseName = boss.kind === "eel" ? "THRASH" : "FRENZY";
+      state.log.push(`PHASE BREAK: the ${endedPhase} ends, the ${boss.phaseName} begins`);
       const nextKey = getPart(state, boss.keyPartByPhase[2]);
       if (nextKey?.broken) {
         state.outcome = "victory";
-        state.log.push("the corrupted shark is spent: victory");
+        state.log.push(`the ${state.enemy.name} is spent: victory`);
       }
     } else {
       state.outcome = "victory";
-      state.log.push("the corrupted shark is spent: victory");
+      state.log.push(`the ${state.enemy.name} is spent: victory`);
     }
   } else {
     state.log.push(`the shark weakens: damage down ${boss.utilityBreakDamageReduction}`);
@@ -263,6 +325,9 @@ export function useAbility(state: CombatState, abilityKey: string, targetPart?: 
 
   player.sta -= ability.staCost;
 
+  const abilityDamage =
+    abilityKey === "tailStrike" && state.relicEcho ? BASE.relicTailStrike : ability.damage;
+
   if (ability.damage > 0) {
     const blind = getCondition(enemy, "blind");
     const dodge = blind?.level === 2 ? 0 : enemy.dodge;
@@ -279,15 +344,15 @@ export function useAbility(state: CombatState, abilityKey: string, targetPart?: 
         part = unbroken[Math.floor(nextRand(state) * unbroken.length)];
       }
       if (part) {
-        const dealt = Math.min(ability.damage, part.durability);
+        const dealt = Math.min(abilityDamage, part.durability);
         part.durability -= dealt;
         enemy.hp = Math.max(0, enemy.hp - dealt);
         state.log.push(`${ability.name} hits the ${part.name}: ${dealt}`);
         if (part.durability <= 0 && !part.broken) breakPart(state, part);
       }
     } else {
-      enemy.hp = Math.max(0, enemy.hp - ability.damage);
-      state.log.push(`${ability.name}: ${ability.damage} dmg`);
+      enemy.hp = Math.max(0, enemy.hp - abilityDamage);
+      state.log.push(`${ability.name}: ${abilityDamage} dmg`);
     }
   }
   if (ability.heals !== undefined) {

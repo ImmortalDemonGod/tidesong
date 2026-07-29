@@ -144,3 +144,38 @@ test("anti-overfit: boss bands hold on 500 unseen seeds", () => {
   expect(bossCasualFresh.winRate).toBeGreaterThanOrEqual(0.28);
   expect(bossCasualFresh.winRate).toBeLessThanOrEqual(0.77);
 });
+
+// ---------- G3: dungeon 2 encounters (relic echo active, as in play) ----------
+import { createBoss2Combat, createElderCombat } from "../src/game";
+const echo = (make: (s: number) => ReturnType<typeof createElderCombat>) => (s: number) => {
+  const c = make(s);
+  c.relicEcho = true;
+  return c;
+};
+const elderCasual = runBatch((seed) => casualBot(seed), echo(createElderCombat));
+const elderOptimal = runBatch(() => optimalBot(), echo(createElderCombat));
+const eelCasual = runBatch((seed) => casualBot(seed), echo(createBoss2Combat));
+const eelOptimal = runBatch(() => optimalBot(), echo(createBoss2Combat));
+const eelNoCond = runBatch(() => optimalBot(NO_CONDITION_KEYS), echo(createBoss2Combat));
+
+test("G3 elder: regular bands hold (casual 60-90, 4-15 turns; optimal floors)", () => {
+  expect(elderCasual.winRate).toBeGreaterThanOrEqual(0.6);
+  expect(elderCasual.winRate).toBeLessThanOrEqual(0.9);
+  expect(elderCasual.meanTurns).toBeGreaterThanOrEqual(4);
+  expect(elderCasual.meanTurns).toBeLessThanOrEqual(15);
+  expect(elderOptimal.meanTurns).toBeGreaterThanOrEqual(4);
+  expect(elderOptimal.meanDamageTaken).toBeGreaterThanOrEqual(10);
+});
+
+test("G3 eel: boss bands hold (casual 30-75, 6-26 turns; optimal floors)", () => {
+  expect(eelCasual.winRate).toBeGreaterThanOrEqual(0.3);
+  expect(eelCasual.winRate).toBeLessThanOrEqual(0.75);
+  expect(eelCasual.meanTurns).toBeGreaterThanOrEqual(6);
+  expect(eelCasual.meanTurns).toBeLessThanOrEqual(26);
+  expect(eelOptimal.meanTurns).toBeGreaterThanOrEqual(4);
+  expect(eelOptimal.meanDamageTaken).toBeGreaterThanOrEqual(20);
+});
+
+test("G4 eel: ignoring conditions costs at least 20 percent more damage", () => {
+  expect(eelNoCond.meanDamageTaken).toBeGreaterThanOrEqual(eelOptimal.meanDamageTaken * 1.2);
+});

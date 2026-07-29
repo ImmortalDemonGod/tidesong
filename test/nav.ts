@@ -3,7 +3,7 @@
 // combat policy (softlock checks) or optimal (scripted full-run clear).
 // No pathfinding smarter than axis-greedy, by design.
 
-import { D1, HUB, combatAction, combatPass, step, type AreaKey, type WorldState } from "../src/world";
+import { D1, D2, HUB, combatAction, combatPass, step, type AreaKey, type WorldState } from "../src/world";
 import type { Bot } from "./bots";
 
 interface Objective {
@@ -20,7 +20,11 @@ export function fullRoute(): Objective[] {
     { area: "dungeon1", target: { x: 11, y: 6 }, done: (w) => w.fragments[2].collected },
     { area: "dungeon1", target: { x: 14, y: 4 }, done: (w) => w.encounters[1].defeated },
     { area: "dungeon1", target: { x: 21, y: 4 }, done: (w) => w.encounters[2].defeated },
-    { area: "hub", target: { x: HUB.mouth.x, y: HUB.mouth.y }, done: (w) => w.mode === "victory" },
+    { area: "hub", target: { x: HUB.mouth.x, y: HUB.mouth.y }, done: (w) => w.area === "dungeon2" || w.mode === "victory" },
+    { area: "dungeon2", target: { x: 8, y: 4 }, done: (w) => w.encounters[3].defeated },
+    { area: "dungeon2", target: { x: 11, y: 2 }, done: (w) => w.fragments[4].collected },
+    { area: "dungeon2", target: { x: 14, y: 4 }, done: (w) => w.encounters[4].defeated },
+    { area: "dungeon2", target: { x: 21, y: 4 }, done: (w) => w.mode === "victory" },
   ];
 }
 
@@ -60,7 +64,14 @@ export function runWorld(
     const obj = route.find((o) => !o.done(w));
     if (!obj) break;
     if (obj.area !== w.area) {
-      const transition = w.area === "hub" ? HUB.dungeonEntrance : { x: D1.exitX, y: D1.entrance.y };
+      let transition: { x: number; y: number };
+      if (w.area === "hub") {
+        transition = obj.area === "dungeon2" ? HUB.mouth : HUB.dungeonEntrance;
+      } else if (w.area === "dungeon1") {
+        transition = { x: D1.exitX, y: D1.entrance.y };
+      } else {
+        transition = { x: D2.exitX, y: D2.entrance.y };
+      }
       stepToward(w, transition);
     } else {
       stepToward(w, obj.target);

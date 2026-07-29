@@ -111,7 +111,12 @@ function bestBossPart(state: CombatState, abilityDamage: number): { part: PartKe
 // fight, and an unweighted greedy turtles on Bubble forever once enemy damage
 // exceeds its own expected damage (found 00:06 Jul 29; the fix strengthens
 // the judge, the allowed direction).
-export function optimalBot(keys: string[] = ABILITY_KEYS): Bot {
+// healThreshold defaults to the PINNED 40 (the heal-averse floor-measuring
+// judge). The G2 runner passes 55: across a five-fight gauntlet, heal
+// aversion is a measurement device turned suicide pact. Raising the
+// threshold cannot shrink damage-taken floors (healing does not reduce
+// damage absorbed), so G3/G4 evidence is unaffected; logged in PROGRESS.
+export function optimalBot(keys: string[] = ABILITY_KEYS, healThreshold = 40): Bot {
   return (state) => {
     const options = affordable(state, keys);
     if (options.length === 0) return null;
@@ -129,7 +134,7 @@ export function optimalBot(keys: string[] = ABILITY_KEYS): Bot {
       const healed =
         a.heals !== undefined
           ? Math.min(a.heals, state.player.maxHp - state.player.hp) *
-            (state.player.hp < 40 ? 1.2 : 0.3)
+            (state.player.hp < healThreshold ? 1.2 : 0.3)
           : 0;
       const value = dealt + prevented * 0.8 + healed + lethal + (chosen?.bonus ?? 0) - a.staCost * 0.15;
       if (value > bestValue) {

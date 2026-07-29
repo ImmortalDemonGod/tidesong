@@ -179,6 +179,16 @@ if (demo) {
       combatAction(world, "analyze");
       combatAction(world, "finSlash");
     }
+  } else if (demo === "boss2") {
+    world.hasTideRelic = true;
+    world.area = "dungeon2";
+    for (const e of world.encounters) if (e.kind !== "boss2") e.defeated = true;
+    world.pos = { x: 20, y: 4 };
+    world.checkpoint = { area: "dungeon2", pos: { x: 1, y: 4 } };
+    step(world, "right");
+    if (world.combat) {
+      combatAction(world, "analyze");
+    }
   } else if (demo === "victory") {
     world.hasTideRelic = true;
     for (const f of world.fragments) if (f.id <= 3) f.collected = true;

@@ -232,6 +232,83 @@ function sharkSprite(ctx: CanvasRenderingContext2D, x: number, y: number, scale:
   ctx.restore();
 }
 
+function eelSprite(ctx: CanvasRenderingContext2D, x: number, y: number, scale: number, t: number, broken: Set<PartKey>): void {
+  ctx.save();
+  ctx.translate(x, y + Math.sin(t * 1.2) * 8);
+  ctx.scale(scale, scale);
+  // serpentine body: layered segments along a sine
+  ctx.strokeStyle = "#4A6455";
+  ctx.lineCap = "round";
+  ctx.lineWidth = 46;
+  ctx.beginPath();
+  for (let i = 0; i <= 20; i++) {
+    const px2 = -110 + i * 14;
+    const py2 = Math.sin(t * 1.6 + i * 0.55) * 26;
+    if (i === 0) ctx.moveTo(px2, py2);
+    else ctx.lineTo(px2, py2);
+  }
+  ctx.stroke();
+  // coil highlight (the Coil part is the mid-body knot)
+  ctx.strokeStyle = broken.has("fin") ? "#2C3E33" : "#5C7A66";
+  ctx.lineWidth = 50;
+  ctx.beginPath();
+  ctx.arc(30, Math.sin(t * 1.6 + 4.4) * 26, 30, 0.4, 2.4);
+  ctx.stroke();
+  // head
+  ctx.fillStyle = "#4A6455";
+  ctx.beginPath();
+  ctx.ellipse(-120, Math.sin(t * 1.6) * 10, 42, 30, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // maw
+  ctx.fillStyle = broken.has("jaw") ? "#1C2C24" : "#2E4438";
+  ctx.beginPath();
+  ctx.moveTo(-158, 6);
+  ctx.quadraticCurveTo(-130, 34, -92, 30);
+  ctx.quadraticCurveTo(-124, 44, -152, 30);
+  ctx.closePath();
+  ctx.fill();
+  if (!broken.has("jaw")) {
+    ctx.fillStyle = C.ink;
+    for (let i = 0; i < 3; i++) {
+      ctx.beginPath();
+      ctx.moveTo(-142 + i * 14, 22);
+      ctx.lineTo(-136 + i * 14, 32);
+      ctx.lineTo(-148 + i * 14, 32);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+  // lure: a dangling light ahead of the head
+  ctx.strokeStyle = "#3A5245";
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(-140, -22);
+  ctx.quadraticCurveTo(-170, -52, -150, -66 + Math.sin(t * 3) * 5);
+  ctx.stroke();
+  ctx.fillStyle = broken.has("eye") ? "#3a4a42" : C.biolum;
+  ctx.beginPath();
+  ctx.arc(-150, -66 + Math.sin(t * 3) * 5, broken.has("eye") ? 6 : 9, 0, Math.PI * 2);
+  ctx.fill();
+  // tail fin
+  ctx.fillStyle = broken.has("tail") ? "#2C3E33" : "#3A5245";
+  ctx.beginPath();
+  ctx.moveTo(168, Math.sin(t * 1.6 + 11) * 26);
+  ctx.lineTo(206, -30);
+  ctx.lineTo(198, 8);
+  ctx.lineTo(206, 40);
+  ctx.closePath();
+  ctx.fill();
+  // corruption veins
+  ctx.strokeStyle = "#8C4AA8";
+  ctx.globalAlpha = 0.7;
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(-10, -18);
+  ctx.quadraticCurveTo(12, 4, -2, 24);
+  ctx.stroke();
+  ctx.restore();
+}
+
 function bar(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, frac: number, color: string): void {
   ctx.fillStyle = "#123044";
   ctx.beginPath();
@@ -572,18 +649,26 @@ function renderCombat(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState,
   fish(ctx, 250, 430, 1.7, t, 1);
 
   const broken = new Set<PartKey>((c.boss?.parts ?? []).filter((p) => p.broken).map((p) => p.key));
-  if (c.boss) sharkSprite(ctx, 800, 300, 1.25, t, broken);
+  if (c.boss?.kind === "eel") eelSprite(ctx, 800, 300, 1.25, t, broken);
+  else if (c.boss) sharkSprite(ctx, 800, 300, 1.25, t, broken);
   else squidSprite(ctx, 810, 300, 2.1, t);
 
   // On-body part anchors: labels always, dashed reticle on the aimed part
   // (G6 HIGH fix: the panel-to-body mapping must be unambiguous).
   if (c.boss) {
-    const anchors: Record<PartKey, { x: number; y: number }> = {
+    const sharkAnchors: Record<PartKey, { x: number; y: number }> = {
       jaw: { x: 800 - 110 * 1.25, y: 300 + 38 * 1.25 },
       eye: { x: 800 - 96 * 1.25, y: 300 - 18 * 1.25 },
       fin: { x: 800, y: 300 - 68 * 1.25 },
       tail: { x: 800 + 168 * 1.25, y: 300 },
     };
+    const eelAnchors: Record<PartKey, { x: number; y: number }> = {
+      jaw: { x: 800 - 125 * 1.25, y: 300 + 40 * 1.25 },
+      eye: { x: 800 - 150 * 1.25, y: 300 - 66 * 1.25 },
+      fin: { x: 800 + 30 * 1.25, y: 300 - 48 * 1.25 },
+      tail: { x: 800 + 190 * 1.25, y: 300 + 10 },
+    };
+    const anchors = c.boss.kind === "eel" ? eelAnchors : sharkAnchors;
     for (const p of c.boss.parts) {
       const a = anchors[p.key];
       ctx.font = "700 12px ui-monospace, monospace";

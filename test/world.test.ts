@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { D1, HUB, combatAction, combatPass, createWorld, interact, step, type WorldState } from "../src/world";
+import { D1, D2, HUB, combatAction, combatPass, createWorld, interact, step, type WorldState } from "../src/world";
 
 function walkTo(w: WorldState, x: number, y: number, cap = 200): void {
   // Stops on any area or mode change: entering a dungeon or a fight is a
@@ -211,7 +211,7 @@ test("song-seal: melody order varies by seed but is deterministic", () => {
   expect(others.some((m) => m !== a1)).toBe(true);
 });
 
-test("boss victory grants the Tide Relic; the barrier parts; slice victory", () => {
+test("boss 1 grants the relic; the mouth opens dungeon 2; boss 2 is victory", () => {
   const w = createWorld();
   walkTo(w, HUB.dungeonEntrance.x, HUB.dungeonEntrance.y);
   walkTo(w, 8, 4);
@@ -224,6 +224,29 @@ test("boss victory grants the Tide Relic; the barrier parts; slice victory", () 
   expect(w.hasTideRelic).toBe(true);
   walkTo(w, D1.exitX, 4);
   expect(w.area).toBe("hub");
+  w.healSongUses = 0;
   walkTo(w, HUB.mouth.x, HUB.mouth.y);
+  expect(w.area).toBe("dungeon2");
+  expect(w.healSongUses).toBe(2);
+  expect(w.checkpoint.area).toBe("dungeon2");
+  walkTo(w, 8, 4);
+  expect(w.combat?.enemy.name).toBe("elder squid");
+  winFight(w);
+  walkTo(w, 14, 4);
+  winFight(w);
+  walkTo(w, 21, 4);
+  expect(w.combat?.enemy.name).toBe("corrupted eel");
+  winFight(w);
   expect(w.mode).toBe("victory");
+  expect(w.log.some((l) => l.includes("falls silent"))).toBe(true);
+});
+
+test("boss 2 key part wanders by seed but is deterministic", () => {
+  const { createBoss2Combat } = require("../src/game");
+  const k1 = createBoss2Combat(1).boss.keyPartByPhase[1];
+  const k1b = createBoss2Combat(1).boss.keyPartByPhase[1];
+  expect(k1).toBe(k1b);
+  const keys = new Set([1, 2, 3, 4, 5, 6, 7, 8].map((s2) => createBoss2Combat(s2).boss.keyPartByPhase[1]));
+  expect(keys.size).toBeGreaterThan(1);
+  for (const k of keys) expect(["eye", "fin", "tail"]).toContain(k);
 });
