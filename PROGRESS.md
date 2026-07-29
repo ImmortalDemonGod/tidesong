@@ -622,3 +622,46 @@ optimal 14.4 HP lost):
   the full beat-locked exchange, measured labels proving sta 20->19,
   blind 0->1, beat 0.53->0.00, floaters and ticker live. The as-played
   instrument family is complete: keys, clicks, kills, all measured.
+
+## Honest morning report (ASSEMBLING: every verdict below reads PENDING
+## until the final adversarial panel rules; this section is complete only
+## when no PENDING remains)
+
+- G1 BUG-FREE: PENDING FINAL PANEL. Evidence staged: 80 tests / 266,479
+  assertions; soaked 10x clean (00:59) and 25x clean (endurance log);
+  night-watch 50x soak in flight; world fuzz 20k actions + 12k
+  dungeon-2-seeded actions with per-action invariants incl. the relic
+  gate; on-canvas error overlay with 15+ gallery states rendering clean.
+  Reproduce: `~/.bun/bin/bun test`.
+- G2 WINNABLE: PENDING FINAL PANEL. Evidence staged: scripted pinned-bot
+  50/50 clears (16 pity deaths, max 189 actions); casual 100/100 and
+  5000/5000 (fails: none); 20k mega-sim in flight; no-heal 50/50 (119
+  deaths); fastest clear 148 actions. Reproduce: `bun tools/worldsim.ts`.
+- G3 BANDS: PENDING FINAL PANEL. Evidence staged: all four encounters in
+  band on tuning seeds AND 2000 fresh seeds each; five more disjoint
+  spaces in flight; bands encoded as tests with anti-overfit guards.
+  Reproduce: `bun tools/tune.ts`.
+- G4 NO DOMINANT STRATEGY: PENDING FINAL PANEL. Evidence staged: every
+  spam bot underperforms on damage-taken margins; conditions pay jointly
+  and individually; two real dominant strategies found and killed during
+  the run (slow expiry-reset cycling, pre-nerf finSlash spam).
+- G5 FUN AUDIT: PENDING FINAL PANEL (machine ceiling EVIDENCED; the
+  user's morning playtest is the true verdict). Scorecard above with
+  curve updated post-retunes; usage and fairness studies attached.
+- G6 VISUAL: PENDING FINAL PANEL. Two reviewer rounds PASS (second after
+  recapture), 12-state gallery + 3 filmstrips with measured labels.
+- G7 AUDIO: PENDING FINAL PANEL. All named events wired and proven from
+  DELIVERED logs post-pipe-fix (13 oscillator starts measured in a real
+  fought fight vs zero before); pad and stagger by construction; musical
+  quality permanently UNVERIFIED (human ears).
+- G8 FIDELITY: PENDING FINAL PANEL. Two rounds: coverage COMPLETE,
+  parking-lot CLEAN, all deviations fixed, DESIGN.md reconciled.
+- G9 THIS REPORT: PENDING by definition until the panel rules and every
+  PENDING above is replaced with GREEN or UNVERIFIED plus evidence.
+
+Report integrity note: two fabrication incidents occurred and were caught
+by reviewers (narrative timestamps, then a repeat in source comments);
+both are corrected above with the structural rules that prevent them
+(git-clock-only, no times in source, measured instrument labels,
+asserted replaces). The final panel is directed to re-verify a sample of
+every evidence class before any PENDING becomes GREEN.
