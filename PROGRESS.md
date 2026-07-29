@@ -195,6 +195,37 @@ continue."
   layout, HUD element, and label. Cite which doc informed any invented
   detail in the feature log.
 
+## G5 fun audit (machine ceiling: EVIDENCED; the user's morning playtest is the verdict)
+
+- LOOP (explore, fight, collect, unlock, return): closes end to end. The
+  scripted run finishes hub -> fragments -> dungeon -> squids -> boss ->
+  relic -> barrier -> victory in ~100 actions; 100/100 casual runs also
+  close it (reproduce: `bun test test/fullrun.test.ts`). Fragments carry
+  story, the gate pays off the earlier shove-back.
+- DECISIONS: choices measurably matter. Ignoring conditions costs 105%
+  more HP vs the squid and 55% vs the boss; the best single-button
+  strategy loses 24 to 31% more HP than mixed play; aimed boss hits beat
+  drifting ones (untargeted damage is random by design); Heal Song is 2
+  charges across a dungeon; Analyze is a real info purchase (per-enemy
+  best condition, boss key part). Reproduce: `bun test test/bands.test.ts`.
+- UNCERTAINTY: 15% squid dodge, 60/80% blind rolls, and the bands prove
+  outcomes are not predetermined (casual 86% squid / 36% boss, optimal
+  never under 4 turns). The pity escalator keeps failure tense without
+  the compounding spiral (100/100 casual completion).
+- CURVE: squid then boss is a real ramp (casual 86% -> 36%); the boss
+  itself ramps (CRUSH 14 dmg -> FRENZY 17); the trench is optional
+  risk-for-reward; heals do not refill on death, so later attempts carry
+  earned tension.
+- JUICE: screen shake on hits taken and part breaks, enemy hit flash,
+  damage/refund/miss floaters, blind dimming tint, 4-layer parallax with
+  fog and rays, 7 wired audio events, death flash, victory ceremony with
+  the team credits. Evidenced by code and the gallery; FEEL of it is
+  explicitly a human call tomorrow.
+
+Process note 02:00: one commit (059606d, lab + docs only) landed without
+its pre-commit test run because a grep exit code broke the shell chain;
+suite re-run immediately after, 64 pass / 0 fail. Slip logged, not hidden.
+
 ## Enemy variety lab (slice item 9, SIM-ONLY; for Marc's balance question)
 
 Method: jam-scope enemy twists prototyped as per-fight hook wrappers around
