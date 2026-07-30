@@ -1519,3 +1519,10 @@ every evidence class before any PENDING becomes GREEN.
   precise-tap probe (an earlier probe overshot the tile via key
   auto-repeat, which is why the first capture proved nothing).
   108 tests green.
+- (git time of this commit) Played report: "the text box is slightly
+  cut off". True and arithmetic: the reward line's baseline landed at
+  exactly 618 and the card's bottom border was also 618, so the new
+  line sat ON the edge. The card now grows 32px for a reward instead of
+  22 and the line sits 12px above its own baseline slot, giving 8px or
+  more of padding in every card shape (one row or two, with reward or
+  without), checked as arithmetic rather than by eyeballing one capture.

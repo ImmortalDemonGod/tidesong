@@ -1223,7 +1223,9 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
       if (probe.length > 78 && rows.length < 2) rows.push(word);
       else rows[rows.length - 1] = probe;
     }
-    const cardH = (rows.length > 1 ? 76 : 56) + (ui.storyCard.reward ? 22 : 0);
+    // the reward line needs its own room: at 22 its baseline landed
+    // exactly on the card's bottom border and read as cut off
+    const cardH = (rows.length > 1 ? 76 : 56) + (ui.storyCard.reward ? 32 : 0);
     ctx.save();
     ctx.globalAlpha = alpha;
     ctx.fillStyle = "rgba(6,18,28,0.92)";
@@ -1248,7 +1250,7 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
     if (ui.storyCard.reward) {
       ctx.fillStyle = C.biolum;
       ctx.font = "600 12px ui-monospace, monospace";
-      ctx.fillText(ui.storyCard.reward, cw / 2 - 300, 584 + rows.length * 20 + 14);
+      ctx.fillText(ui.storyCard.reward, cw / 2 - 300, 584 + rows.length * 20 + 12);
     }
     ctx.restore();
   }
