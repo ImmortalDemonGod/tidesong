@@ -26,7 +26,7 @@ export interface UIState {
   enemyFlash: number; // seconds remaining on enemy hit flash
   zoomPulse: number; // seconds remaining on the combat-entry/phase zoom
   enemyBeat: number; // seconds until the enemy's answering beat lands
-  storyCard?: { text: string; age: number; kind: "story" | "song" | "npc" | "relic" | "heal"; ph?: boolean }; // explore cards; ph = placeholder text for Marc
+  storyCard?: { text: string; age: number; kind: "story" | "song" | "npc" | "relic" | "heal"; ph?: boolean; reward?: string }; // explore cards; ph = placeholder text for Marc
   victoryHold?: { combat: CombatState; t: number }; // hold the win beat on screen
   floaters: Floater[];
   // fun pass: per-ability cast effects and bodies that move (diagnosis:
@@ -42,6 +42,7 @@ export interface UIState {
   bossIntro?: { title: string; sub: string; t: number; dur: number }; // set-piece title card
   beatPulse: number; // refused-input acknowledgment on the turn pill
   endingPick: 0 | 1; // which ending card the keyboard has selected
+  staPulse: number; // the stamina row lights when a verse raises its max
 }
 
 export const ABILITY_ORDER = ["tailStrike", "siltBurst", "finSlash", "healSong", "analyze", "bubble"];
@@ -459,6 +460,25 @@ function bar(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: 
   }
 }
 
+// Every interactable must SAY it is interactable. The merfolk had a
+// prompt and nothing else did, so a playtester never learned there was
+// a puzzle at all until told (played report Jul 29).
+function prompt(ctx: CanvasRenderingContext2D, x: number, y: number, text: string, accent: string): void {
+  ctx.font = "600 13px system-ui";
+  const w = ctx.measureText(text).width + 26;
+  ctx.fillStyle = "rgba(6,18,28,0.92)";
+  ctx.strokeStyle = accent;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.roundRect(x - w / 2, y - 18, w, 26, 13);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = accent;
+  ctx.textAlign = "center";
+  ctx.fillText(text, x, y);
+  ctx.textAlign = "left";
+}
+
 function chip(ctx: CanvasRenderingContext2D, x: number, y: number, text: string, color: string): number {
   ctx.font = "600 13px ui-monospace, monospace";
   const w = ctx.measureText(text).width + 18;
@@ -625,22 +645,90 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
     ctx.fillText(w.hasTideRelic ? "the relic parts it" : "needs the Tide Relic", px(HUB.barrierX) - 60, 138);
     ctx.textAlign = "left";
 
+    // THE MECHANISM, drawn: a playtester could not tell there was a
+    // puzzle here at all, because a door and three rocks look like
+    // scenery. Light threads run from each stone to the door, the door
+    // breathes while it waits, and a stone you have sung stays lit.
+    if (!w.doorOpen) {
+      ctx.save();
+      for (let i = 0; i < HUB.stones.length; i++) {
+        const st = HUB.stones[i];
+        const sung = w.attempt.includes(i);
+        ctx.strokeStyle = sung ? C.biolum : C.glow;
+        ctx.lineWidth = sung ? 2.4 : 1.4;
+        ctx.globalAlpha = sung ? 0.65 : 0.2 + Math.sin(t * 2 + i * 1.5) * 0.1;
+        ctx.setLineDash([6, 10]);
+        ctx.lineDashOffset = -t * 26;
+        ctx.beginPath();
+        ctx.moveTo(px(st.x), py(st.y) - 6);
+        ctx.quadraticCurveTo(
+          (px(st.x) + px(HUB.door.x)) / 2,
+          Math.min(py(st.y), py(HUB.door.y)) - 54,
+          px(HUB.door.x),
+          py(HUB.door.y) + 18,
+        );
+        ctx.stroke();
+      }
+      ctx.restore();
+      // and a thread up to the thing it is holding shut, so the reward
+      // is visibly attached to the puzzle
+      ctx.save();
+      ctx.strokeStyle = C.sand;
+      ctx.globalAlpha = 0.3 + Math.sin(t * 1.8) * 0.12;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 7]);
+      ctx.lineDashOffset = t * 18;
+      ctx.beginPath();
+      ctx.moveTo(px(HUB.door.x), py(HUB.door.y) - 40);
+      ctx.lineTo(px(HUB.alcove.x), py(HUB.alcove.y) + 20);
+      ctx.stroke();
+      ctx.restore();
+
+      // the door breathes while it waits for its song
+      ctx.save();
+      const breath = 0.5 + Math.sin(t * 1.6) * 0.5;
+      ctx.strokeStyle = C.glow;
+      ctx.globalAlpha = 0.35 * (1 - breath);
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.roundRect(px(HUB.door.x) - 26 - breath * 14, py(HUB.door.y) - 38 - breath * 14, 52 + breath * 28, 76 + breath * 28, 10);
+      ctx.stroke();
+      ctx.restore();
+    }
+
     // song stones (dusk, dawn, tide)
-    for (const st of HUB.stones) {
+    for (let i = 0; i < HUB.stones.length; i++) {
+      const st = HUB.stones[i];
+      const sung = !w.doorOpen && w.attempt.includes(i);
+      const lit = w.doorOpen || sung;
+      // a resonance halo so a stone never reads as background rock
+      ctx.save();
+      ctx.globalAlpha = lit ? 0.32 : 0.12 + Math.sin(t * 2.2 + i) * 0.05;
+      ctx.fillStyle = lit ? C.biolum : C.glow;
+      ctx.beginPath();
+      ctx.arc(px(st.x), py(st.y), lit ? 26 : 18 + Math.sin(t * 2.2 + i) * 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
       ctx.fillStyle = "#1E4560";
       ctx.beginPath();
       ctx.ellipse(px(st.x), py(st.y) + 10, 14, 18, 0, 0, Math.PI * 2);
       ctx.fill();
-      ctx.fillStyle = C.biolum;
-      ctx.globalAlpha = 0.9;
+      // a carved note face, so it reads as a thing that sings
+      ctx.strokeStyle = lit ? C.biolum : "#3E6E86";
+      ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.arc(px(st.x), py(st.y), 4, 0, Math.PI * 2);
+      ctx.arc(px(st.x), py(st.y), 9, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = lit ? C.biolum : C.glow;
+      ctx.globalAlpha = lit ? 1 : 0.85;
+      ctx.beginPath();
+      ctx.arc(px(st.x), py(st.y), lit ? 6 : 4, 0, Math.PI * 2);
       ctx.fill();
       ctx.globalAlpha = 1;
-      ctx.fillStyle = C.muted;
-      ctx.font = "11px system-ui";
+      ctx.fillStyle = lit ? C.biolum : C.muted;
+      ctx.font = lit ? "600 11px system-ui" : "11px system-ui";
       ctx.textAlign = "center";
-      ctx.fillText(st.name, px(st.x), py(st.y) + 36);
+      ctx.fillText(sung ? `${st.name} \u2713` : st.name, px(st.x), py(st.y) + 36);
       ctx.textAlign = "left";
     }
 
@@ -665,16 +753,15 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
     ctx.textAlign = "center";
     ctx.fillText("merfolk", px(HUB.npc.x), py(HUB.npc.y) + 58);
     ctx.textAlign = "left";
-    if (Math.abs(w.pos.x - HUB.npc.x) + Math.abs(w.pos.y - HUB.npc.y) <= 1) {
-      ctx.fillStyle = "rgba(6,18,28,0.9)";
-      ctx.beginPath();
-      ctx.roundRect(px(HUB.npc.x) - 44, py(HUB.npc.y) - 78, 88, 26, 13);
-      ctx.fill();
-      ctx.fillStyle = C.ink;
-      ctx.font = "13px system-ui";
-      ctx.textAlign = "center";
-      ctx.fillText("Talk [E]", px(HUB.npc.x), py(HUB.npc.y) - 60);
-      ctx.textAlign = "left";
+    const near = (tx: number, ty: number) => Math.abs(w.pos.x - tx) + Math.abs(w.pos.y - ty) <= 1;
+    if (near(HUB.npc.x, HUB.npc.y)) prompt(ctx, px(HUB.npc.x), py(HUB.npc.y) - 60, "Talk  [E]", C.ink);
+    // the door and every stone announce themselves too, which is what
+    // makes the puzzle discoverable instead of decorative
+    if (!w.doorOpen && near(HUB.door.x, HUB.door.y)) {
+      prompt(ctx, px(HUB.door.x), py(HUB.door.y) - 84, "Listen to the seal  [E]", C.glow);
+    }
+    for (const st of HUB.stones) {
+      if (!w.doorOpen && near(st.x, st.y)) prompt(ctx, px(st.x), py(st.y) - 52, `Sing ${st.name}  [E]`, C.biolum);
     }
   } else if (w.area === "dungeon1") {
     // the first ruin, a drowned choir hall: pillars joined by arches,
@@ -766,22 +853,69 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
     ctx.textAlign = "center";
     ctx.fillText(w.seal2Open ? "gullet seal (open)" : "gullet seal (four notes)", px(D2.seal.x), py(D2.seal.y) + 58);
     ctx.textAlign = "left";
+    const nearD2 = (tx: number, ty: number) => Math.abs(w.pos.x - tx) + Math.abs(w.pos.y - ty) <= 1;
+    if (!w.seal2Open && nearD2(D2.seal.x, D2.seal.y)) {
+      prompt(ctx, px(D2.seal.x), py(D2.seal.y) - 84, "Listen to the seal  [E]", C.glow);
+    }
     for (const st of D2.stones) {
+      if (!w.seal2Open && nearD2(st.x, st.y)) prompt(ctx, px(st.x), py(st.y) - 52, `Sing ${st.name}  [E]`, C.biolum);
+    }
+    if (!w.seal2Open) {
+      // same mechanism language as the reef: threads to the seal, a
+      // breathing frame, so the second puzzle is recognisable as one
+      ctx.save();
+      for (let i = 0; i < D2.stones.length; i++) {
+        const st = D2.stones[i];
+        const sung = w.attempt2.includes(i);
+        ctx.strokeStyle = sung ? C.biolum : C.glow;
+        ctx.lineWidth = sung ? 2.4 : 1.4;
+        ctx.globalAlpha = sung ? 0.6 : 0.18 + Math.sin(t * 2 + i * 1.4) * 0.09;
+        ctx.setLineDash([6, 10]);
+        ctx.lineDashOffset = -t * 26;
+        ctx.beginPath();
+        ctx.moveTo(px(st.x), py(st.y) - 6);
+        ctx.quadraticCurveTo((px(st.x) + px(D2.seal.x)) / 2, Math.min(py(st.y), py(D2.seal.y)) - 60, px(D2.seal.x), py(D2.seal.y) + 20);
+        ctx.stroke();
+      }
+      const breath2 = 0.5 + Math.sin(t * 1.6) * 0.5;
+      ctx.setLineDash([]);
+      ctx.strokeStyle = C.glow;
+      ctx.globalAlpha = 0.32 * (1 - breath2);
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.roundRect(px(D2.seal.x) - 28 - breath2 * 14, py(D2.seal.y) - 40 - breath2 * 14, 56 + breath2 * 28, 80 + breath2 * 28, 10);
+      ctx.stroke();
+      ctx.restore();
+    }
+    for (let i = 0; i < D2.stones.length; i++) {
+      const st = D2.stones[i];
       const deep = st.y >= DARK_FLOOR.dungeon2;
+      const sung = !w.seal2Open && w.attempt2.includes(i);
+      const lit = w.seal2Open || sung;
+      ctx.save();
+      ctx.globalAlpha = lit ? 0.32 : 0.12 + Math.sin(t * 2.2 + i) * 0.05;
+      ctx.fillStyle = lit ? C.biolum : deep ? C.danger : C.glow;
+      ctx.beginPath();
+      ctx.arc(px(st.x), py(st.y), lit ? 26 : 18 + Math.sin(t * 2.2 + i) * 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
       ctx.fillStyle = "#1C4A40";
       ctx.beginPath();
       ctx.ellipse(px(st.x), py(st.y) + 10, 14, 18, 0, 0, Math.PI * 2);
       ctx.fill();
-      ctx.fillStyle = deep ? C.danger : C.biolum;
-      ctx.globalAlpha = 0.95;
+      ctx.strokeStyle = lit ? C.biolum : deep ? C.danger : "#3E6E86";
+      ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.arc(px(st.x), py(st.y), 4.5, 0, Math.PI * 2);
+      ctx.arc(px(st.x), py(st.y), 9, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = lit ? C.biolum : deep ? C.danger : C.glow;
+      ctx.beginPath();
+      ctx.arc(px(st.x), py(st.y), lit ? 6 : 4.5, 0, Math.PI * 2);
       ctx.fill();
-      ctx.globalAlpha = 1;
-      ctx.fillStyle = deep ? C.danger : C.muted;
-      ctx.font = "11px system-ui";
+      ctx.fillStyle = lit ? C.biolum : deep ? C.danger : C.muted;
+      ctx.font = lit ? "600 11px system-ui" : "11px system-ui";
       ctx.textAlign = "center";
-      ctx.fillText(deep ? `${st.name} (in the dark)` : st.name, px(st.x), py(st.y) + 36);
+      ctx.fillText(sung ? `${st.name} \u2713` : deep ? `${st.name} (in the dark)` : st.name, px(st.x), py(st.y) + 36);
       ctx.textAlign = "left";
     }
   }
@@ -1009,9 +1143,23 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
   ctx.fillStyle = C.muted;
   ctx.fillText(`${w.hp}/${w.maxHp}`, 220, 42);
   const verses = w.fragments.filter((f) => f.collected).length;
+  // the bar a verse just changed LIGHTS UP, because a playtester never
+  // learned the verses were buffs at all (played report Jul 29)
+  const pulsing = ui.staPulse > 0;
+  ctx.fillStyle = pulsing ? C.biolum : C.muted;
   ctx.fillText("STA", 32, 66);
-  bar(ctx, 62, 56, 150, 12, 1, C.glow);
-  ctx.fillStyle = C.muted;
+  bar(ctx, 62, 56, 150, 12, 1, pulsing ? C.biolum : C.glow);
+  if (pulsing) {
+    ctx.save();
+    ctx.strokeStyle = C.biolum;
+    ctx.globalAlpha = Math.min(1, ui.staPulse) * 0.9;
+    ctx.lineWidth = 2 + Math.min(1, ui.staPulse) * 3;
+    ctx.beginPath();
+    ctx.roundRect(58, 52, 158, 20, 6);
+    ctx.stroke();
+    ctx.restore();
+  }
+  ctx.fillStyle = pulsing ? C.biolum : C.muted;
   ctx.fillText(`${BASE.playerSta + verses}/${BASE.playerSta + verses}`, 220, 66);
   ctx.fillText("SONG", 32, 90);
   ctx.fillStyle = C.ink;
@@ -1075,7 +1223,7 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
       if (probe.length > 78 && rows.length < 2) rows.push(word);
       else rows[rows.length - 1] = probe;
     }
-    const cardH = rows.length > 1 ? 76 : 56;
+    const cardH = (rows.length > 1 ? 76 : 56) + (ui.storyCard.reward ? 22 : 0);
     ctx.save();
     ctx.globalAlpha = alpha;
     ctx.fillStyle = "rgba(6,18,28,0.92)";
@@ -1097,6 +1245,11 @@ function renderExplore(ctx: CanvasRenderingContext2D, w: WorldState, ui: UIState
     ctx.fillStyle = C.ink;
     ctx.font = "15px system-ui";
     rows.forEach((row, i) => ctx.fillText(row, cw / 2 - 300, 584 + i * 20));
+    if (ui.storyCard.reward) {
+      ctx.fillStyle = C.biolum;
+      ctx.font = "600 12px ui-monospace, monospace";
+      ctx.fillText(ui.storyCard.reward, cw / 2 - 300, 584 + rows.length * 20 + 14);
+    }
     ctx.restore();
   }
 }

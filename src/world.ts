@@ -150,6 +150,10 @@ export interface WorldState {
   melody2: number[];
   attempt2: number[];
   seal2Open: boolean;
+  // a seal explains ITSELF the first time you swim up to it: a
+  // playtester never realised there was a puzzle until told (Jul 29)
+  sealHinted: boolean;
+  seal2Hinted: boolean;
   // Marc's central question, made playable: with the eel dead the sea's
   // name is loose. Sing it back and the sea can be called again, by
   // anyone. Let it go and the sea stays safe, and smaller. Undefined
@@ -250,6 +254,8 @@ export function createWorld(seed = 1): WorldState {
     melody2: shuffledMelody((seed | 0) ^ 0x2c7, 4),
     attempt2: [],
     seal2Open: false,
+    sealHinted: false,
+    seal2Hinted: false,
     seed: seed | 0,
     log: [],
   };
@@ -538,10 +544,26 @@ export function step(w: WorldState, dir: Dir): boolean {
     }
   }
 
+  // a seal teaches its own rule on first approach, without giving the
+  // answer away: you still have to listen for the order
+  const adjacent = (t: { x: number; y: number }) => Math.abs(t.x - w.pos.x) + Math.abs(t.y - w.pos.y) <= 1;
+  if (w.area === "hub" && !w.doorOpen && !w.sealHinted && adjacent(HUB.door)) {
+    w.sealHinted = true;
+    w.log.push("the seal is a song: listen to the door [E], then sing its order back on the three stones");
+  }
+  if (w.area === "dungeon2" && !w.seal2Open && !w.seal2Hinted && adjacent(D2.seal)) {
+    w.seal2Hinted = true;
+    w.log.push("the seal is a song: listen to the gullet's seal [E], then sing its four notes back");
+  }
+
   for (const f of w.fragments) {
     if (!f.collected && f.area === w.area && f.x === w.pos.x && f.y === w.pos.y) {
       f.collected = true;
+      const held = w.fragments.filter((g) => g.collected).length;
       w.log.push(`memory fragment: "${f.verse}"`);
+      // say what it GAVE you: a playtester never learned the verses were
+      // buffs at all (Jul 29)
+      w.log.push(`the song returns to you: +1 max stamina (${held} of ${w.fragments.length} verses)`);
     }
   }
 

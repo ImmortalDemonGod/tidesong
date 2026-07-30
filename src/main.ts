@@ -54,6 +54,7 @@ const ui: UIState = {
   facing: 1,
   beatPulse: 0,
   endingPick: 0,
+  staPulse: 0,
 };
 
 function resetRun(): void {
@@ -86,6 +87,7 @@ function resetRun(): void {
   ui.beatPulse = 0;
   ui.facing = 1;
   ui.endingPick = 0;
+  ui.staPulse = 0;
   ui.screen = "play";
 }
 
@@ -224,7 +226,14 @@ function drainLog(): void {
       // the verse as a verse with a small tag instead (playtester: the
       // "(placeholder)" prefix made every story moment read as scaffolding)
       const clean = verse[1].replace(/^\(placeholder\) /, "");
-      ui.storyCard = { text: clean, age: 0, kind: "story", ph: clean !== verse[1] };
+      const held = world.fragments.filter((f) => f.collected).length;
+      ui.storyCard = {
+        text: clean,
+        age: 0,
+        kind: "story",
+        ph: clean !== verse[1],
+        reward: `the song returns to you: +1 max stamina  ·  ${held}/${world.fragments.length} verses`,
+      };
     }
     // the song-seal puzzle speaks on screen, not into a hidden log
     // (hunt, HIGH-1); the merfolk line ages out instead of living forever
@@ -242,6 +251,11 @@ function drainLog(): void {
     if (npc) {
       const clean = npc[1].replace(/^\(placeholder\) /, "");
       ui.storyCard = { text: `"${clean}"`, age: 0, kind: "npc", ph: clean !== npc[1] };
+    }
+    if (line.includes("the song returns to you")) {
+      // the reward is announced ON the fish and lights the bar it changed
+      ui.staPulse = 2.4;
+      addFloater("+1 MAX STA", "#7FE8A9", "player");
     }
     if (line.includes("the low dark bites")) {
       ui.playerFlinch = 0.35; // the trench's red pulse in exploration
@@ -776,6 +790,7 @@ function frame(now: number): void {
     }
     if (ui.enemyStrike > 0) ui.enemyStrike = Math.max(0, ui.enemyStrike - dt);
     if (ui.beatPulse > 0) ui.beatPulse = Math.max(0, ui.beatPulse - dt);
+    if (ui.staPulse > 0) ui.staPulse = Math.max(0, ui.staPulse - dt);
     if (ui.bossIntro) {
       ui.bossIntro.t -= dt * (reducedMotion ? 3 : 1);
       if (ui.bossIntro.t <= 0) ui.bossIntro = undefined;

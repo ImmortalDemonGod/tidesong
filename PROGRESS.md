@@ -1494,3 +1494,28 @@ every evidence class before any PENDING becomes GREEN.
   stagger against every float still on screen and cycle through three
   fanned lanes, so a run of hits reads as a column instead of a pile.
   Caught by re-shooting rather than by trusting the first fix.
+- (git time of this commit) HUMAN PLAYTEST, the sharpest discovery
+  finding yet: the player did not know there WAS a puzzle until told
+  what to look for, and never learned the memory fragments were buffs.
+  Both are discoverability failures, and the first correction was mine:
+  I started by adding prompt text, and the report was "it's not just
+  about the prompt text, it's about visuals". Right. A door and three
+  rocks look like scenery no matter what the label says.
+  THE PUZZLE IS NOW A VISIBLE MECHANISM: animated light threads run
+  from each stone to the door, the door BREATHES a pulsing frame while
+  it waits for its song, every stone has a resonance halo and a carved
+  note face so it can never read as background rock, a stone you have
+  already sung stays lit with a tick beside its name, and a dashed
+  thread runs from the door up to the verse it is holding shut so the
+  reward is visibly attached to the puzzle. The gullet's seal speaks the
+  same visual language, with its two dark stones marked in danger red.
+  Interact prompts (Listen to the seal / Sing dusk) now exist on every
+  interactable, not just the merfolk, and each seal explains its own
+  rule the first time you swim up to it without giving the order away.
+  THE VERSE BUFF IS NOW VISIBLE: picking one up prints its reward on
+  the card ("the song returns to you: +1 max stamina - 1/5 verses"),
+  floats +1 MAX STA off the fish, and lights the STA row itself so the
+  bar that changed is the bar that flashes. Verified as played with a
+  precise-tap probe (an earlier probe overshot the tile via key
+  auto-repeat, which is why the first capture proved nothing).
+  108 tests green.
