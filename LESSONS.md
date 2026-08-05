@@ -337,6 +337,33 @@ answer.
 
 ---
 
+## Proof run
+
+The detectors above are no longer a proposal. `verify/` contains working
+implementations and `verify/PROOF.md` is the experiment: nine worktrees
+checked out at the commit immediately before each fix, every detector run
+against the buggy build and against HEAD.
+
+**Seven of eight aimed detectors fired on the buggy build and went quiet
+on the fixed one.** The eighth fires on both, correctly, because its
+defect was logged rather than fixed. Four findings survived that nobody
+had reported. Five limits were found by running the detectors that were
+not visible when writing them, and they are folded into the text above:
+
+- D1's invariants must run over PLAYED frames. The story-card defect
+  exists only during a pickup, so no static demo state contains it and
+  the 17-state screenshot gallery was structurally incapable of catching
+  it.
+- D1's containment rule was 67 percent false positives until the owning
+  panel was required to be drawn within 4 ops of the text.
+- D3's usage histogram cannot judge information abilities at all: a
+  greedy bot has no way to value information, so Analyze reads 0 percent
+  forever. That is a D2 question.
+- D7 is a guard at the moment of change, not a detector of existing
+  drift, so it belongs on every commit rather than in an investigation.
+- D2 is scored on the DIFF between runs, not on an absolute count of
+  CANNOT TELL, or it reads as permanently red.
+
 ## Open questions for this document
 
 1. Is the display list worth the refactor cost in a jam, or is it only
