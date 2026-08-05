@@ -427,13 +427,17 @@ HP with no stated reason.
 
 - **Usage histograms print on every band run**, and **0 percent of
   optimal play is a BLOCKING finding**, not an observation to explain.
+  Catches 13, 14.
 - **Taught-line bot**: a bot playing exactly what the tutorial teaches
   must beat a naive masher. Measured at HEAD: it loses on squid, elder
   and eel, and on the eel it wins 3.5 percent against a masher's 100.
+  Catches 24, and is the correct framing of 12.
 - **Hint-versus-winner cross-check**: for every claim the game makes to
-  the player, a bot that checks the claim is true.
+  the player, a bot that checks the claim is true. Catches 21 and 12.
+  Proven: fires on ink and eel at the pre-fix commit, silent after.
 - **Displayed-progress monotonicity**: any bar shown as progress must
-  correlate with distance to the outcome.
+  correlate with distance to the outcome. The eel's bar read 54/66 two
+  hits from death. Catches 26.
 
 **Honest limit, found by running it.** A greedy bot cannot value an
 INFORMATION ability, so Analyze reads 0 percent forever whether it is
@@ -449,9 +453,9 @@ call.
   have caught swimming under the sealed door.
 - **Content necessity matrix**: for each piece of content, can the game
   be finished without it. Often "yes, and that is fine", but as a ruling
-  rather than a discovery.
+  rather than a discovery. Catches 6.
 - **Reward reachability**: for every reward, does a state exist where
-  the HUD names it.
+  the HUD names it. Optional must not mean invisible. Catches 4.
 
 ## D5. Typed events, not string matching, across module boundaries
 
@@ -477,9 +481,10 @@ which silently returns null the moment a writer edits a line. Catches
 
 - **Mechanic-by-beat matrix**, generated: which beats each mechanic
   appears in, and whether any parameter differs between appearances.
-  PILLAR-AUDIT.md is this table made by hand at hour eighteen.
+  PILLAR-AUDIT.md is this table made by hand at hour eighteen; it found
+  four violations. Catches 17.
 - **Encounter variety table**: enemy families per beat, flagging repeats
-  in adjacent beats.
+  in adjacent beats. Catches 20.
 - **Outcome variety table**: all reachable endings and the states that
   produce them. Would have shown at a glance that 0/5 and 5/5 verses
   printed identical text. Catches 7, and 8 by the same shape.
