@@ -287,9 +287,30 @@ let each one through, and the detector from Part 5 that catches it.
 | 32 | The puzzle read as scenery | 3.1 | D2 |
 | 33 | Fragment buffs never read as rewards | 3.1 | D2 |
 
-**Mode 3.1 (looked, but not for this): 14. Mode 3.4 (never named): 13.
-Mode 3.2 (found, explained away): 3. Mode 3.3 (heuristic not promoted):
-1.**
+Two distributions, because they answer different questions. What kind of
+defect it was:
+
+| Class | Count |
+|---|---|
+| LEGIBILITY (system worked, screen never said so) | 10 |
+| LAYOUT (text colliding or clipped) | 5 |
+| DESIGN-HOLE (content with no reason to engage it) | 5 |
+| BALANCE (option dominated, dead, or actively bad) | 4 |
+| WIRING (two halves of one feature never met) | 4 |
+| ANIMATION (motion did not match the name) | 3 |
+| VARIETY, STRUCTURE, HARNESS | 3 |
+
+**Fifteen of 33 are LEGIBILITY plus LAYOUT.** The screen, not the
+simulation, is where this prototype's surviving defects lived.
+
+And why each escaped:
+
+| Failure mode | Count |
+|---|---|
+| 3.1 looked, but not for this class | 14 |
+| 3.4 class never named at all | 13 |
+| 3.2 found, then explained away | 3 |
+| 3.3 heuristic never promoted to a rule | 1 |
 
 Twenty-seven of 33 were reachable with the instruments that already
 existed. What was missing was a checklist and an adjudication rule.
@@ -301,6 +322,18 @@ existed. What was missing was a checklist and an adjudication rule.
 Seven, all implemented in `verify/`, all proven in `verify/PROOF.md`
 against worktrees at the commit before each fix. Seven of eight aimed
 detectors fire on the buggy build and go quiet on the fixed one.
+
+| Code | Detector | Defects it covers |
+|---|---|---|
+| D1 | Layout invariants over a display list | 11 |
+| D2 | Cold-read questionnaire | 11 |
+| D3 | Policy bots and usage histograms | 6 |
+| D4 | Route search over the world graph | 4 |
+| D5 | Typed events instead of string matching | 4 |
+| D6 | Generated content tables | 5 |
+| D7 | Differential harness fidelity | 3 |
+
+Rows overlap: several defects have two detectors.
 
 ## D1. Layout invariants over a display list
 
@@ -317,11 +350,35 @@ different and better:
 Division of labour: **use a loop for "is this geometrically correct",
 use a model for "does a person understand this."**
 
-The invariants, proven working: no two text draws collide; every text
-draw stays inside the card it is drawn on with padding; sprite facing
-agrees with the sign of movement; hash each ability's pose sequence and
-flag identical hashes; exactly one panel carries the selected style and
-its id matches the cursor.
+The shape to build, once a project outlives one weekend:
+
+```ts
+// pure, testable, no canvas
+type Draw =
+  | { kind: "text"; id: string; text: string; box: Rect; clip: string | null }
+  | { kind: "sprite"; id: string; pose: Pose; facing: -1 | 1; box: Rect }
+  | { kind: "panel"; id: string; box: Rect; style: "normal" | "selected" }
+  | { kind: "bar"; id: string; value: number; max: number; box: Rect };
+
+export function buildScene(state: World, ui: Ui): Draw[]   // pure
+export function blit(ctx: CanvasRenderingContext2D, scene: Draw[]): void
+```
+
+The invariants, each mapped to what it catches:
+
+1. **No two text boxes in the same layer intersect.** Catches 29, 30,
+   22, 23.
+2. **Every draw is inside its clip box, with minimum padding.** Catches
+   31. Proven: fires at -2.3px on the buggy build, silent after.
+3. **Sprite facing agrees with the sign of movement.** Catches 1.
+4. **Hash each ability's pose sequence across its cast; two identical
+   hashes is a defect.** Catches 2, and would have flagged 15 as "these
+   three casts are the same motion."
+5. **Exactly one panel carries `style: "selected"` and its id equals the
+   cursor's id.** Catches 16.
+6. **Every active mechanic has a `Draw` whose text contains its
+   explanation string**, driven from a mechanics registry rather than
+   hand-written tests. Catches 9, 11.
 
 Two things the proof run taught that were not obvious:
 
@@ -388,7 +445,8 @@ call.
 ## D4. Route search over the world graph
 
 - **Maximum-skip route**: reach the end touching the fewest encounters
-  and pickups. Its output is the design-hole list.
+  and pickups. Its output is the design-hole list. Catches 10, and would
+  have caught swimming under the sealed door.
 - **Content necessity matrix**: for each piece of content, can the game
   be finished without it. Often "yes, and that is fine", but as a ruling
   rather than a discovery.
@@ -403,10 +461,17 @@ gating the ending verse was silent. Sim correct, tests green, feature
 absent.
 
 The fix is a type, not a test. Cross-module signals carry enum tags and
-prose stays a presentation leaf. **No feature may depend on two modules
-agreeing about a string.** This also retires `src/events.ts`'s substring
-matching on copy like `"rings true"`, which silently returns null the
-moment a writer edits a line.
+prose stays a presentation leaf:
+
+```ts
+type Signal = { tag: "seal.progress"; sealId: "hub" | "gullet"; step: number }
+```
+
+Then the compiler catches 19 and 27. **No feature may depend on two
+modules agreeing about a string.** This also retires `src/events.ts`'s
+substring matching on copy like `"rings true"` and `"spills out of it"`,
+which silently returns null the moment a writer edits a line. Catches
+19, 21, 27, and the whole family they belong to.
 
 ## D6. Generated content tables
 
@@ -417,7 +482,10 @@ moment a writer edits a line.
   in adjacent beats.
 - **Outcome variety table**: all reachable endings and the states that
   produce them. Would have shown at a glance that 0/5 and 5/5 verses
-  printed identical text.
+  printed identical text. Catches 7, and 8 by the same shape.
+
+All three are cheap, generated, and reviewed once per session rather
+than once per project.
 
 ## D7. Differential harness fidelity
 
@@ -492,6 +560,21 @@ A round that returns "nothing found" must say which classes it checked.
   by hand at hour eighteen.
 - **G14 HARNESS FIDELITY**: differential on every commit, plus the
   null-result alarm.
+
+## Honest coverage estimate
+
+Of the 33 defects: roughly **20 were mechanically detectable** with no
+model in the loop (D1, D3, D4, D5, D6, D7), around **11 needed a model
+reading a screen** and answering spec-derived questions (D2), and the
+remainder were rulings rather than bugs.
+
+The claim is not that a machine would have made the game good. It is
+that the machine could have handed the human a list of 20 things before
+they ever sat down, so the afternoon of play went to the questions only
+a person can answer. And note what that estimate really measures: **27
+of the 33 were reachable with instruments this project already had**, so
+most of that coverage costs a checklist and an adjudication rule, not an
+engineering budget.
 
 ## Keep the commit history segmented
 
