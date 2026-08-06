@@ -195,6 +195,69 @@ retrofitted motion twice, and players still said the animations did not
 match. Deriving abilities from existing motion makes that defect class
 impossible by construction.
 
+## 2.6 Fight one's anatomy (Q5)
+
+**Three limbs, and UNDER deliberately empty.** Jaw at FRONT, claw at
+FLANK, tail at REAR. UNDER exposes nothing.
+
+- The empty station is what proves the geometry is real. UNDER is a
+  place you can stand that does nothing offensively, which forces the
+  question *why would I ever go there*, and the answer is that the jaw
+  cannot reach it. **Safety is a reason to move**, and that lesson needs
+  its own beat.
+- Break the tail and REAR becomes safe too. The player watches the board
+  change in fight one, so the escalation pillar is demonstrated rather
+  than asserted.
+- Three limbs against three divers and four Air makes the composition
+  problem concrete immediately: you cannot cover everything. Four limbs
+  invites "each diver has a job," which is the Final Fantasy read
+  Glass_Goat criticised.
+
+**Its one defining mechanic: the jaw only reaches FRONT, and the tail
+sweeps REAR and FLANK together.** No conditions, no statuses, no special
+rules. The single idea is *attacks have geography*.
+
+**No status conditions in fight one** (ruled). TIDESONG's first fight
+tried to teach conditions and targeting at once and playtesters could
+articulate neither.
+
+Creature: a **mutated hunter crab**. Reads as an anatomy at a glance,
+has an obvious front-to-back asymmetry, fits the post-flood premise, and
+gives Glass_Goat a brief that is not a fish.
+
+Held back deliberately, each available as a later beat's single new
+idea: status conditions, armoured limbs that gate damage, attacks that
+cover multiple stations, and enemies that move.
+
+## 2.7 The teach ladder (standing rule)
+
+**Every beat introduces exactly one new idea, and the spec names which
+one.** This is a rule, not an aspiration, because the loudest finding
+from both prototypes was that players could not say what they were doing
+or why.
+
+Corollaries:
+
+- A mechanic must appear **alone** before it appears **combined**.
+- New abilities and new capabilities arrive as **rewards between
+  fights**, so that progression and pacing are the same mechanism. This
+  also gives the NPC a job, which fixes the "the merfolk should have
+  given something" complaint structurally rather than by bolting a shop
+  onto a lore stop.
+- Anything held back is listed with the beat that will teach it, so the
+  ladder is auditable rather than remembered.
+
+### New gate: G-TEACH
+
+A generated table, in the D6 family alongside the pillar matrix: for
+every mechanic, the beat where it first appears, and whether any other
+new mechanic appears in that same beat.
+
+**Two new mechanics introduced in one beat is a finding.** A mechanic
+that never appears alone is a finding. This is the pillar audit's
+sibling, and like the pillar audit it should be generated from content
+data rather than performed by hand at hour eighteen.
+
 ---
 
 # Part 3: Story and framing (direction, not yet decided in detail)
@@ -293,8 +356,8 @@ instruments chased a design that had already outrun them.
 
 | # | Question |
 |---|---|
-| 5 | Fight one's anatomy: which limbs, which station map, what its one defining mechanic is |
-| 6 | The six abilities: what each of the existing animations does mechanically |
+| 6 | Progression: what kind of thing is unlocked between beats, and the ladder order |
+| 6b | The six abilities: what each of the existing animations does mechanically |
 | 7 | The number scale: HP and damage, given determinism (Glass_Goat wants 10 HP; the risk is that granularity collapses and six abilities all do 2) |
 | 8 | Turn structure: initiative, and whether the enemy acts between player actions or after all of them |
 | 9 | Currency and progression: what is collected, what an NPC trades, whether Resonance returns |
