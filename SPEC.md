@@ -258,6 +258,131 @@ that never appears alone is a finding. This is the pillar audit's
 sibling, and like the pillar audit it should be generated from content
 data rather than performed by hand at hour eighteen.
 
+## 2.8 Progression and how abilities arrive (Q6)
+
+**Unlocks are bodies, gear, and abilities. All three. Story-gated, on the
+critical path, one per beat, each arriving with the obstacle that
+requires it.**
+
+An earlier draft of this spec said "never abstract abilities." **That
+clause is struck.** It was wrong, and the measurements say so.
+
+### The diagnosis that replaces it
+
+The three abilities nobody used in TIDESONG were Bubble, Analyze and
+Tail Strike: the first two at 0 percent of optimal play on every
+encounter, the third dominated by Fin Slash. The two that players did
+engage with were Silt Burst, because you could see mud go into an eye,
+and Fin Slash, because Analyze named it as the answer on four of five
+enemies.
+
+What the dead three had in common was not invisibility, and not a
+missing animation, because Tail Strike had one. **None of them arrived
+with a problem that required them.** Bubble guarded nothing in
+particular. Analyze answered a question the free telegraph had already
+answered. Tail Strike solved nothing Fin Slash did not solve better.
+
+So the failure was never "abilities are bad rewards." It was that six
+abilities were handed over at once, unexplained and undifferentiated,
+with no obstacle attached to any of them.
+
+### The rule
+
+> **Every ability arrives with three things: a visible source, a
+> distinct motion, and the problem it solves.**
+
+The visible source may be gear, a new diver, or the drum growing a mode.
+The problem is the part TIDESONG never had.
+
+### The convergence worth keeping
+
+"Every ability arrives with the problem it solves" and **G4 per-option
+dominance** ("every ability must be the single best choice somewhere by
+a measurable margin") are the same requirement seen from two ends. An
+ability introduced by an obstacle that demands it cannot be dominated,
+because at least one state exists where it is the answer. An ability
+that fails G4 was introduced without a problem.
+
+**The teach ladder and the hardest balance gate are one check.**
+
+### Story-gated, with one binding condition
+
+Story gates capability. That inverts TIDESONG's failure exactly: story
+was a collectible, so it was optional, so it was invisible. Making story
+the gate makes it load-bearing without a line of exposition, and it
+gives the player a reason to care about it.
+
+**Condition: story-gated only works if the story is on the critical
+path.** Last time the load-bearing verse, the one carrying the inciting
+incident, sat behind an optional puzzle nobody found. If capability is
+behind story, the story cannot be skippable, or we have rebuilt the same
+bug under a new name.
+
+### The boat is the hub
+
+Surface-supplied diving means a compressor on a boat. **The boat is
+where divers join and where prototype suits are upgraded.** That gives
+the hub a job that is not lore delivery, which is the direct fix for
+"the merfolk should have given something." The umbilical, the shared Air
+pool, the hub, the NPC and the progression are one idea rather than
+five.
+
+### The ladder
+
+| Beat | New idea, taught alone | Delivered as |
+|---|---|---|
+| Opening | Who you are and what you want | Scene |
+| Fight 1 | Attacks have geography | Two divers, three limbs, empty UNDER |
+| Boat | A diver who costs 3 is a commitment | Proto5 joins |
+| Puzzle 1 | The lock's state is readable | Environment |
+| Fight 2 | Conditions | Drum mode fitted at the boat |
+
+The **Aug 13 slice** is the first three rows plus the puzzle.
+
+**Open risk, flagged now rather than in week six:** six abilities plus
+three divers plus drum modes needs roughly six or seven teaching beats,
+against an agreed budget of one hub and two dungeons. Tight but
+workable. The ladder gets written before the content, so we find out
+early.
+
+Upgrades are **story-gated, not bought.** Salvage as a currency is
+deferred: the slice's job is to prove the combat reads, and an economy
+is a second thing to explain before the first has evidence.
+
+## 2.9 The six abilities (Q7)
+
+**One verb per diver**, expressed twice at different scales or scopes.
+
+| Diver | Cost | Verb | Ability | Does |
+|---|---|---|---|---|
+| Scuba | 1 | **displace** | `Axe_Kick` | knocks the target limb's guard open, or shoves an enemy part |
+| | | | `Double_Knee` | attacks and moves Scuba to an adjacent station in one action |
+| Prototype1 | 2 | **disable** | `Palm_Strike` | applies the condition currently fitted to the drum |
+| | | | `DualPalm` | applies it to two limbs at once, or refreshes it |
+| Proto5 | 3 | **break** | `Attck1` | heavy damage to one limb, the reliable breaker |
+| | | | `Attck2` | hits two adjacent stations, the crowd answer |
+
+Why one verb per diver:
+
+- It makes composition legible. "Who do I spend Air on" becomes the same
+  question as "what do I need to happen right now." Three verbs, three
+  costs, four Air, and a player can hold that in their head.
+- It gives us three problems to build obstacles around, which is exactly
+  what the teach ladder needs. An enemy that must be moved teaches
+  Scuba; a limb that must be shut off teaches Prototype1; an armoured
+  limb teaches Proto5. Obstacle and ability are designed as one thing.
+- It matches the clips we have. Scuba's are both kicks, which read as
+  impact and displacement. Prototype1's are both open-handed palm
+  strikes, which read as *applying* rather than smashing. Proto5's are
+  undefined and can be the heavy breaks.
+- The rejected alternative, "cost tier defines role," produces six
+  abilities that differ only in magnitude, which is exactly how Tail
+  Strike ended up dominated.
+
+**Confidence note:** this is the first section of the spec that is
+invented rather than derived from evidence. It should be the first thing
+the bands and the dominance proof are pointed at.
+
 ---
 
 # Part 3: Story and framing (direction, not yet decided in detail)
@@ -356,8 +481,6 @@ instruments chased a design that had already outrun them.
 
 | # | Question |
 |---|---|
-| 6 | Progression: what kind of thing is unlocked between beats, and the ladder order |
-| 6b | The six abilities: what each of the existing animations does mechanically |
 | 7 | The number scale: HP and damage, given determinism (Glass_Goat wants 10 HP; the risk is that granularity collapses and six abilities all do 2) |
 | 8 | Turn structure: initiative, and whether the enemy acts between player actions or after all of them |
 | 9 | Currency and progression: what is collected, what an NPC trades, whether Resonance returns |
