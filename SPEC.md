@@ -383,9 +383,149 @@ Why one verb per diver:
 invented rather than derived from evidence. It should be the first thing
 the bands and the dominance proof are pointed at.
 
+## 2.10 Numbers (Q8)
+
+**HP is tiered by gear.** The gear tier already sets Air cost and is
+already readable off the silhouette; letting it set HP too means one
+visual carries two mechanics that agree with each other. Plate costs 3
+and survives. Bare skin costs 1 and dies. Nothing new to explain.
+
+Opening values, to be moved by the bands, not defended:
+
+| Diver | Air cost | HP | Damage |
+|---|---|---|---|
+| Scuba | 1 | 6 | 2 |
+| Prototype1 | 2 | 10 | 2 + condition |
+| Proto5 | 3 | 16 | 5 |
+
+Limb durability 6 to 8. Enemy damage 3 to 4.
+
+**The property worth noticing:** at 2 damage for 1 Air, Scuba is the
+*efficient* diver, while Proto5 at 5 damage for 3 Air is *concentrated*.
+So the heavy is not "more damage," he is "damage that lands this turn."
+That is a reason to exist rather than a bigger number, and it is the
+thing that stops him being Tail Strike.
+
+Rejected: flat HP for everyone leaves armour decorative, which wastes
+our one legibility win. A shared party HP pool removes the reason to
+care who gets hit, which is the entire tension stations create.
+
+## 2.11 Turn structure (Q9)
+
+**Full player turn spending up to 4 Air, then the enemy's full turn.
+The telegraph is shown at the START of the player's turn.**
+
+The contract: you see exactly what is coming and where, then you get a
+whole turn to answer it.
+
+It also protects the search. One decision node per turn containing an
+allocation of 4 Air. Initiative interleaving would multiply the tree by
+permutations and make the dominance proof much more expensive, and
+strict alternation would delete allocation, which is the reason Air
+exists.
+
+Rejected: an enemy that acts inside the player's turn. A plan you cannot
+finish is indistinguishable from a random outcome, which contradicts 2.1.
+
+## 2.12 The slice's puzzle (Q10)
+
+**Flood and drain.** Valves raise and lower the water level, and the
+level changes what is reachable.
+
+**Water level is the most readable state in any game world.** You can
+see it from across the room, you can see it change, and you can read it
+from a screenshot with no HUD, which is exactly what the blocking
+cold-read gate tests. It is the song puzzle's failure inverted: that
+puzzle's state lived in the player's memory of a sequence; this one's
+state is a line you can point at.
+
+Later escalation, free: a room whose water level changes is a room whose
+stations change.
+
+Rejected: power routing and pressure doors are good Zelda idioms whose
+state lives in small indicators, which is nearer the failure we are
+correcting than the fix.
+
 ---
 
-# Part 3: Story and framing (direction, not yet decided in detail)
+# Part 3: Premise and opening
+
+**All text here is a committed draft, placeholder-marked for Marc.** It
+exists because a blank where the premise goes is a decision to have no
+game. Rewrite freely; the structure below is the part that is load
+bearing.
+
+Working title: **SALVAGE** (team can rename).
+
+## 3.1 The premise
+
+The water never went down. What is left of people lives on rigs and
+boats, and everything worth having is underneath them.
+
+The squad are salvage divers working off one rig, field-testing
+prototype diving armours. **The rig's compressor is failing.** It is the
+thing that lets anyone dive, and diving is how the rig eats. The parts
+that would fix it are in the drowned city below, deeper each time, and
+the mutants got there first.
+
+**The goal sentence, said out loud on the boat in the first minute:**
+*"The pump is dying. What fixes it is down in the city. We go down."*
+
+## 3.2 Why this premise and not another
+
+It follows the one story lesson TIDESONG got right, which is to derive
+theme from the verbs rather than paste it on:
+
+- **The Air pool and the stake are the same object.** The compressor is
+  what gives you four Air a turn, and it is also the thing that is
+  dying. The core mechanic and the plot are one item.
+- **It renews.** Every dive has a reason and the reason gets worse.
+- **It explains the hub.** You surface to the rig because the rig is
+  where the compressor, the gear and the other divers are.
+- **It explains the fiction of shared Air**: surface-supplied diving,
+  umbilicals from one pump.
+- **It fixes the Dorothy problem.** "Get home" cannot mean the surface
+  in a flooded world, and the divers start on a boat, so they are
+  already there. Home is *down there*, drowned. Scuba came from the city
+  before the water took it. That is a sharper version of the Oz want,
+  not a weaker one.
+
+Each archetype keeps one want, in the Oz shape, all placeholder:
+Scuba wants the place she came from, Prototype1 wants to understand what
+is down there, Proto5 wants a reason to be in a suit at all.
+
+## 3.3 The opening (Q11)
+
+**A short scene on the boat, then the descent.** Under a minute, and it
+must deliver four things and nothing else:
+
+1. Who you are.
+2. What you want (the goal sentence above).
+3. What is in the way.
+4. What the buttons do.
+
+It opens on the rig because the rig is already the hub, so the opening
+teaches the hub for free and introduces the two starting divers as
+people rather than menu entries.
+
+**The opening is a mechanic and is budgeted as one.** It is the direct
+fix for the loudest finding of the last playtest, which was that nobody
+could say what they were supposed to be doing or why.
+
+## 3.4 Standing story rules
+
+- **Story gates capability and therefore sits on the critical path.**
+  TIDESONG made story a collectible, so it was optional, so it was
+  invisible. Not repeatable.
+- **Puzzle grammar is machinery and flow**, chosen because its whole
+  state is readable off the objects.
+- **Analyze is a character, not an ability.** Prototype1 carries the
+  three-lens drum. Under Air, spending 2 on the scanner instead of 3 on
+  the heavy is a composition choice, not a wasted turn.
+
+---
+
+# Part 3b: Story and framing (older notes, superseded where they conflict)
 
 - **Setting:** post-flood dystopian diving expedition. Earth flooded,
   the treasures of humanity are on the seabed, mutants and scarce
@@ -481,11 +621,7 @@ instruments chased a design that had already outrun them.
 
 | # | Question |
 |---|---|
-| 7 | The number scale: HP and damage, given determinism (Glass_Goat wants 10 HP; the risk is that granularity collapses and six abilities all do 2) |
-| 8 | Turn structure: initiative, and whether the enemy acts between player actions or after all of them |
 | 9 | Currency and progression: what is collected, what an NPC trades, whether Resonance returns |
-| 10 | The slice's puzzle: the specific lock, built to the readable-state rule |
-| 11 | The opening: what the first sixty seconds actually say and show |
 | 12 | Tech: GDScript versus Rust, decided by measuring bot throughput on one encounter; and the order in which the harness gets bootstrapped |
 
 ---
