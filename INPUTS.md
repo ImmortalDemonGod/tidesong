@@ -4,9 +4,33 @@ Source 1: human playtester notes, collected by the user.
 Source 2: team Discord, Jul 15 to Aug 4 2026 (137 messages, three
 members: mhanna112 / Marc, glass_goat, etn3_i / the user).
 
-Fixed decisions so far: the singing mechanic and the TIDESONG story are
-**cut**. Combat and puzzles carry over in shape. Engine moves to
-**Godot** (Rust an open question).
+---
+
+# Part 0: Rulings (settled, not open)
+
+| Decision | Ruling |
+|---|---|
+| The song and singing | **Cut wholesale.** Not as lore, not as a collectible, not as a puzzle lock. |
+| The TIDESONG story | **Cut.** Setting moves toward Glass_Goat's post-flood diving premise. |
+| Party of three in combat | **In.** The merge proposal's "the jam game is a solo character" is formally reversed. |
+| Limb targeting | **Stays in. Players liked it.** The complaint was that targeting was not clear, and the answer is legibility, not removal. This overrides Glass_Goat's combat-PDF preference for skill-plus-condition. |
+| Engine | **Godot.** 2.5D, not 3D, per Glass_Goat. Rust still open, decided on bot throughput. |
+| Which build was played | **The latest.** Confirmed by the user. |
+
+Also confirmed and new: **several players who tried it found it fun.**
+The 6/10 cold read was one reviewer, not a consensus. We are iterating on
+a base people enjoyed, not rebuilding a failure.
+
+Assets received: Glass_Goat has supplied the character files (Drive link
+with team rigging FBX). Not retrievable by me; needs to be placed in the
+repo or exported.
+
+Still wanted: the two reference images posted immediately before the
+action-sphere messages (Aug 3 17:46). The user recalls them as pictures
+of "the legends", discussed as a source for both character archetypes
+and puzzles. They line up with the Wizard of Oz framing of the sphere
+system, and they are the only visual record of what the squad is meant
+to be.
 
 ---
 
@@ -262,24 +286,23 @@ have Zelda puzzles but how a player is told one is in front of them.
 | The economy must actually bind | Glass_Goat's PDF (HP sacred, hard to heal), his "scarce resources", the spheres, and the retro's own finding |
 | An opening that states the goal | Playtesters, and the user's reversal |
 
-## Collisions that must be settled in the session
+## Collisions, three of four now settled
 
-1. **Determinism versus uncertainty.** Glass_Goat wants chess. TIDESONG
-   shipped dodge and miss rolls and counted them as a fun pillar. Pick
-   one. This decides the whole tuning methodology.
-2. **Limb targeting.** Marc's proposal specifies five body parts with
-   per-part effects. Glass_Goat's PDF argues explicitly against a limb
-   system: "why make a limb system when we can simply give the player a
-   skill to hit the eye and a blind condition." TIDESONG split the
-   difference (limbs on bosses only) and the playtesters said targeting
-   was not clear. **This has never been resolved and now has evidence on
-   Glass_Goat's side.**
-3. **Sound.** Cut entirely, or kept as the puzzle lock in Glass_Goat's
-   post-flood premise. His setting needs a puzzle grammar and sound is
-   the one he proposed.
-4. **Party reopens a parked scope decision** (see 3.2). With the jam
-   running to Oct 5 rather than one night, the budget argument is much
-   weaker than it was, but something should still come out.
+1. **Limb targeting: SETTLED, stays in.** Marc's proposal specified five
+   parts; Glass_Goat's PDF argued against a limb system; the user has
+   ruled to keep it because players liked it. The playtest complaint
+   ("targeting was not clear") is therefore a legibility requirement on
+   the limb system, not an argument to remove it. See 3.1a.
+2. **Sound: SETTLED, cut.** Which leaves Glass_Goat's premise without a
+   puzzle grammar, since frequency codes were the lock he proposed. A
+   replacement is now a design task, not a preference. See 3.4a.
+3. **Party: SETTLED, in.** The parked scope decision is reversed. With
+   the jam running to Oct 5 rather than one night, the budget argument
+   is much weaker than it was, but something should still come out.
+4. **Determinism versus uncertainty: OPEN, and the biggest one left.**
+   Glass_Goat wants 10 HP, 20 stamina, chess. TIDESONG shipped 100 HP,
+   dodge and miss rolls, and counted uncertainty as a fun pillar. The
+   user is unconvinced that small is the right lever. See 3.6.
 
 ---
 
@@ -306,6 +329,31 @@ characters. These are one design, not four fixes:
 
 This is the largest scope decision on the table and it needs to be made
 deliberately, not absorbed.
+
+## 3.1a Limbs stay, so positioning must serve them rather than replace them
+
+The earlier draft assumed positional targeting would retire the part
+list. With the limb ruling that is off the table, and the better shape is
+that **the limb IS the position**.
+
+Instead of an arrow-key list of parts, the enemy occupies space and its
+parts occupy distinct places within that space: the jaw is at the front,
+the tail at the back, the fin above. Moving a character to a place is
+what selects the part. Then:
+
+- "What am I aiming at" is answered by where a body is standing, not by
+  a highlighted row.
+- Reach and approach become real: the tail is behind the enemy, so
+  hitting it means getting there, which is a cost and a risk.
+- A three-character party gets a natural division of labour: someone is
+  in the jaw's face, someone is flanking.
+- Enemy attacks acquire an animation by necessity, because an attack is
+  a strike at a place a character is standing in.
+- Marc's per-part effects survive intact, and Glass_Goat's objection to
+  limb systems ("too many ifs and buts") is answered by making the part
+  a location instead of a menu entry.
+
+This is the version of positional combat to bring to the session.
 
 ## 3.2 It reverses an agreed scope decision, on purpose
 
@@ -351,12 +399,91 @@ So the instinct is fine and the vehicle is wrong. Three options:
 
 Option 1 plus 3 is the cheapest and it protects the pillar.
 
+## 3.4a Cutting the song leaves a puzzle-grammar hole, and the fix is a diagnosis
+
+Glass_Goat's premise opened treasures with sound codes. With sound cut,
+the setting needs a different lock, and the choice should be driven by
+**why the song puzzle failed** rather than by theme.
+
+It failed because **its entire state lived in the player's memory of a
+sequence and nothing on screen held it.** Three stones and a door. Which
+notes had been sung, in what order, and how many remained were all
+invisible. The visual fix drew the relationship between the objects and
+still did not work, because the relationship was never the missing part.
+The *state* was.
+
+The replacement should be chosen so that **the whole state of the puzzle
+is readable off the objects themselves.** In the post-flood premise that
+points at pre-flood human machinery: valves, pressure doors, power
+routing, flooded and drained chambers. A valve is open or closed and you
+can see which. A pipe carries flow or does not. A chamber is flooded or
+drained. Nothing has to be remembered.
+
+It also serves three other constraints at once: it is diegetic to
+"treasures of humanity at the bottom of the sea", it is the Zelda idiom
+Marc asked for, and it gives the player a reason to be a diver rather
+than a fish.
+
 ## 3.5 The opening is a mechanic, not polish
 
 The user's own reversal is correct. Budget it as a first-class item with
 a gate, not as end-of-run garnish. What it must deliver in under a
 minute: who you are, what you want, what stands in the way, and what the
 buttons do. It can carry lore, but the lore is the passenger.
+
+## 3.6 On small numbers: the request is right, the lever is only half right
+
+Glass_Goat wants 10 HP and 20 stamina so results are "predictable, like
+chess." The user is unconvinced. Both positions have something.
+
+**What is genuinely right about it**, and stronger than the reason he
+gave:
+
+- **Legibility, which is this project's chronic failure.** "8 damage"
+  against 100 HP means nothing. "3 damage" against 10 HP reads instantly
+  as "a third of me is gone." After two prototypes where players could
+  not read the numbers we showed them, a scale a human can hold in their
+  head is worth more than tuning headroom.
+- **Testability.** Small integers plus no rolls means exhaustive search
+  replaces statistical sampling. "Is there a dominant line" stops being
+  estimated over 100,000 fights and becomes solved. The whole G4 question
+  gets easier, not harder.
+- **There is a proof it works.** Into the Breach is fully deterministic,
+  units have 3 to 5 HP, every enemy attack is telegraphed with its exact
+  target before it lands, and it is three units on a grid. That is
+  almost exactly the game these inputs are converging on, and it is
+  widely regarded as one of the best tactics designs ever made.
+
+**What is genuinely risky**, and the user's instinct is pointing at it:
+
+- **Tuning granularity collapses.** At 10 HP a single point is 10
+  percent of a character. There is no room to express "this ability is
+  15 percent better"; everything rounds to coarse steps. Six abilities
+  can easily end up all doing 2.
+- **Percentages stop composing.** A 50 percent reduction on a 3-damage
+  hit is 1.5, and every rounding rule becomes a visible design decision.
+  TIDESONG already learned that percentage mitigation does not tune.
+- **Swinginess per point goes up**, not down. With three characters at 10
+  HP, an enemy hit for 4 is nearly half a body.
+
+**The resolution.** The two things actually being asked for are *no
+hidden rolls* and *the player can count*. Small numbers deliver both, but
+so does a slightly larger integer scale with no randomness. The real
+commitment to make is determinism; the exact ceiling is a tuning
+parameter.
+
+And the load-bearing consequence, which is worth saying at the session
+because it is easy to miss: **if numbers go small, variety has to move
+out of damage values and into effects and positioning.** Into the Breach
+has almost no damage variety (1, 2, 3) and enormous variety in push,
+pull, displacement and terrain. If we shrink the numbers and keep
+expressing ability identity through damage, the kit will flatten. With
+limbs and positioning both in, we have somewhere for that variety to go.
+
+Recommended framing for the decision: **commit to determinism first**,
+then pick the smallest scale that still lets six abilities feel
+different, and prove it with an exhaustive-search dominance check rather
+than an argument.
 
 ---
 
@@ -414,16 +541,17 @@ onto the split that already works.
 
 1. **Determinism.** Chess model (10 HP, no rolls) or keep uncertainty.
    Everything downstream depends on this.
-2. **Limb targeting.** Marc's five parts, Glass_Goat's skill-plus-
-   condition, or positional targeting. Three-way conflict, now with
-   playtest evidence.
+2. **Limb legibility.** Limbs are staying, so the open question is how a
+   player reads what they are aiming at. Proposal in 3.1a: the limb is
+   the position.
 3. **Spheres.** Carry over between turns? Do enemies share the economy?
    Can one character act twice? Does a downed character's cost return?
    And does the player control all three characters, or one plus two
    allies acting on their own?
 4. **Positioning.** Grid or free? Does it replace part selection or sit
    alongside it? Does moving cost a sphere?
-5. **Sound.** Cut, or kept as the puzzle lock in the post-flood premise.
+5. **Puzzle grammar.** Confirm machinery-and-flow over the cut sound
+   codes, or propose another lock whose state is readable off the object.
 6. **Currency.** Resonance, salvage, or spheres themselves. What does an
    NPC trade, and for what.
 7. **Premise.** Confirm the post-flood diving expedition, and who the
