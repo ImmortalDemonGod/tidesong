@@ -306,6 +306,111 @@ have Zelda puzzles but how a player is told one is in front of them.
 
 ---
 
+# Part 2e: The squad, read off the art and the rig
+
+Two reference images and `Main_Team_Rigging.fbx` (30 MB, Blender 4.5.2
+export, Auto-Rig Pro). Source path in the file:
+`OTC_ARTS/Blender/1_Character_Sets/9_Struggles/Diving_Armors/Main_Team_Rigging.blend`.
+
+## What is in the file
+
+Three rigged characters (3 deformers, 3 meshes), 136 bones each, and
+**fifteen animation clips**:
+
+| Character | Idle | Attacks | Damaged |
+|---|---|---|---|
+| **Scuba** | `Scuba_Idle1`, `Scuba_Idle_Pose` | `Scuba_Axe_Kick`, `Scuba_Double_Knee` | `Scuba_Damaged1` |
+| **Prototype1** | `Prototype1_Idle1` | `Prototype1_Palm_Strike`, `Prototype1_DualPalm` | `Prototype1_Damaged` |
+| **Proto5** | `Proto5_Idle`, `Proto5_Still` | `Proto5_Attck1`, `Proto5_Attck2` | `Proto5_damaged` |
+
+Plus `T_Pose`. Materials: `Diver_Lady`, `Diver_Tank1`, `DiverMask1`,
+`Face`, `Eyes`, `Mouth`.
+
+## The mapping, and why the cost system is already legible
+
+| Render | Name | Gear tier | Sphere cost | Oz archetype |
+|---|---|---|---|---|
+| Left, heavy plate, gold bands, red boots | Proto5 | big armor | **3** | Tin Man |
+| Middle, bare skin, fins, goggles, red hair | Scuba (`Diver_Lady`) | scuba gear | **1** | Dorothy |
+| Right, orange suit, round helmet, holding a three-lens drum | Prototype1 | middle armor | **2** | Scarecrow |
+
+The Oz reference image is the template: a huge riveted Tin Man, a small
+girl in **red boots**, and a lanky **orange-coated** Scarecrow. Our
+Diver_Lady has red footwear and our middle-armor diver is orange. The
+archetype mapping is deliberate and visible in the silhouettes.
+
+**This confirms the thing I hoped for and could not assume: the sphere
+cost is readable off the amount of gear worn.** Bare skin costs 1, suit
+costs 2, plate costs 3. No number has to be printed anywhere. After two
+prototypes of failing to make numbers legible, a system where the sprite
+IS the number is the single best structural answer available.
+
+The naming carries a fiction hook for free: the squad are field-testing
+**prototype diving armors**. Prototype 1 and Prototype 5 are suits;
+Scuba is a person with no suit at all. It explains why the gear is
+strange, why the tiers exist, and why there could be more of them later.
+
+## The constraint that should drive the combat design
+
+**Each character has exactly two attack animations.** Three characters
+times two attacks is six abilities, which is the same kit size TIDESONG
+shipped, now distributed across the party so that sphere composition
+actually decides which abilities you can reach this turn.
+
+More importantly, this inverts the failure mode. TIDESONG named an
+ability "Tail Strike" and then retrofitted motion onto it, twice, and
+players still said the animations did not match. Here the motion exists
+first:
+
+- **Scuba**: Axe Kick, Double Knee. Both legs, unarmed, agile.
+- **Prototype1**: Palm Strike, Dual Palm. Both hands, close range.
+- **Proto5**: two attacks, unnamed and unseen.
+
+**Rule for prototype 2: ability names come from the animation list, not
+the other way around.** The animation-mismatch defect class is then
+impossible by construction rather than fixed by iteration.
+
+## What is missing, and it is the critical path
+
+1. **No movement or swim animation for anyone.** Positioning is in, so
+   every character needs one. This is the first ask.
+2. **No enemies at all.** The most severe playtest finding was that enemy
+   attacks had no animation. There are zero enemy models or clips in this
+   file. Enemy idle, wind-up, strike and hit-reaction are the highest
+   priority art dependency in the project.
+3. **No death animation** for any character.
+4. **No non-attack ability animations**: nothing for guarding, scanning,
+   healing or using the three-lens drum Prototype1 is holding.
+
+## Two design opportunities the art hands us
+
+**The drum.** Prototype1 is holding a large cylinder with three glowing
+octagonal lenses. That is an information tool, and it suggests making
+**Analyze a character rather than an ability**. The retro's finding was
+that Analyze sat at 0 percent of optimal play because information
+competed for the same slot as damage. Under spheres, spending 2 on the
+scanner instead of 3 on the heavy is a composition choice, not a wasted
+turn. Information stops being a tax.
+
+**The Oz frame answers the framing failure.** Every Oz character wants
+exactly one thing, and Dorothy's is the clearest goal statement in
+fiction: get home. In the post-flood premise that is *get back to the
+surface*. That is an opening that needs no lore and no exposition, and
+it directly fixes "nobody knew what they were supposed to be doing or
+why they were there."
+
+## Technical note for the Godot move
+
+The rig is Auto-Rig Pro (`c_root_master.x`, `c_arm_twist_offset`,
+`arm_stretch`, FK and IK control bones) at 136 bones per character, most
+of which are controls rather than deforming bones. Exported to Godot
+that is a lot of skeleton for a 2.5D game. Worth agreeing with
+Glass_Goat on a **deform-only export** (Auto-Rig Pro has a game-engine
+export path that bakes controls out), and pinning a bone budget before
+animation work scales up.
+
+---
+
 # Part 3: The synthesis
 
 ## 3.1 Positional combat answers four complaints with one change
