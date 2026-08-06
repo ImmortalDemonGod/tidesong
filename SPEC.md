@@ -704,3 +704,6 @@ and the full exhaustion vision. Reopening party means the agreed content
 budget (30 to 45 minutes, 1 hub plus 2 dungeons, 2 bosses, 3 enemy
 types, 1 to 2 relics, 2 to 3 puzzle types) needs re-agreement rather
 than an addition.
+
+> **This is the archive.** The live spec moved to `~/salvage/docs/SPEC.md`
+> when the SALVAGE project was scaffolded. Edit that one.
