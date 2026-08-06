@@ -1,7 +1,8 @@
 # Prototype 2 inputs (accumulating)
 
 Source 1: human playtester notes, collected by the user.
-Source 2: Discord feedback from Glass_Goat and Marc (pending).
+Source 2: team Discord, Jul 15 to Aug 4 2026 (137 messages, three
+members: mhanna112 / Marc, glass_goat, etn3_i / the user).
 
 Fixed decisions so far: the singing mechanic and the TIDESONG story are
 **cut**. Combat and puzzles carry over in shape. Engine moves to
@@ -68,23 +69,217 @@ a missing system. This matches the retro exactly.
 
 ---
 
-# Part 2: The fact that has to be pinned down first
+# Part 2: Which build they played, and why it is bad news
 
-**Which build did they play?**
+Settled from the `gh-pages` deploy log and the Discord timestamps.
 
-Three of these findings are recurrences of defects fixed late on Jul 29:
-
-| Finding | Fix | Commit and time |
+| Who | When | Build they saw |
 |---|---|---|
-| Puzzle not readable as a puzzle | Threads, halos, lit stones, breathing door | `0485df4`, 23:12 |
-| Player animations do not match the attack | Tail pivot, seabed silt sweep, heal rings | `16c9497`, 16:32 |
-| Merfolk / hub gives nothing | +1 max stamina per verse, reward on the card | `0c4598d` and `0485df4` |
+| glass_goat | Jul 29 20:33 | `7240fa6`, 18:15. Has the ability animations (16:32) and the combat layout fixes (18:14). **Does not** have the puzzle mechanism visuals (23:15). |
+| The human playtesters | Aug 2 onward | `5dfc57a`, 23:19. **Everything.** |
 
-If they played the 11:00 build, none of that was in it, and these are
-confirmations of known defects rather than evidence the fixes failed. If
-they played after 23:12, the fixes did not work and the problem is
-deeper than presentation. **The two readings lead to different designs**,
-so this is the first thing to establish.
+The last deploy was 23:19 Jul 29 and no build shipped after it, so the
+playtesters had every fix.
+
+**So two legibility fixes were made, deployed, and did not work:**
+
+1. **The puzzle mechanism.** Light threads from each stone to a
+   breathing door, resonance halos, carved note faces, a sung stone that
+   stays lit, and a thread tying the door to the verse it guards. Players
+   still did not know there was a puzzle. One solved it, not on the first
+   try.
+2. **The ability animations.** Tail Strike given a tail-first pivot and a
+   swept arc, Silt Burst given a seabed sweep with a rising plume, Heal
+   Song given rings and notes. Players still said the animations did not
+   match the attack.
+
+There is a third, subtler case. The run log says the fun pass shipped
+"enemy windup, strike snap, recoil." Players reported **enemy attacks had
+no animation at all**. Both are probably true: a small snap on a mostly
+static sprite reads as nothing.
+
+**The lesson is a new defect class, and it is not "we did not fix it."**
+It is that a presentation fix has a perception threshold, and shipping
+"an animation" is not the same as shipping a readable one. Every one of
+these fixes was verified by the builder looking at a render and judging
+it improved. None was verified by a cold reader who did not know what
+had changed.
+
+This is the strongest possible argument for G-LEGIBILITY blocking, and
+it is now evidence rather than theory: **the un-cold-read fix failed
+twice in a row on the same build.**
+
+New checklist entry: **motion readability**. Does a cold viewer, shown a
+capture of the action, name what the character just did.
+
+---
+
+# Part 2b: What Glass_Goat validated
+
+He played on Jul 29 and his verdict was mostly positive, which the
+playtester notes do not capture:
+
+> "Honestly this is all the base mechanics"
+> "the movement is very good"
+> "making a 2.5 rpg is actually a great idea, so instead of top down
+> pokemon we can do the 2D map"
+> "the abilities here make sense"
+> "the slow going to level 2 works very well"
+> "that's one hell of a base"
+
+Carried forward as validated: **the 2.5D format** (he explicitly adopts
+it over top-down), the ability kit, and **condition levels I and II**,
+which the retro had flagged as rarely surfacing in natural play.
+
+His one criticism is a direction, not a bug:
+
+> "it's still pulling too much for the basic final fantasy, the overall
+> idea is all there the polishing are just details"
+
+Static sprites trading blows in a menu. The positional and action-sphere
+ideas below are the answer to it.
+
+---
+
+# Part 2c: Glass_Goat's design work since the playtest
+
+Three separate contributions, all after he played. None of them are in
+the playtester notes.
+
+## The premise has already moved off merfolk
+
+Jul 29 23:35, unprompted, hours after playing:
+
+> "earth was flooded, many treasures of humanity ended up at the bottom
+> of the sea, those treasures are opened with sound based codes, so
+> Frequencies, songs and poems are how you rearrange those frequencies"
+
+Aug 3, sharpened:
+
+> "Diving expedition" / "mutants, scarce resources" / "underwater
+> treasures" / "the underwater Distopian expedition"
+
+So the setting he is working toward is a **post-flood dystopian diving
+expedition**: human treasures on the seabed, mutants, scarce resources,
+divers rather than fish. That is compatible with cutting the TIDESONG
+story, and it is his own pitch, so it already has buy-in.
+
+**But note what it keeps.** His premise makes sound the *puzzle grammar*
+(frequency codes open the treasures), not the story theme. That is a
+different thing from what the playtesters rejected. The song failed as
+lore and as a collectible; it has never been tried as a lock. Worth
+separating before cutting it wholesale, because his premise loses its
+puzzle language without it.
+
+Divers also fix a smaller thing for free: "why is a fish fighting" goes
+away, and scarce resources become diegetic (air, gear, salvage).
+
+## The numbers directive: chess, not dice
+
+Jul 29 23:18:
+
+> "Having low number about 10 HP and 20 Stamina So that the interactions
+> are very predictable, like chess where all results are predictable so
+> the strategy does not feel random but calculated"
+
+Consistent with his combat PDF: "Players want consistent and predictable
+results, the limb system brings too much ifs and buts."
+
+**This conflicts head-on with what TIDESONG shipped.** 100 HP, 15 percent
+dodge, 60 and 80 percent blind miss rolls, drift targeting, and G5
+counted "uncertainty" as a fun axis with the evidence "outcomes are not
+predetermined." His model wants the opposite. This is a real, unresolved
+disagreement and it has to be settled before any tuning happens, because
+the bands are built on top of the answer.
+
+One thing in its favour that is easy to miss: small integers and no
+rolls make the sim **more** testable, not less. Exhaustive search over a
+whole fight becomes possible, so "is there a dominant line" stops being
+a statistical question and becomes a solved one.
+
+## Action spheres: the combat breakthrough
+
+Aug 1 to Aug 3, and he flagged it as the thing he had been working on:
+
+> "I cracked the code. I know how to make the combat more engaging"
+> "it actually has to do with the wizard of OZ"
+> "Resource action spheres"
+> "characters each have an action sphere cost to act"
+> "Dorothy and Scarecrow cost 1 action, Lion costs 2, Tin Man 3"
+> "for example you get 4 action spheres in your turn"
+> "so you can spend them in any combination of character costs"
+> "Sphere cost big armor 3, Middle armor 2, Scuba gear 1"
+
+**This is the strongest single idea any source has produced**, and it
+answers documented failures rather than adding a mechanic:
+
+1. **It is an action economy that binds by construction.** The retro's
+   sharpest unfixed finding was "a resource that never binds is not a
+   resource": stamina's floor in optimal play was 16 of 20 because a +2
+   refund ran against 3 regen. Spheres are scarce every single turn with
+   no regen loophole. Four spheres, and a heavy character eats three of
+   them.
+2. **It makes the party a decision, not three bodies.** Each turn you
+   choose composition: four cheap actions, or one heavy plus one cheap,
+   or two mediums. That is a real choice on turn one of every fight,
+   which is exactly what "every attack should feel meaningful" asked for.
+3. **It is deterministic**, so it satisfies the chess directive without
+   removing tension. The tension comes from allocation, not from rolls.
+4. **The cost is diegetic and therefore legible.** Big armor costs 3.
+   You can read the number off the silhouette. After two prototypes of
+   failing to make numbers legible, a system where the sprite *is* the
+   number is worth a great deal.
+5. **It gives turn order meaning** without a hidden Speed stat.
+
+Open mechanical questions it raises: do spheres carry over between
+turns, do enemies use the same economy, can one character act twice in a
+turn, and does a downed character's cost come back to the pool.
+
+Unretrieved inputs: two reference images posted immediately before the
+sphere messages, and a Google Drive link on Aug 4 captioned "the squad",
+which is presumably the three characters. Both are worth pulling before
+the design session.
+
+## Marc's contribution in the same window
+
+Aug 3: "ask AI to generate Zelda-like puzzles to add to the game."
+Consistent with his proposal ("Exploration is inspired by classic Zelda
+games"). Note it sits directly against the playtest evidence that nobody
+found the one puzzle that shipped, so the question is not whether to
+have Zelda puzzles but how a player is told one is in front of them.
+
+---
+
+# Part 2d: Where the three sources agree, and where they collide
+
+## Converged, treat as decided unless someone objects
+
+| Point | Sources |
+|---|---|
+| A party of three in combat | Playtesters, Glass_Goat's spheres, his combat PDF ("incentivised to swap party members"), Marc's proposal ("protect allies", "strengthen allies", "manipulate turn order") |
+| 2.5D side-on presentation, not top-down | Glass_Goat explicitly, after playing |
+| Disable-first combat, ability kit, condition levels | Glass_Goat after playing; nobody complained |
+| The economy must actually bind | Glass_Goat's PDF (HP sacred, hard to heal), his "scarce resources", the spheres, and the retro's own finding |
+| An opening that states the goal | Playtesters, and the user's reversal |
+
+## Collisions that must be settled in the session
+
+1. **Determinism versus uncertainty.** Glass_Goat wants chess. TIDESONG
+   shipped dodge and miss rolls and counted them as a fun pillar. Pick
+   one. This decides the whole tuning methodology.
+2. **Limb targeting.** Marc's proposal specifies five body parts with
+   per-part effects. Glass_Goat's PDF argues explicitly against a limb
+   system: "why make a limb system when we can simply give the player a
+   skill to hit the eye and a blind condition." TIDESONG split the
+   difference (limbs on bosses only) and the playtesters said targeting
+   was not clear. **This has never been resolved and now has evidence on
+   Glass_Goat's side.**
+3. **Sound.** Cut entirely, or kept as the puzzle lock in Glass_Goat's
+   post-flood premise. His setting needs a puzzle grammar and sound is
+   the one he proposed.
+4. **Party reopens a parked scope decision** (see 3.2). With the jam
+   running to Oct 5 rather than one night, the budget argument is much
+   weaker than it was, but something should still come out.
 
 ---
 
@@ -217,16 +412,21 @@ onto the split that already works.
 
 # Part 5: Open questions for the Discord pass and the design session
 
-1. Which build did the playtesters actually play (Part 2).
-2. Three characters: does the player control all three, or one plus two
-   allies? What determines turn order (Glass_Goat's Speed stat)?
-3. Positioning: grid or free? Does it replace limb targeting or sit
-   alongside it?
-4. If party is in, what comes out of the budget to pay for it.
-5. With the song cut, what is the collectible and what is the currency.
-   Is Resonance in.
-6. What is the new premise, now that "the sea forgot its song" is gone.
-   The opening cannot be written until this is answered.
-7. Does the limb system survive positional combat, given Glass_Goat's
-   documented preference for "a skill that hits the eye and applies a
-   blind condition" over a full limb system.
+1. **Determinism.** Chess model (10 HP, no rolls) or keep uncertainty.
+   Everything downstream depends on this.
+2. **Limb targeting.** Marc's five parts, Glass_Goat's skill-plus-
+   condition, or positional targeting. Three-way conflict, now with
+   playtest evidence.
+3. **Spheres.** Carry over between turns? Do enemies share the economy?
+   Can one character act twice? Does a downed character's cost return?
+   And does the player control all three characters, or one plus two
+   allies acting on their own?
+4. **Positioning.** Grid or free? Does it replace part selection or sit
+   alongside it? Does moving cost a sphere?
+5. **Sound.** Cut, or kept as the puzzle lock in the post-flood premise.
+6. **Currency.** Resonance, salvage, or spheres themselves. What does an
+   NPC trade, and for what.
+7. **Premise.** Confirm the post-flood diving expedition, and who the
+   three characters are (pending the "squad" link).
+8. **Scope.** What comes out to pay for the party, given Oct 5 rather
+   than one night.
