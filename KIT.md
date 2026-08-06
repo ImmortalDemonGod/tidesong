@@ -83,6 +83,28 @@ New, from this retro:
 9. **Every "deferred with reason" gets a BACKLOG line at the moment it
    is deferred.**
 
+## 1.5b Keeping an autonomous run honest about being done
+
+Measured from the last run: gates went green at 06:21, the run continued
+to 07:58, and those 97 minutes produced re-verification and a README and
+**zero new content**. The builder concluded it was finished and filled
+time.
+
+The mechanism is **information yield, not duration**. A suite that always
+passes tells you nothing however long it takes.
+
+- **Expensive generative verification runs continuously in the
+  background**, so there is always a pending question.
+- **Loop-until-dry is the stopping condition, not a timestamp.** Done is
+  K consecutive deep passes finding nothing new. A wall-clock hook plus a
+  completed report is satisfiable by waiting; this is not.
+- **A content checklist that cannot be faked**, such as G-TEACH: every
+  mechanic needs a beat where it appears alone.
+- **Long-running tests are an asset in an unattended run**, because they
+  make re-running a green suite for reassurance impractical.
+
+Standing rule: **re-running a green suite is not work.**
+
 ## 1.6 The defect-class checklist
 
 The cheapest high-value item in the whole kit. Every review round must

@@ -617,12 +617,95 @@ instruments chased a design that had already outrun them.
 
 ---
 
+# Part 4b: Tech stack and bootstrap order (Q12)
+
+**Pure GDScript, executed with the split-cost discipline.**
+
+## Two corrections to the earlier draft
+
+1. **The dominance proof was overstated.** Brute force to depth six is
+   roughly 300^6 and is not happening. Memoised on game state it is
+   tractable, because the state is small (three diver stations, three HP
+   values, three limb durabilities, enemy state), but that is tens of
+   millions of states. The honest claim is **depth-limited, memoised
+   search over representative states, dramatically stronger than
+   sampling, not a complete solve.**
+2. **Web export may be the decisive constraint and was ignored.** Every
+   piece of real feedback this project has ever received came from a
+   link. GDScript web export is first class; C# web export is partial and
+   historically the weak spot; Rust via gdext needs matching emscripten
+   toolchains and is finicky. The question is not throughput versus
+   ergonomics, it is **throughput versus distribution**, and distribution
+   is where all our evidence comes from.
+
+## The split
+
+| Runs | Contains | Constraint |
+|---|---|---|
+| **Every commit** | bands, differential harness check, layout invariants, telegraph honesty | must stay fast |
+| **Nightly or on demand** | dominance search, deep soaks, taught-line comparison, cold reads | allowed to take a long time |
+
+Still measure on day one: build the sim and one encounter, run 10,000
+fights, and time both that and a depth-3 memoised search. That decides
+which bucket things land in, with a number instead of an argument. If
+even the bands are slow, a Rust sim core becomes real and we accept the
+export cost.
+
+## Bootstrap order (binding)
+
+1. Sim core as plain `RefCounted`. No `Node`, no scene access. One
+   encounter, no art.
+2. Bot, plus the throughput measurement.
+3. **Layout invariants over the scene tree, before any content exists.**
+   `Control.get_global_rect()` gives us boxes for free, and retrofitting
+   this was the most expensive thing we did last time.
+4. Differential harness test, so the bot and the input handler provably
+   enter the same door.
+5. **A clickable web export on day one**, with a placeholder in it.
+6. Only then, content.
+
+## Long tests are a feature of an autonomous run
+
+Evidence from the last run: all nine gates went green at 06:21 and the
+run continued to 07:58. Those 97 minutes produced re-verification, a
+100,000-fight depth block, a stability soak and a README. **Zero new
+content.** The model concluded it was done and then filled time.
+
+The mechanism is **information yield, not duration**. A suite that always
+passes tells you nothing however long it takes; 267,930 green assertions
+means the instruments are exhausted, not that the game is finished. Slow
+tests help only because they make re-running a green suite for
+reassurance impractical.
+
+Three devices, to be written into the next run's PROGRESS.md:
+
+1. **Expensive generative verification runs continuously in the
+   background**, so there is always a pending question and "what do I do
+   while that runs" has one honest answer.
+2. **Loop-until-dry as the stopping condition, not a timestamp.** Done is
+   when K consecutive deep passes find nothing new. That makes "done" an
+   empirical property of the search rather than a judgement the builder
+   makes about itself. The last run's hook required a wall-clock time and
+   a completed report, both of which are satisfiable by waiting.
+3. **A content checklist that cannot be faked.** G-TEACH supplies one:
+   every mechanic needs a beat where it appears alone. Unbuilt beats mean
+   a red gate that no amount of re-running turns green.
+
+Standing rule: **re-running a green suite is not work.**
+
+---
+
 # Part 5: Still open
 
-| # | Question |
+The question tree is complete. What remains are loose ends rather than
+branches.
+
+| # | Loose end |
 |---|---|
-| 9 | Currency and progression: what is collected, what an NPC trades, whether Resonance returns |
-| 12 | Tech: GDScript versus Rust, decided by measuring bot throughput on one encounter; and the order in which the harness gets bootstrapped |
+| L1 | Does the heavy get adjacent-only movement (2.3, proposed not ruled) |
+| L2 | The six ability effects in 2.9 are invented rather than derived, and should be the first thing the bands and the dominance search are pointed at |
+| L3 | What comes out of the content budget to pay for the party |
+| L4 | The full teach ladder written out beat by beat, before content starts |
 
 ---
 
