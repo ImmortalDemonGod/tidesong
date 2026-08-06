@@ -525,34 +525,6 @@ could say what they were supposed to be doing or why.
 
 ---
 
-# Part 3b: Story and framing (older notes, superseded where they conflict)
-
-- **Setting:** post-flood dystopian diving expedition. Earth flooded,
-  the treasures of humanity are on the seabed, mutants and scarce
-  resources. Glass_Goat's premise, so it already has buy-in.
-- **The goal statement:** the Oz frame gives every character exactly one
-  want, and Dorothy's is the clearest goal in fiction. Here it is *get
-  back to the surface*. That is an opening that needs no lore and it
-  directly answers "nobody knew what they were supposed to be doing."
-- **The opening is a mechanic, not polish**, and it is budgeted as one.
-  Under a minute, it must deliver: who you are, what you want, what
-  stands in the way, and what the buttons do.
-- **Puzzle grammar:** the song puzzle failed because its entire state
-  lived in the player's memory of a sequence and nothing on screen held
-  it. Drawing the relationship between the objects did not fix it,
-  because the relationship was never the missing part. **The
-  replacement must be a lock whose whole state is readable off the
-  objects**: valves, pressure doors, power routing, flooded and drained
-  chambers. Also diegetic to "treasures of humanity," also the Zelda
-  idiom Marc asked for, and it gives the player a reason to be a diver.
-- **Analyze should be a character, not an ability.** Prototype1 carries a
-  three-lens drum. The retro found Analyze at 0 percent of optimal play
-  because information competed for the same slot as damage. Under Air,
-  spending 2 on the scanner instead of 3 on the heavy is a composition
-  choice, not a wasted turn.
-
----
-
 # Part 4: Verification plan
 
 ## 4.1 The upgrade: G4 stops being a statistic

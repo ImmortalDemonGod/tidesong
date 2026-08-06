@@ -60,7 +60,7 @@ unattended hours produce 87 commits instead of drifting.
 - Final panel of three briefed "prove this is NOT done." Zero HIGH to
   ship. Any HIGH triggers a confirmation re-panel.
 
-## 1.5 The standing rules (five earned in TIDESONG, four new)
+## 1.5 The standing rules (five earned in TIDESONG, six new)
 
 Earned the hard way last time, and they held:
 
@@ -82,6 +82,15 @@ New, from this retro:
    same commit.**
 9. **Every "deferred with reason" gets a BACKLOG line at the moment it
    is deferred.**
+10. **A detector's seed count is load bearing and is measured, not
+    guessed.** Found by wiring the detectors into the suite: the hint
+    detector reports the eel's best disable as *blind* at 60 seeds and
+    *slow* from 150 through 2400, and the taught-line finding set omits
+    the elder below 400 seeds. A cheap detector run produces confident
+    false findings, which is worse than no detector.
+11. **Every detector is invoked by the suite or by a scheduled job.** An
+    instrument nothing runs cannot block and will rot. `verify/` sat
+    orphaned from `bun test` for its entire first life.
 
 ## 1.5b Keeping an autonomous run honest about being done
 
@@ -131,7 +140,7 @@ harness fidelity           instruments enter through the player's door
 | File | Lines | Note |
 |---|---|---|
 | `verify/d1-recorder.js` | 98 | Proxies the 2D canvas context to recover a display list at runtime. Contains no reference to this game. Works on any canvas project. |
-| `verify/d1-layout.mjs` | 128 | Text-collision and card-containment invariants, plus the `play:` and `demo:|keys` drivers that send real KeyboardEvents at 40ms taps. Change the canvas dimensions and the chrome path, nothing else. |
+| `verify/d1-layout.mjs` | ~175 | Text-collision and card-containment invariants, plus the `play:` and `demo:\|keys` drivers that send real KeyboardEvents at 40ms taps on a **fake clock**, so runs are reproducible. Resolves `playwright-core` by bare specifier and discovers the newest installed chromium shell, so there are no absolute paths and no pinned browser build. **Set `PLAYWRIGHT_CORE` if you run it from outside a tree with `node_modules` above it**, and change the canvas dimensions if they differ. |
 | `build.ts` | 32 | Bundle to a single self-contained `dist/index.html`. |
 | The `gh-pages` deploy recipe | - | blob, mktree, commit-tree, update-ref, push. One link for the team, zero setup. |
 

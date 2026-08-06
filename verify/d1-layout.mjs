@@ -3,53 +3,97 @@
 //   1. No two text draws in the same frame collide.
 //   2. Every text draw that sits on a card stays inside it, with padding.
 //
-// Two modes, because a static state and a played sequence fail differently:
-//   node verify/d1-layout.mjs dist/index.html demo:fragment [out.png]
-//   node verify/d1-layout.mjs dist/index.html play:ArrowRight*5,ArrowDown [out.png]
-import { chromium } from "/Users/tomriddle1/node_modules/playwright-core/index.mjs";
-import { readFileSync } from "node:fs";
+// Usage:
+//   node verify/d1-layout.mjs <html> demo:<state>            static state
+//   node verify/d1-layout.mjs <html> play:<keys>             played from the title
+//   node verify/d1-layout.mjs <html> demo:<state>|<keys>     play on from a state
+//   keys are comma separated and "Key*N" repeats:
+//   play:Space,ArrowRight*5,ArrowDown   or   demo:boss|4,1,1,3,1,1
+//   an optional third argument writes a screenshot.
+//
+// Determinism: the page runs on Playwright's FAKE CLOCK, so frame sampling
+// does not depend on wall time. An earlier version slept with
+// waitForTimeout and returned a different finding COUNT on identical input
+// (8, then 7), which broke this project's own rule that instrument labels
+// must measure rather than assert. Output is now unique SIGNATURES with the
+// worst measured value per signature, plus the observed frame count.
+import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { pathToFileURL } from "node:url";
+import { homedir } from "node:os";
+import { join } from "node:path";
 
 const [html, mode, outPng] = process.argv.slice(2);
 const RECORDER = readFileSync(new URL("./d1-recorder.js", import.meta.url), "utf8");
 const PAD = 6; // minimum breathing room between text and the edge of its card
-const SHELL =
-  process.env.CHROME_SHELL ??
-  "/Users/tomriddle1/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell";
 
-const browser = await chromium.launch({ headless: true, executablePath: SHELL });
+// ---- portable resolution: no absolute paths, no pinned browser build ----
+async function loadChromium() {
+  for (const spec of [process.env.PLAYWRIGHT_CORE, "playwright-core"].filter(Boolean)) {
+    try {
+      return (await import(spec)).chromium;
+    } catch {}
+  }
+  throw new Error("playwright-core not resolvable. Set PLAYWRIGHT_CORE to its entry point.");
+}
+
+function findShell() {
+  if (process.env.CHROME_SHELL) return process.env.CHROME_SHELL;
+  const roots = [
+    join(homedir(), "Library/Caches/ms-playwright"), // macOS
+    join(homedir(), ".cache/ms-playwright"), // Linux
+  ].filter(existsSync);
+  for (const root of roots) {
+    // newest install wins; never pin a build number
+    const dirs = readdirSync(root)
+      .filter((d) => d.startsWith("chromium_headless_shell-"))
+      .sort((a, b) => Number(b.split("-")[1]) - Number(a.split("-")[1]));
+    for (const d of dirs) {
+      for (const rel of [
+        "chrome-headless-shell-mac-arm64/chrome-headless-shell",
+        "chrome-headless-shell-mac-x64/chrome-headless-shell",
+        "chrome-headless-shell-linux/chrome-headless-shell",
+      ]) {
+        const p = join(root, d, rel);
+        if (existsSync(p)) return p;
+      }
+    }
+  }
+  return undefined; // fall back to playwright's own default
+}
+
+const chromium = await loadChromium();
+const executablePath = findShell();
+const browser = await chromium.launch({ headless: true, ...(executablePath ? { executablePath } : {}) });
 const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+await page.clock.install({ time: 0 }); // fake clock BEFORE any page code
 await page.addInitScript(RECORDER);
 const errors = [];
 page.on("pageerror", (e) => errors.push(String(e)));
 
-// mode is either "play:<keys>" from the title screen, or
-// "demo:<state>" optionally followed by "|<keys>" to play on from that state
 const [modeHead, modeKeys] = mode.split("|");
 const isPlay = modeHead.startsWith("play:") || !!modeKeys;
 const keySpec = modeHead.startsWith("play:") ? modeHead.slice(5) : (modeKeys ?? "");
-const url = pathToFileURL(html).href + (modeHead.startsWith("play:") ? "" : `?demo=${modeHead.replace(/^demo:/, "")}`);
+const url =
+  pathToFileURL(html).href + (modeHead.startsWith("play:") ? "" : `?demo=${modeHead.replace(/^demo:/, "")}`);
 await page.goto(url, { waitUntil: "load" });
-await page.waitForTimeout(600);
+await page.clock.runFor(600);
 
 if (isPlay) {
-  // real KeyboardEvents through the real handlers, 40ms taps so auto-repeat
-  // cannot overshoot (a probe that overshoots proves nothing)
-  const keys = keySpec
-    .split(",")
-    .flatMap((tok) => {
-      const [k, n] = tok.split("*");
-      return Array.from({ length: Number(n ?? 1) }, () => k);
-    });
+  // real KeyboardEvents through the real handlers, advanced on the fake
+  // clock so the frame sequence is identical on every run
+  const keys = keySpec.split(",").flatMap((tok) => {
+    const [k, n] = tok.split("*");
+    return Array.from({ length: Number(n ?? 1) }, () => k);
+  });
   for (const k of keys) {
     await page.keyboard.down(k);
-    await page.waitForTimeout(40);
+    await page.clock.runFor(40); // short tap: auto-repeat can never overshoot
     await page.keyboard.up(k);
-    await page.waitForTimeout(120);
+    await page.clock.runFor(120);
   }
-  await page.waitForTimeout(900);
+  await page.clock.runFor(900);
 } else {
-  await page.waitForTimeout(700);
+  await page.clock.runFor(700);
 }
 if (outPng) await page.screenshot({ path: outPng });
 const draws = await page.evaluate(() => window.__REC.draws);
@@ -61,7 +105,14 @@ const inter = (a, b) => ({
 });
 const area = (b) => Math.max(0, b.x1 - b.x0) * Math.max(0, b.y1 - b.y0);
 const canvasArea = 1280 * 720;
-const findings = [];
+
+// signature -> worst measured value, so a finding's identity is stable even
+// when the number of frames it appears in is not
+const found = new Map();
+const note = (sig, measured, worse) => {
+  const prev = found.get(sig);
+  if (!prev || worse(measured, prev.measured)) found.set(sig, { measured });
+};
 
 const byFrame = new Map();
 for (const d of draws) {
@@ -84,15 +135,22 @@ for (const frame of byFrame.values()) {
       const minH = Math.min(a.box.y1 - a.box.y0, b.box.y1 - b.box.y0);
       const minW = Math.min(a.box.x1 - a.box.x0, b.box.x1 - b.box.x0);
       if (o.h < minH * 0.35 || o.w < minW * 0.2) continue; // descender slop, not a collision
-      findings.push(
-        `TEXT COLLISION: "${a.text.slice(0, 44)}" over "${b.text.slice(0, 44)}" by ${Math.round(o.w)}x${Math.round(o.h)}px`,
+      note(
+        `TEXT COLLISION: "${a.text.slice(0, 44)}" over "${b.text.slice(0, 44)}"`,
+        Math.round(o.w) * Math.round(o.h),
+        (m, p) => m > p,
       );
     }
   }
 
   // ---- invariant 2: text stays inside the card it is drawn on ----
   const panels = frame
-    .filter((d) => (d.kind === "shape" || d.kind === "outline") && area(d.box) > 12000 && area(d.box) < canvasArea * 0.6)
+    .filter(
+      (d) =>
+        (d.kind === "shape" || d.kind === "outline") &&
+        area(d.box) > 12000 &&
+        area(d.box) < canvasArea * 0.6,
+    )
     .filter((d) => d.box.x1 - d.box.x0 > 120 && d.box.y1 - d.box.y0 > 28)
     .filter((d) => d.alpha > 0.5);
   for (const t of texts) {
@@ -113,16 +171,18 @@ for (const frame of byFrame.values()) {
     const worst = Math.min(gap.l, gap.r, gap.t, gap.b);
     if (worst < PAD) {
       const side = worst === gap.b ? "bottom" : worst === gap.t ? "top" : worst === gap.l ? "left" : "right";
-      findings.push(
-        `TEXT CLIPPED: "${t.text.slice(0, 44)}" sits ${worst.toFixed(1)}px from its card's ${side} edge (needs ${PAD})`,
+      note(
+        `TEXT CLIPPED: "${t.text.slice(0, 44)}" against its card's ${side} edge (needs ${PAD})`,
+        worst,
+        (m, p) => m < p,
       );
     }
   }
 }
 
-const uniq = [...new Set(findings)];
-console.log(`D1 LAYOUT  ${mode}  ${byFrame.size} frames, ${draws.length} draw ops`);
+const sigs = [...found.entries()].sort(([a], [b]) => a.localeCompare(b));
+console.log(`D1 LAYOUT  ${mode}  ${byFrame.size} frames observed, ${draws.length} draw ops`);
 for (const e of errors) console.log(`PAGE ERROR  ${e}`);
-for (const f of uniq) console.log(`FINDING  ${f}`);
-console.log(uniq.length ? `D1: ${uniq.length} finding(s)` : "D1: layout clean");
-process.exit(uniq.length ? 1 : 0);
+for (const [sig, { measured }] of sigs) console.log(`FINDING  ${sig}  [measured worst: ${measured}]`);
+console.log(sigs.length ? `D1: ${sigs.length} signature(s)` : "D1: layout clean");
+process.exit(sigs.length ? 1 : 0);

@@ -1,5 +1,14 @@
 # TIDESONG retrospective: what to keep and what to change for the next one
 
+> **SUPERSEDED IN PART. Read `LESSONS.md` v2 first.**
+> This document's central diagnosis, that the gates were blind to
+> presentation, was investigated further and **refuted by the run log**.
+> The harness did attack presentation with as-played instruments and
+> caught the worst defect in the project. The corrected account of why 33
+> defects survived is in LESSONS.md Part 3. Everything here about what
+> worked, and the process failures, still stands.
+
+
 Written after the prototype was built, verified, shipped, and then
 played by humans. It exists to make the next prototype better, so it is
 organized around decisions to carry forward rather than a narrative of
@@ -10,7 +19,7 @@ the night. Every claim cites the artifact it came from.
 | Window | Commits | What it produced |
 |---|---|---|
 | Jul 28 22:50 to Jul 29 07:58 (autonomous run) | 87 | 9 gates GREEN, 267,930 assertions, 3 adversarial panels, 100,000 simulated fights, a cold human score of **6/10** |
-| Jul 29 15:31 to 23:19 (human at the controls) | 19 | 19 real defects, none of which any gate had caught |
+| Jul 29 15:31 to 23:19 (human at the controls) | 19 | **33 distinct defects** across 19 commits, none caught by any gate |
 
 The verification architecture was very good at proving the game was
 correct and had no opinion at all about whether it was good. That single
@@ -59,6 +68,15 @@ instead.
 ## What did not work
 
 ### 1. Every gate was a simulation gate
+
+> **RETRACTED.** This section is wrong and is kept as the record of what
+> was believed. The gates were not blind to presentation: as-played
+> filmstrips drove real key and pointer events, and a skeptic round found
+> that the entire combat log never reached the UI by counting oscillator
+> starts in a headless harness. See LESSONS.md Part 2 for what the harness
+> actually caught, and Part 3 for the four failure modes that replaced
+> this explanation.
+
 
 G1 through G9 are all defined over sim state: crashes, win rates, damage
 taken, log-line classification, doc fidelity. Not one gate was defined

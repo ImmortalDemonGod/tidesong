@@ -22,7 +22,7 @@ commands in each section.
 | D7 differential harness | 25, judges measured another game | **turns 7 vs 8, hp 81 vs 94** | identical |
 | null-result alarm | 25, same defect, different angle | **bands byte-identical after halving a cost** | n/a |
 | D1 containment | 31, story card cut off | **FINDING: reward line 2.3px past the border** | layout clean |
-| D1 collision | 30, floaters cross text | (n/a) | **8 FINDINGS, matches an open backlog item** |
+| D1 collision | 30, floaters cross text | (n/a) | **1 SIGNATURE, matches an open backlog item** |
 | D2 cold read, style 4 | 18, charge scope unreadable | **CANNOT TELL, exact wording of the human's question** | narrows to one residual gap |
 | D2 cold read, style 4 | not aimed at anything | (n/a) | **3 unreported defects found in the shipped build** |
 
@@ -152,9 +152,10 @@ cut off":
 
 ```
 cd <worktree at 0485df4> && node verify/d1-layout.mjs dist/index.html "play:Space,ArrowRight*5,ArrowDown"
+D1 LAYOUT  play:Space,ArrowRight*5,ArrowDown  55 frames observed, 8909 draw ops
 FINDING  TEXT CLIPPED: "the song returns to you: +1 max stamina  ·  "
-         sits -2.3px from its card's bottom edge (needs 6)
-D1: 1 finding(s)
+         against its card's bottom edge (needs 6)  [measured worst: -2.349609375]
+D1: 1 signature(s)
 
 # same command at HEAD
 D1: layout clean
@@ -169,7 +170,7 @@ in a number, with no human involved.
    during a pickup, so no `?demo=` state contains it. The overnight run's
    17-state screenshot gallery was structurally incapable of catching
    this. The detector had to *play*: real KeyboardEvents through the real
-   handlers, 40ms taps, invariants checked on all 54 sampled frames.
+   handlers, 40ms taps, invariants checked on all 55 sampled frames.
 2. **The naive containment rule is 67 percent false positives.** First
    run at HEAD produced 3 findings; 2 were world labels ("song-seal (the
    alcove)", "a verse sleeps here") misattributed to a background light
@@ -177,11 +178,20 @@ in a number, with no human involved.
    panel to be drawn within 4 ops of the text, since a card is drawn as
    panel-then-its-text contiguously. After that fix: 1 finding before,
    0 after, no false positives.
-3. **The collision invariant found a real open defect at HEAD.** Eight
-   findings on a played boss fight, all of the form `"-11" over "analyze:
+3. **The collision invariant found a real open defect at HEAD.** On a
+   played boss fight it reports one signature, `"-11" over "analyze:
    break the Jaw to end this phase"`. That is the backlog's "damage
    floaters can cross the analyze-hint text for a beat in boss fights",
    found independently by a `for` loop.
+
+   **This row used to read "8 FINDINGS" and that was a defect in the
+   instrument, not a measurement.** The detector slept on the wall clock,
+   so frame sampling varied and identical input returned 8, then 7, then
+   5 on a different key sequence. It now runs the page on Playwright's
+   fake clock and reports unique signatures with the worst measured value,
+   so the same input returns the same answer three times out of three.
+   Our own rule is that instrument labels must measure, never assert; the
+   count was asserting.
 
 ## D2: the cold-read questionnaire, and which prompt style works
 
